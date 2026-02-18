@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Users - Tennis Academy{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="card-title">Manage Users</h2>
+        <button class="btn btn-primary" onclick="openModal()">+ Add User</button>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Phone</th>
+                <th>Enrollments</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.full_name }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                    <span class="badge badge-{{ user.role }}">
+                        {{ user.role.title() }}
+                    </span>
+                </td>
+                <td>{{ user.phone or 'N/A' }}</td>
+                <td>{{ user.enrollments }}</td>
+                <td>{{ user.created_at[:10] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Add User Modal -->
+<div id="addUserModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add New User</h3>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('admin_add_user') }}">
+            <div class="form-group">
+                <label for="full_name">Full Name</label>
+                <input type="text" class="form-control" id="full_name" name="full_name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select class="form-control" id="role" name="role" required>
+                    <option value="coach">Coach</option>
+                    <option value="family">Family</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" class="form-control" id="phone" name="phone">
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Add User</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openModal() {
+        document.getElementById('addUserModal').classList.add('active');
+    }
+    
+    function closeModal() {
+        document.getElementById('addUserModal').classList.remove('active');
+    }
+    
+    window.onclick = function(event) {
+        const modal = document.getElementById('addUserModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+</script>
+{% endblock %}

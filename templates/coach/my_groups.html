@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}My Groups - Tennis Academy{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">My Groups</h2>
+    </div>
+    
+    {% if groups %}
+        {% for group in groups %}
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+                <h3>{{ group.name }}</h3>
+                <p style="color: #666;">{{ group.schedule }}</p>
+                {% if group.description %}
+                <p style="color: #888; font-size: 0.9rem;">{{ group.description }}</p>
+                {% endif %}
+            </div>
+            
+            <h4 style="margin-bottom: 15px;">Members ({{ group_members[group.id]|length }})</h4>
+            
+            {% if group_members[group.id] %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kid Name</th>
+                        <th>Parent Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in group_members[group.id] %}
+                    <tr>
+                        <td>{{ member.kid_name }}</td>
+                        <td>{{ member.parent_name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: #666;">No members enrolled in this group yet.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-warning">
+            You are not assigned to any groups yet. Please contact the admin.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

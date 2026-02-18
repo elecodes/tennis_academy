@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Send Message - Tennis Academy{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Send Message to Your Group</h2>
+    </div>
+    
+    {% if groups %}
+    <form method="POST" action="{{ url_for('coach_send_message') }}">
+        <div class="form-group">
+            <label for="message_type">Message Type</label>
+            <select class="form-control" id="message_type" name="message_type" required>
+                <option value="rain_cancellation">Rain Cancellation</option>
+                <option value="coach_delay">Coach Delay</option>
+                <option value="announcement">Announcement</option>
+                <option value="schedule_change">Schedule Change</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="subject">Subject</label>
+            <input type="text" class="form-control" id="subject" name="subject" 
+                   placeholder="e.g., Running 15 minutes late" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="content">Message Content</label>
+            <textarea class="form-control" id="content" name="content" rows="6" 
+                      placeholder="Enter your message here..." required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="group_id">Select Group</label>
+            <select class="form-control" id="group_id" name="group_id" required>
+                <option value="">-- Select Group --</option>
+                {% for group in groups %}
+                <option value="{{ group.id }}">{{ group.name }} - {{ group.schedule }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="alert alert-info">
+            <strong>Note:</strong> This message will be sent via email to all families in the selected group.
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Send Message</button>
+        <a href="{{ url_for('dashboard') }}" class="btn" style="background: #6c757d; color: white;">Cancel</a>
+    </form>
+    {% else %}
+    <div class="alert alert-warning">
+        You are not assigned to any groups yet. Please contact the admin.
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+    {% endif %}
+</div>
+{% endblock %}

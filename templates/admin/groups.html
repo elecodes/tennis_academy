@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Groups - Tennis Academy{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="card-title">Manage Groups</h2>
+        <button class="btn btn-primary" onclick="openModal()">+ Add Group</button>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Group Name</th>
+                <th>Schedule</th>
+                <th>Coach</th>
+                <th>Members</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in groups %}
+            <tr>
+                <td>{{ group.name }}</td>
+                <td>{{ group.schedule }}</td>
+                <td>{{ group.coach_name or 'Not assigned' }}</td>
+                <td>{{ group.member_count }}</td>
+                <td>{{ group.description or 'N/A' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Group Modal -->
+<div id="addGroupModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add New Group</h3>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('admin_add_group') }}">
+            <div class="form-group">
+                <label for="name">Group Name</label>
+                <input type="text" class="form-control" id="name" name="name" 
+                       placeholder="e.g., Beginners Mon/Wed" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="schedule">Schedule</label>
+                <input type="text" class="form-control" id="schedule" name="schedule" 
+                       placeholder="e.g., Monday & Wednesday 4:00-5:30 PM" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="coach_id">Coach</label>
+                <select class="form-control" id="coach_id" name="coach_id">
+                    <option value="">-- Select Coach --</option>
+                    {% for coach in coaches %}
+                    <option value="{{ coach.id }}">{{ coach.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control" id="description" name="description" 
+                          placeholder="Age group, skill level, etc."></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Add Group</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openModal() {
+        document.getElementById('addGroupModal').classList.add('active');
+    }
+    
+    function closeModal() {
+        document.getElementById('addGroupModal').classList.remove('active');
+    }
+    
+    window.onclick = function(event) {
+        const modal = document.getElementById('addGroupModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+</script>
+{% endblock %}

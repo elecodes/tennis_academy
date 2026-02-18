@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}My Enrollments - Tennis Academy{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">My Enrollments</h2>
+        <p>Your kids' tennis group enrollments</p>
+    </div>
+    
+    {% if enrollments %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            {% for enrollment in enrollments %}
+            <div class="card" style="border-left: 4px solid #667eea;">
+                <h3 style="color: #667eea; margin-bottom: 10px;">{{ enrollment.kid_name }}</h3>
+                <p><strong>Group:</strong> {{ enrollment.name }}</p>
+                <p><strong>Schedule:</strong> {{ enrollment.schedule }}</p>
+                <p><strong>Coach:</strong> {{ enrollment.coach_name or 'TBA' }}</p>
+                {% if enrollment.description %}
+                <p style="color: #666; font-size: 0.9rem; margin-top: 10px;">
+                    {{ enrollment.description }}
+                </p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            <p>You don't have any enrollments yet.</p>
+            <p style="margin-top: 10px;">Please contact the admin to enroll your kids in tennis groups.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

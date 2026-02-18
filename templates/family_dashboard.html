@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Family Dashboard - Tennis Academy{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Family Dashboard</h2>
+        <p>Welcome back, {{ session.full_name }}!</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">My Kids' Enrollments</h3>
+    </div>
+    
+    {% if stats.my_enrollments %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Kid Name</th>
+                    <th>Group</th>
+                    <th>Schedule</th>
+                    <th>Coach</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for enrollment in stats.my_enrollments %}
+                <tr>
+                    <td>{{ enrollment.kid_name }}</td>
+                    <td>{{ enrollment.name }}</td>
+                    <td>{{ enrollment.schedule }}</td>
+                    <td>{{ enrollment.coach_name or 'TBA' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-warning">
+            You don't have any enrollments yet. Please contact the admin to enroll your kids.
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Recent Messages</h3>
+    </div>
+    
+    {% if stats.messages %}
+        {% for message in stats.messages[:5] %}
+        <div class="message-card">
+            <div class="message-header">
+                <div>
+                    <span class="badge badge-{{ message.message_type.split('_')[0] }}">
+                        {{ message.message_type.replace('_', ' ').title() }}
+                    </span>
+                    <strong>{{ message.subject }}</strong>
+                </div>
+                <span class="message-date">{{ message.sent_at }}</span>
+            </div>
+            <p>{{ message.content[:150] }}{% if message.content|length > 150 %}...{% endif %}</p>
+            <small>From: {{ message.sender_name }} | 
+                {% if message.is_general %}
+                    General Announcement
+                {% else %}
+                    Group: {{ message.group_name or 'N/A' }}
+                {% endif %}
+            </small>
+        </div>
+        {% endfor %}
+        
+        {% if stats.messages|length > 5 %}
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="{{ url_for('family_messages') }}" class="btn btn-primary">View All Messages</a>
+        </div>
+        {% endif %}
+    {% else %}
+        <p style="text-align: center; color: #666;">No messages yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

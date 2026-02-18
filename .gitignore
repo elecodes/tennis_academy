@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+academy.db
+server_test.log
+test_credentials.md
+.env

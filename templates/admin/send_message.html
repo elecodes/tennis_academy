@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Send Message - Tennis Academy{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Send Message</h2>
+    </div>
+    
+    <form method="POST" action="{{ url_for('admin_send_message') }}">
+        <div class="form-group">
+            <label for="message_type">Message Type</label>
+            <select class="form-control" id="message_type" name="message_type" required>
+                <option value="rain_cancellation">Rain Cancellation</option>
+                <option value="coach_delay">Coach Delay</option>
+                <option value="announcement">General Announcement</option>
+                <option value="schedule_change">Schedule Change</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="subject">Subject</label>
+            <input type="text" class="form-control" id="subject" name="subject" 
+                   placeholder="e.g., Class Cancelled Due to Rain" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="content">Message Content</label>
+            <textarea class="form-control" id="content" name="content" rows="6" 
+                      placeholder="Enter your message here..." required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="group_id">Target Group (optional)</label>
+            <select class="form-control" id="group_id" name="group_id">
+                <option value="">-- Select Specific Group --</option>
+                {% for group in groups %}
+                <option value="{{ group.id }}">{{ group.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group checkbox-group">
+            <input type="checkbox" id="is_general" name="is_general">
+            <label for="is_general" style="margin-bottom: 0;">
+                <strong>Send to ALL families</strong> (ignores group selection)
+            </label>
+        </div>
+        
+        <div class="alert alert-info">
+            <strong>Note:</strong> Messages will be sent via email to all selected recipients.
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Send Message</button>
+        <a href="{{ url_for('dashboard') }}" class="btn" style="background: #6c757d; color: white;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

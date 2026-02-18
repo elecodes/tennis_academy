@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Tennis Academy{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Admin Dashboard</h2>
+    <p>Welcome back, {{ session.full_name }}!</p>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-number">{{ stats.total_users }}</div>
+    <div class="stat-label">Total Users</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">{{ stats.total_groups }}</div>
+    <div class="stat-label">Groups</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">{{ stats.total_messages }}</div>
+    <div class="stat-label">Messages Sent</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Recent Messages</h3>
+  </div>
+
+  {% if stats.recent_messages %}
+  {% for message in stats.recent_messages %}
+  <div class="message-card">
+    <div class="message-header">
+      <div>
+        <span class="badge badge-{{ message.message_type.split('_')[0] }}">
+          {{ message.message_type.replace('_', ' ').title() }}
+        </span>
+        <strong>{{ message.subject }}</strong>
+      </div>
+      <span class="message-date">{{ message.sent_at }}</span>
+    </div>
+    <p>{{ message.content[:100] }}{% if message.content|length > 100 %}...{% endif %}</p>
+    <small>From: {{ message.sender_name }} |
+      {% if message.is_general %}
+      General Announcement
+      {% else %}
+      Group: {{ message.group_name or 'N/A' }}
+      {% endif %}
+    </small>
+  </div>
+  {% endfor %}
+  {% else %}
+  <p style="text-align: center; color: #666;">No messages yet.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Quick Actions</h3>
+  </div>
+  <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+    <a href="{{ url_for('admin_send_message') }}" class="btn btn-primary">
+      Send Message
+    </a>
+    <a href="{{ url_for('admin_users') }}" class="btn btn-success">
+      Manage Users
+    </a>
+    <a href="{{ url_for('admin_groups') }}" class="btn btn-warning">
+      Manage Groups
+    </a>
+    <a href="{{ url_for('admin_enrollments') }}" class="btn btn-success">
+      Manage Enrollments
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Test Email Connection</h3>
+  </div>
+  <form action="{{ url_for('admin_test_email') }}" method="POST"
+    style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+    <div class="form-group" style="flex-grow: 1; margin-bottom: 0; min-width: 250px;">
+      <label for="test_email">Recipient Email</label>
+      <input type="email" id="test_email" name="test_email" class="form-control" placeholder="your-email@example.com"
+        required>
+    </div>
+    <button type="submit" class="btn btn-primary">Send Test Email</button>
+  </form>
+  <p style="margin-top: 15px; font-size: 0.9rem; color: #666; font-style: italic;">
+    Note: This tests your SMTP settings directly. Ensure <code>SENDER_EMAIL</code> and <code>SENDER_PASSWORD</code> are
+    set.
+  </p>
+</div>
+{% endblock %}

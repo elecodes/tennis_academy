@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}My Messages - Tennis Academy{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">My Messages</h2>
+        <p>All messages for your enrolled groups</p>
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+        <div class="message-card" style="border-left-color: 
+            {% if message.message_type == 'rain_cancellation' %}#6c757d
+            {% elif message.message_type == 'coach_delay' %}#ffc107
+            {% elif message.message_type == 'announcement' %}#17a2b8
+            {% else %}#6610f2{% endif %};">
+            <div class="message-header">
+                <div>
+                    <span class="badge badge-{{ message.message_type.split('_')[0] }}">
+                        {{ message.message_type.replace('_', ' ').title() }}
+                    </span>
+                    <strong style="font-size: 1.1rem;">{{ message.subject }}</strong>
+                </div>
+                <span class="message-date">{{ message.sent_at }}</span>
+            </div>
+            <div style="margin: 15px 0; line-height: 1.6;">
+                {{ message.content }}
+            </div>
+            <div style="background: #f0f0f0; padding: 10px; border-radius: 5px; font-size: 0.9rem;">
+                <strong>From:</strong> {{ message.sender_name }}<br>
+                <strong>Group:</strong> 
+                {% if message.is_general %}
+                    General Announcement (All Groups)
+                {% else %}
+                    {{ message.group_name or 'N/A' }}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">
+            No messages yet. You'll receive notifications here when there are updates about your kids' groups.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
