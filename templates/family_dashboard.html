@@ -74,6 +74,9 @@
         {% if stats.messages|length > 5 %}
         <div style="text-align: center; margin-top: 20px;">
             <a href="{{ url_for('family_messages') }}" class="btn btn-primary">View All Messages</a>
+            <a href="{{ url_for('timetables.get_timetable_page') }}" class="btn btn-primary">
+              📅 View Weekly Schedules
+            </a>
         </div>
         {% endif %}
     {% else %}

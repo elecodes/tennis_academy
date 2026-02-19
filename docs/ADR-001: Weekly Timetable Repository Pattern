@@ -1,0 +1,140 @@
+# ADR-001: Weekly Timetable Repository Pattern
+
+## Status
+✅ **ACCEPTED**
+
+## Context
+The Tennis Academy needed a way to display weekly schedules for different user roles (admin, coach, family) with proper data isolation and RBAC (Role-Based Access Control).
+
+## Decision
+Implement a **Repository Pattern** with role-based filtering to:
+1. Centralize timetable business logic
+2. Enforce RBAC at the data layer
+3. Prevent PII leakage (emails, family IDs)
+4. Make testing easier with dependency injection
+
+## Implementation
+
+### Architecture
+```
+Request (Session with user_id + role)
+    ↓
+Route Handler (/timetable, /api/timetables/weekly)
+    ↓
+TimetableRepository.get_weekly_timetable(role, user_id, week_start)
+    ↓
+Database Queries (with role-based WHERE clauses)
+    ↓
+Response (JSON or HTML)
+```
+
+### Role-Based Access Control
+
+#### ADMIN
+```python
+# Can see ALL groups
+SELECT * FROM groups
+
+# Can see ALL kids in ANY group
+SELECT * FROM kids WHERE id IN (
+    SELECT kid_id FROM group_kids WHERE group_id IN (...)
+)
+
+# Can see ALL schedules
+SELECT * FROM group_schedules
+```
+
+#### COACH
+```python
+# Can see ONLY their assigned groups
+SELECT * FROM groups WHERE coach_id = ?
+
+# Can see kids ONLY in their groups
+SELECT * FROM kids WHERE id IN (
+    SELECT kid_id FROM group_kids WHERE group_id IN (
+        SELECT id FROM groups WHERE coach_id = ?
+    )
+)
+
+# Can see schedules ONLY for their groups
+SELECT * FROM group_schedules WHERE group_id IN (...)
+```
+
+#### FAMILY
+```python
+# Can see ONLY their enrolled groups
+SELECT DISTINCT g.* FROM groups g
+JOIN group_kids gk ON g.id = gk.group_id
+JOIN kids k ON gk.kid_id = k.id
+JOIN families f ON k.family_id = f.id
+WHERE f.id = ?
+
+# Can see ONLY their own kids
+SELECT * FROM kids WHERE family_id = ?
+
+# Can see schedules ONLY for their groups (no direct access to family_id)
+SELECT * FROM group_schedules WHERE group_id IN (...)
+```
+
+### Data Sensitivity
+- ❌ **NEVER expose** `family_id` to families or coaches
+- ❌ **NEVER expose** emails to families (unless it's their own)
+- ✅ **Always filter** by role at database level
+- ✅ **Always validate** user_id matches session
+
+## Consequences
+
+### Positive
+- ✅ Security: RBAC enforced at data layer
+- ✅ Testability: Easy to mock repository
+- ✅ Maintainability: Business logic centralized
+- ✅ Performance: Single query per role type
+- ✅ No PII leaks: Role-based column filtering
+
+### Negative
+- ⚠️ Slight complexity: Need to understand role logic
+- ⚠️ Database-specific: Uses SQLite syntax (easily ported to PostgreSQL)
+
+## Testing Strategy
+
+### Unit Tests (13 tests)
+```python
+# Test ADMIN access
+test_admin_can_see_all_groups()
+test_admin_can_see_all_kids()
+test_admin_can_see_all_emails()
+
+# Test COACH access
+test_coach_can_see_only_assigned_groups()
+test_coach_cannot_see_other_coaches_groups()
+test_coach_cannot_see_family_emails()
+
+# Test FAMILY access
+test_family_can_see_only_enrolled_groups()
+test_family_cannot_see_other_families()
+test_family_cannot_see_family_id_in_response()
+
+# Test error cases
+test_invalid_role_raises_error()
+test_monday_validation()
+test_correct_week_range()
+```
+
+### Integration Tests (TODO)
+```python
+test_api_endpoint_with_admin_session()
+test_api_endpoint_with_coach_session()
+test_api_endpoint_with_family_session()
+test_frontend_renders_correctly_by_role()
+```
+
+## Related Files
+- `repositories/timetable_repository.py` - Repository implementation
+- `tests/test_timetable_repository.py` - Unit tests
+- `routes/timetables.py` - API routes
+- `templates/timetable.html` - Frontend template
+
+## References
+- Repository Pattern: https://martinfowler.com/eaaCatalog/repository.html
+- RBAC: https://en.wikipedia.org/wiki/Role-based_access_control
+- SQLite Query Optimization: https://www.sqlite.org/queryplanner.html

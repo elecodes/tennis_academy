@@ -62,6 +62,9 @@
     <h3 class="card-title">Quick Actions</h3>
   </div>
   <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+    <a href="{{ url_for('timetables.get_timetable_page') }}" class="btn btn-primary">
+      📅 View Weekly Schedules
+    </a>
     <a href="{{ url_for('admin_send_message') }}" class="btn btn-primary">
       Send Message
     </a>

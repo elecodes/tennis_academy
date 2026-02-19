@@ -12,10 +12,14 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from werkzeug.security import generate_password_hash, check_password_hash
+from routes.timetables import timetables_bp
 import secrets
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
+
+app.register_blueprint(timetables_bp)
+
 
 # Database path
 DB_PATH = os.path.join(os.path.dirname(__file__), 'academy.db')
