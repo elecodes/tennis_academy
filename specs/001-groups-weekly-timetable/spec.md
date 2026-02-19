@@ -7,7 +7,18 @@
 
 ---
 
-## 📋 Overview
+## � Clarificaciones
+
+### Sesión 2026-02-19
+- Q: How should the system respond to unauthorized access attempts? → A: Redirect to dashboard with a "Permission Denied" message.
+- Q: How to display a week with no scheduled sessions? → A: Show the empty table with a "No sessions scheduled" message.
+- Q: Management scope and Admin permissions? → A: Admin has full CRUD (edit, add, delete) and sees everything; Coaches/Families have limited read-only views.
+- Q: Accessibility focus? → A: Priority on Semantic HTML and Screen Reader support (ARIA labels).
+- Q: Expected scale? → A: Small scale (Max 4 groups, Max 6 sessions per day).
+
+---
+
+## �📋 Overview
 
 Mostrar **horario semanal de grupos de tenis** con:
 - Entrenador (coach)
@@ -33,6 +44,7 @@ Mostrar **horario semanal de grupos de tenis** con:
 - **Dado** un usuario autenticado
 - **Cuando** accede a "Horarios" o "Weekly Timetable"
 - **Entonces** ve tabla con: Grupo | Coach | Lun | Mar | Mié | Jue | Vie | Sab | Dom
+- **Si** no hay sesiones en la semana, muestra el mensaje: "No hay sesiones programadas para esta semana."
 
 ### RF-2: Información por Grupo
 Cada grupo muestra:
@@ -262,6 +274,14 @@ Given: User viewing week of Feb 16-22
 When:  Clicks "← Previous Week" or "Next Week →"
 Then:  Schedule updates to previous/next week
 And:   URL updates: ?date=2026-02-09 (or 2026-02-23)
+```
+
+### Scenario 5: Unauthorized Access
+```
+Given: Family A logged in
+When:  Attempts to access URL for Group B (unauthorized)
+Then:  Redirected to Dashboard
+And:   Sees flash message: "Acceso denegado: No tienes permiso para ver este grupo."
 ```
 
 ---

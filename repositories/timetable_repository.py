@@ -124,7 +124,7 @@ class TimetableRepository:
         for g in groups_data:
             group_id = g['id']
             
-            # Get kids in this group (only for coaches/admin viewing their groups)
+            # Get kids in this group
             kids_query = '''
                 SELECT DISTINCT
                     gm.kid_name as name,
@@ -135,14 +135,20 @@ class TimetableRepository:
             cursor.execute(kids_query, (group_id,))
             kids = [dict(row) for row in cursor.fetchall()]
             
-            # Parse schedule string to get days/times
-            # Format: "Monday & Wednesday 4:00-5:30 PM"
-            schedules = self._parse_schedule(g['schedule'])
+            # Get structured schedules from the new table
+            schedules_query = '''
+                SELECT id, day_of_week as day, start_time, end_time, court
+                FROM group_schedules
+                WHERE group_id = ?
+                ORDER BY day_of_week, start_time
+            '''
+            cursor.execute(schedules_query, (group_id,))
+            schedules = [dict(row) for row in cursor.fetchall()]
             
             groups.append({
                 'id': g['id'],
                 'name': g['name'],
-                'schedule': g['schedule'],
+                'schedule_text': g['schedule'],
                 'level': g['level'],
                 'coach': {
                     'id': g['coach_id'],
@@ -154,7 +160,43 @@ class TimetableRepository:
             })
         
         return groups
-    
+
+    def add_session(self, group_id, day, start, end, court='Court 1'):
+        """Add a new session to a group"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                INSERT INTO group_schedules (group_id, day_of_week, start_time, end_time, court)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (group_id, day, start, end, court))
+            conn.commit()
+            return True
+        finally:
+            conn.close()
+
+    def delete_session(self, session_id):
+        """Delete a session"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        try:
+            cursor.execute('DELETE FROM group_schedules WHERE id = ?', (session_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+        finally:
+            conn.close()
+
+    def get_all_groups(self):
+        """Get list of all groups (for Admin dropdowns)"""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        try:
+            cursor.execute('SELECT id, name FROM groups ORDER BY name')
+            return [dict(row) for row in cursor.fetchall()]
+        finally:
+            conn.close()
+
     def _parse_schedule(self, schedule_text):
         """
         Parse schedule text into structured format.

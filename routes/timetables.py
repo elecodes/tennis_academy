@@ -46,9 +46,15 @@ def get_timetable_page():
         repository = TimetableRepository(db_path)
         result = repository.get_weekly_timetable(user_role, user_id, week_start)
         
+        # Get all groups for the "Add Session" modal if Admin
+        all_groups = []
+        if user_role == 'admin':
+            all_groups = repository.get_all_groups()
+        
         return render_template(
             'timetable.html',
             groups=result['groups'],
+            all_groups=all_groups,
             week_start=result['week_start'],
             week_end=result['week_end'],
             prev_week=prev_week,
@@ -103,3 +109,43 @@ def get_weekly_timetable_api():
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
+
+@timetables_bp.route('/admin/timetable/session', methods=['POST'])
+def add_timetable_session():
+    """POST /admin/timetable/session - Admin adds a session"""
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    data = request.form
+    group_id = data.get('group_id')
+    day = data.get('day')
+    start = data.get('start_time')
+    end = data.get('end_time')
+    court = data.get('court', 'Court 1')
+    
+    if not all([group_id, day, start, end]):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    try:
+        db_path = os.path.join(os.path.dirname(__file__), '..', 'academy.db')
+        repository = TimetableRepository(db_path)
+        repository.add_session(int(group_id), int(day), start, end, court)
+        return redirect(url_for('timetables.get_timetable_page'))
+    except Exception as e:
+        print(f"Error adding session: {str(e)}")
+        return render_template('error.html', error=f'Error adding session: {str(e)}'), 500
+
+@timetables_bp.route('/admin/timetable/session/delete/<int:session_id>', methods=['POST'])
+def delete_timetable_session(session_id):
+    """POST /admin/timetable/session/delete/<id> - Admin deletes a session"""
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    try:
+        db_path = os.path.join(os.path.dirname(__file__), '..', 'academy.db')
+        repository = TimetableRepository(db_path)
+        repository.delete_session(session_id)
+        return redirect(url_for('timetables.get_timetable_page'))
+    except Exception as e:
+        print(f"Error deleting session: {str(e)}")
+        return render_template('error.html', error=f'Error deleting session: {str(e)}'), 500
