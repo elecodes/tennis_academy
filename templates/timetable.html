@@ -3,137 +3,168 @@
 {% block title %}Weekly Schedules - Tennis Academy{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <div class="row">
-    <div class="col-md-12">
-      <h1>🎾 Weekly Schedules</h1>
-
-      <!-- Week Navigation -->
-      <div class="card mb-4">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <a href="{{ url_for('timetables.get_timetable_page', date=prev_week) }}" class="btn btn-outline-primary">
-              ← Previous Week
-            </a>
-
-            <h5 class="mb-0">
-              <strong>{{ week_start }}</strong> to <strong>{{ week_end }}</strong>
-            </h5>
-
-            <a href="{{ url_for('timetables.get_timetable_page', date=next_week) }}" class="btn btn-outline-primary">
-              Next Week →
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Groups Display -->
-      {% if groups %}
-      {% for group in groups %}
-      <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-primary text-white">
-          <div class="row">
-            <div class="col-md-6">
-              <h5 class="mb-0">{{ group.name }}</h5>
-              <small>Level: <strong>{{ group.level }}</strong></small>
-            </div>
-            <div class="col-md-6 text-end">
-              <p class="mb-0">
-                <strong>Coach:</strong>
-                {% if group.coach.email %}
-                {{ group.coach.name }} ({{ group.coach.email }})
-                {% else %}
-                {{ group.coach.name }}
-                {% endif %}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <!-- Weekly Schedule Table -->
-          <h6 class="mb-3">📅 Weekly Schedule</h6>
-          <div class="table-responsive">
-            <table class="table table-sm table-bordered">
-              <thead class="table-light">
-                <tr>
-                  <th width="14%">Monday</th>
-                  <th width="14%">Tuesday</th>
-                  <th width="14%">Wednesday</th>
-                  <th width="14%">Thursday</th>
-                  <th width="14%">Friday</th>
-                  <th width="14%">Saturday</th>
-                  <th width="14%">Sunday</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  {% set day_map = {0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday', 4: 'Friday', 5:
-                  'Saturday', 6: 'Sunday'} %}
-                  {% for day_num in range(7) %}
-                  <td>
-                    {% set day_schedules = group.schedules | selectattr('day', 'equalto', day_num) | list %}
-                    {% if day_schedules %}
-                    {% for sched in day_schedules %}
-                    <div class="mb-2 p-2 bg-light rounded">
-                      <small class="d-block"><strong>⏰ {{ sched.start_time }} - {{ sched.end_time }}</strong></small>
-                      <small class="d-block">🏐 {{ sched.court }}</small>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-3"><i class="fas fa-calendar-alt"></i> Weekly Schedules</h1>
+            
+            <!-- Week Navigation -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 mb-2 mb-md-0">
+                            <a href="{{ url_for('timetables.get_timetable_page', date=prev_week) }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-chevron-left"></i> Previous Week
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-6 mb-2 mb-md-0 text-center">
+                            <h5 class="mb-0">
+                                <strong>{{ week_start }}</strong> to <strong>{{ week_end }}</strong>
+                            </h5>
+                            <small class="text-muted">Week view</small>
+                        </div>
+                        
+                        <div class="col-md-3 mb-2 mb-md-0">
+                            <a href="{{ url_for('timetables.get_timetable_page', date=next_week) }}" class="btn btn-outline-primary w-100">
+                                Next Week <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </div>
                     </div>
-                    {% endfor %}
-                    {% else %}
-                    <span class="text-muted">—</span>
-                    {% endif %}
-                  </td>
-                  {% endfor %}
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                </div>
+            </div>
 
-          <!-- Kids List (only for coaches and admin) -->
-          {% if group.kids and session.role in ['coach', 'admin'] %}
-          <h6 class="mt-4 mb-3">👶 Kids in Group ({{ group.kids | length }})</h6>
-          <ul class="list-group">
-            {% for kid in group.kids %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <strong>{{ kid.name }}</strong>
-              <span class="badge bg-info">{{ kid.age }} years old</span>
-            </li>
-            {% endfor %}
-          </ul>
-          {% endif %}
+            <!-- Groups Display -->
+            {% if groups %}
+                {% for group in groups %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <div class="row align-items-center">
+                            <div class="col-md-6 mb-2 mb-md-0">
+                                <h5 class="mb-0">{{ group.name }}</h5>
+                                <small>Level: <strong>{{ group.level }}</strong></small>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-0 text-end">
+                                    <strong>Coach:</strong> 
+                                    {% if group.coach.email %}
+                                        {{ group.coach.name }}
+                                    {% else %}
+                                        {{ group.coach.name }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <!-- Weekly Schedule Table -->
+                        <h6 class="mb-3"><i class="fas fa-clock"></i> Weekly Schedule</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="14%">Mon</th>
+                                        <th width="14%">Tue</th>
+                                        <th width="14%">Wed</th>
+                                        <th width="14%">Thu</th>
+                                        <th width="14%">Fri</th>
+                                        <th width="14%">Sat</th>
+                                        <th width="14%">Sun</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        {% for day_num in range(7) %}
+                                        <td style="min-height: 100px;">
+                                            {% set day_schedules = group.schedules | selectattr('day', 'equalto', day_num) | list %}
+                                            {% if day_schedules %}
+                                                {% for sched in day_schedules %}
+                                                <div class="mb-2 p-2 bg-light rounded border-start border-primary border-3">
+                                                    <small class="d-block"><strong><i class="fas fa-hourglass-start"></i> {{ sched.start_time }} - {{ sched.end_time }}</strong></small>
+                                                    <small class="d-block text-muted"><i class="fas fa-map-pin"></i> {{ sched.court }}</small>
+                                                </div>
+                                                {% endfor %}
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Kids List (only for coaches and admin) -->
+                        {% if group.kids and session.role in ['coach', 'admin'] %}
+                        <hr class="my-3">
+                        <h6 class="mt-3 mb-3"><i class="fas fa-child"></i> Kids in Group ({{ group.kids | length }})</h6>
+                        <div class="row">
+                            {% for kid in group.kids %}
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <div class="p-2 bg-light rounded">
+                                    <strong>{{ kid.name }}</strong> 
+                                    <span class="badge bg-info">{{ kid.age }} y/o</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <h4 class="alert-heading"><i class="fas fa-info-circle"></i> No Groups</h4>
+                    <p class="mb-0">You are not enrolled in any groups yet. Contact an administrator to get started.</p>
+                </div>
+            {% endif %}
         </div>
-      </div>
-      {% endfor %}
-      {% else %}
-      <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <h4 class="alert-heading">ℹ️ No Groups</h4>
-        <p class="mb-0">You are not enrolled in any groups yet. Contact an administrator to get started.</p>
-      </div>
-      {% endif %}
     </div>
-  </div>
 </div>
 
 <style>
-  .table-sm td {
-    padding: 0.5rem;
-    font-size: 0.9rem;
-    vertical-align: top;
-  }
-
-  @media (max-width: 768px) {
-    .table {
-      font-size: 0.85rem;
+    .table-sm td {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+        vertical-align: top;
     }
-
-    .card-header h5 {
-      font-size: 1.1rem;
+    
+    .border-start {
+        border-left: 4px solid var(--bs-border-color) !important;
     }
-
-    .table-responsive {
-      font-size: 0.75rem;
+    
+    @media (max-width: 768px) {
+        .table {
+            font-size: 0.8rem;
+        }
+        
+        .table-sm td {
+            padding: 0.25rem;
+            min-height: 80px !important;
+        }
+        
+        .card-header h5 {
+            font-size: 1rem;
+        }
+        
+        .card-header p {
+            font-size: 0.9rem;
+            text-align: left !important;
+            margin-top: 0.5rem;
+        }
     }
-  }
+    
+    @media (max-width: 576px) {
+        .table-sm td {
+            padding: 0.15rem;
+            min-height: 60px;
+            font-size: 0.75rem;
+        }
+        
+        .p-2 {
+            padding: 0.35rem !important;
+        }
+    }
 </style>
 {% endblock %}

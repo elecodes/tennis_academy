@@ -1,86 +1,182 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block title %}Family Dashboard - Tennis Academy{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Family Dashboard</h2>
-        <p>Welcome back, {{ session.full_name }}!</p>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">My Kids' Enrollments</h3>
-    </div>
-    
-    {% if stats.my_enrollments %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Kid Name</th>
-                    <th>Group</th>
-                    <th>Schedule</th>
-                    <th>Coach</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for enrollment in stats.my_enrollments %}
-                <tr>
-                    <td>{{ enrollment.kid_name }}</td>
-                    <td>{{ enrollment.name }}</td>
-                    <td>{{ enrollment.schedule }}</td>
-                    <td>{{ enrollment.coach_name or 'TBA' }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <div class="alert alert-warning">
-            You don't have any enrollments yet. Please contact the admin to enroll your kids.
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="mb-1"><i class="fas fa-home"></i> Family Dashboard</h1>
+            <p class="text-muted">Track your kids' tennis schedules and receive updates 🎾</p>
         </div>
-    {% endif %}
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">Recent Messages</h3>
     </div>
-    
-    {% if stats.messages %}
-        {% for message in stats.messages[:5] %}
-        <div class="message-card">
-            <div class="message-header">
-                <div>
-                    <span class="badge badge-{{ message.message_type.split('_')[0] }}">
-                        {{ message.message_type.replace('_', ' ').title() }}
-                    </span>
-                    <strong>{{ message.subject }}</strong>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-sm-6 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">My Enrollments</h6>
+                            <h2 class="mb-0">{{ stats.my_enrollments|length }}</h2>
+                        </div>
+                        <i class="fas fa-child fa-3x opacity-50"></i>
+                    </div>
                 </div>
-                <span class="message-date">{{ message.sent_at }}</span>
             </div>
-            <p>{{ message.content[:150] }}{% if message.content|length > 150 %}...{% endif %}</p>
-            <small>From: {{ message.sender_name }} | 
-                {% if message.is_general %}
-                    General Announcement
-                {% else %}
-                    Group: {{ message.group_name or 'N/A' }}
-                {% endif %}
-            </small>
         </div>
-        {% endfor %}
         
-        {% if stats.messages|length > 5 %}
-        <div style="text-align: center; margin-top: 20px;">
-            <a href="{{ url_for('family_messages') }}" class="btn btn-primary">View All Messages</a>
-            <a href="{{ url_for('timetables.get_timetable_page') }}" class="btn btn-primary">
-              📅 View Weekly Schedules
-            </a>
+        <div class="col-md-6 col-sm-6 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">New Messages</h6>
+                            <h2 class="mb-0">{{ stats.messages|length }}</h2>
+                        </div>
+                        <i class="fas fa-envelope fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
         </div>
-        {% endif %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-flash"></i> Quick Links</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <a href="{{ url_for('family_enrollments') }}" class="btn btn-primary w-100">
+                                <i class="fas fa-child"></i> View My Enrollments
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <a href="{{ url_for('timetables.get_timetable_page') }}" class="btn btn-info w-100">
+                                <i class="fas fa-calendar-alt"></i> View Schedules
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Enrollments -->
+    {% if stats.my_enrollments %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h3 class="mb-3"><i class="fas fa-child"></i> Kids' Groups</h3>
+            <div class="row">
+                {% for enrollment in stats.my_enrollments %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">{{ enrollment.kid_name }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">
+                                <strong>Group:</strong> {{ enrollment.name }}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Coach:</strong> {{ enrollment.coach_name or 'TBD' }}
+                            </p>
+                            <p class="mb-0 text-muted">
+                                <small><i class="fas fa-clock"></i> {{ enrollment.schedule }}</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
     {% else %}
-        <p style="text-align: center; color: #666;">No messages yet.</p>
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> No enrollments yet. Contact an administrator to enroll your kids.
+    </div>
+    {% endif %}
+
+    <!-- Recent Messages -->
+    {% if stats.messages %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-inbox"></i> Recent Messages ({{ stats.messages|length }})</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Subject</th>
+                                <th>From</th>
+                                <th>Group</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for msg in stats.messages[:10] %}
+                            <tr>
+                                <td>
+                                    <strong>{{ msg.subject }}</strong>
+                                    {% if msg.message_type == 'rain_cancellation' %}
+                                        <span class="badge bg-danger ms-2">URGENT</span>
+                                    {% elif msg.message_type == 'coach_delay' %}
+                                        <span class="badge bg-warning text-dark ms-2">URGENT</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ msg.sender_name }}</td>
+                                <td>
+                                    {% if msg.group_name %}
+                                        <span class="badge bg-info">{{ msg.group_name }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">General</span>
+                                    {% endif %}
+                                </td>
+                                <td><small class="text-muted">{{ msg.sent_at }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-light">
+                    <a href="{{ url_for('family_messages') }}" class="text-decoration-none">
+                        View all messages →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> No messages yet. You'll receive notifications here.
+    </div>
     {% endif %}
 </div>
+
+<style>
+    .card {
+        margin-bottom: 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 1.5rem;
+        }
+        
+        h3 {
+            font-size: 1.25rem;
+        }
+        
+        .card-header {
+            padding: 0.75rem;
+        }
+    }
+</style>
 {% endblock %}

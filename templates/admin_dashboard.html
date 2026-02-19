@@ -1,101 +1,195 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block title %}Admin Dashboard - Tennis Academy{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title">Admin Dashboard</h2>
-    <p>Welcome back, {{ session.full_name }}!</p>
-  </div>
-</div>
-
-<div class="stats-grid">
-  <div class="stat-card">
-    <div class="stat-number">{{ stats.total_users }}</div>
-    <div class="stat-label">Total Users</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-number">{{ stats.total_groups }}</div>
-    <div class="stat-label">Groups</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-number">{{ stats.total_messages }}</div>
-    <div class="stat-label">Messages Sent</div>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-header">
-    <h3 class="card-title">Recent Messages</h3>
-  </div>
-
-  {% if stats.recent_messages %}
-  {% for message in stats.recent_messages %}
-  <div class="message-card">
-    <div class="message-header">
-      <div>
-        <span class="badge badge-{{ message.message_type.split('_')[0] }}">
-          {{ message.message_type.replace('_', ' ').title() }}
-        </span>
-        <strong>{{ message.subject }}</strong>
-      </div>
-      <span class="message-date">{{ message.sent_at }}</span>
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="mb-1"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+            <p class="text-muted">Welcome back, {{ session.full_name }}! 👋</p>
+        </div>
     </div>
-    <p>{{ message.content[:100] }}{% if message.content|length > 100 %}...{% endif %}</p>
-    <small>From: {{ message.sender_name }} |
-      {% if message.is_general %}
-      General Announcement
-      {% else %}
-      Group: {{ message.group_name or 'N/A' }}
-      {% endif %}
-    </small>
-  </div>
-  {% endfor %}
-  {% else %}
-  <p style="text-align: center; color: #666;">No messages yet.</p>
-  {% endif %}
-</div>
 
-<div class="card">
-  <div class="card-header">
-    <h3 class="card-title">Quick Actions</h3>
-  </div>
-  <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-    <a href="{{ url_for('timetables.get_timetable_page') }}" class="btn btn-primary">
-      📅 View Weekly Schedules
-    </a>
-    <a href="{{ url_for('admin_send_message') }}" class="btn btn-primary">
-      Send Message
-    </a>
-    <a href="{{ url_for('admin_users') }}" class="btn btn-success">
-      Manage Users
-    </a>
-    <a href="{{ url_for('admin_groups') }}" class="btn btn-warning">
-      Manage Groups
-    </a>
-    <a href="{{ url_for('admin_enrollments') }}" class="btn btn-success">
-      Manage Enrollments
-    </a>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-header">
-    <h3 class="card-title">Test Email Connection</h3>
-  </div>
-  <form action="{{ url_for('admin_test_email') }}" method="POST"
-    style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-    <div class="form-group" style="flex-grow: 1; margin-bottom: 0; min-width: 250px;">
-      <label for="test_email">Recipient Email</label>
-      <input type="email" id="test_email" name="test_email" class="form-control" placeholder="your-email@example.com"
-        required>
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Total Users</h6>
+                            <h2 class="mb-0">{{ stats.total_users }}</h2>
+                        </div>
+                        <i class="fas fa-users fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Active Groups</h6>
+                            <h2 class="mb-0">{{ stats.total_groups }}</h2>
+                        </div>
+                        <i class="fas fa-layer-group fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Messages Sent</h6>
+                            <h2 class="mb-0">{{ stats.total_messages }}</h2>
+                        </div>
+                        <i class="fas fa-envelope fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">System Status</h6>
+                            <h2 class="mb-0"><span class="badge bg-success">OK</span></h2>
+                        </div>
+                        <i class="fas fa-heartbeat fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <button type="submit" class="btn btn-primary">Send Test Email</button>
-  </form>
-  <p style="margin-top: 15px; font-size: 0.9rem; color: #666; font-style: italic;">
-    Note: This tests your SMTP settings directly. Ensure <code>SENDER_EMAIL</code> and <code>SENDER_PASSWORD</code> are
-    set.
-  </p>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-flash"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6 mb-2">
+                            <a href="{{ url_for('admin_users') }}" class="btn btn-primary w-100">
+                                <i class="fas fa-plus-circle"></i> Add User
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-2">
+                            <a href="{{ url_for('admin_groups') }}" class="btn btn-success w-100">
+                                <i class="fas fa-plus-circle"></i> Create Group
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-2">
+                            <a href="{{ url_for('admin_enrollments') }}" class="btn btn-info w-100">
+                                <i class="fas fa-plus-circle"></i> Enroll Kid
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-2">
+                            <a href="{{ url_for('admin_send_message') }}" class="btn btn-warning w-100">
+                                <i class="fas fa-envelope"></i> Send Message
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Messages -->
+    {% if stats.recent_messages %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-inbox"></i> Recent Messages (Last 5)</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="fas fa-envelope"></i> Subject</th>
+                                <th><i class="fas fa-user"></i> From</th>
+                                <th><i class="fas fa-layer-group"></i> Group</th>
+                                <th><i class="fas fa-clock"></i> Date</th>
+                                <th><i class="fas fa-tag"></i> Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for msg in stats.recent_messages %}
+                            <tr>
+                                <td><strong>{{ msg.subject }}</strong></td>
+                                <td>{{ msg.sender_name }}</td>
+                                <td>
+                                    {% if msg.group_name %}
+                                        <span class="badge bg-info">{{ msg.group_name }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">General</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ msg.sent_at }}</small>
+                                </td>
+                                <td>
+                                    {% if msg.message_type == 'rain_cancellation' %}
+                                        <span class="badge bg-danger">Rain Cancel</span>
+                                    {% elif msg.message_type == 'coach_delay' %}
+                                        <span class="badge bg-warning text-dark">Coach Delay</span>
+                                    {% elif msg.message_type == 'announcement' %}
+                                        <span class="badge bg-info">Announcement</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">{{ msg.message_type }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<style>
+    .card {
+        margin-bottom: 1.5rem;
+    }
+    
+    .bg-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+    }
+    
+    .bg-success {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%) !important;
+    }
+    
+    .bg-info {
+        background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%) !important;
+    }
+    
+    .bg-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%) !important;
+    }
+    
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1rem;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
 {% endblock %}
