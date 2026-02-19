@@ -1,299 +1,225 @@
-"""
-Repository para acceso a horarios semanales con control RBAC.
-"""
-
 import sqlite3
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional
 
 class TimetableRepository:
-    """Acceso a datos de horarios semanales"""
-
-    def __init__(self, db_path: str = 'academy.db'):
+    """
+    Repository for accessing timetable data with RBAC.
+    Works with group_members table (not group_schedules).
+    """
+    
+    def __init__(self, db_path):
         self.db_path = db_path
-
-    def _get_connection(self):
-        """Abre conexión a BD"""
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
-
-    def get_weekly_timetable(
-        self,
-        user_role: str,
-        user_id: str,
-        week_start_date: datetime
-    ) -> Dict:
+    
+    def get_weekly_timetable(self, role, user_id, week_start_date):
         """
-        Obtiene horario semanal según rol del usuario.
+        Get weekly timetable based on user role.
         
         Args:
-            user_role: 'admin', 'coach', o 'family'
-            user_id: ID del usuario autenticado
-            week_start_date: Lunes de la semana
+            role: 'admin', 'coach', or 'family'
+            user_id: User ID from session
+            week_start_date: datetime.date object (must be Monday)
         
         Returns:
-            Dict con week_start, week_end, y lista de grupos
+            dict with 'groups' list and week info
         """
-        # Validar que es lunes
+        
         if week_start_date.weekday() != 0:
-            raise ValueError("week_start_date debe ser un lunes (weekday=0)")
-
-        week_end_date = week_start_date + timedelta(days=6)
-
-        if user_role == 'admin':
-            groups = self._get_all_groups_admin()
-        elif user_role == 'coach':
-            groups = self._get_coach_groups(user_id)
-        elif user_role == 'family':
-            groups = self._get_family_groups(user_id)
-        else:
-            raise ValueError(f"Rol inválido: {user_role}")
-
-        return {
-            'week_start': week_start_date.strftime('%Y-%m-%d'),
-            'week_end': week_end_date.strftime('%Y-%m-%d'),
-            'groups': groups
-        }
-
-    def _get_all_groups_admin(self) -> List[Dict]:
-        """ADMIN: Todos los grupos con detalles completos"""
-        conn = self._get_connection()
-        cursor = conn.cursor()
-
-        query = """
-        SELECT 
-            g.id,
-            g.name,
-            g.level,
-            c.id as coach_id,
-            c.name as coach_name,
-            c.email as coach_email
-        FROM groups g
-        JOIN coaches c ON g.coach_id = c.id
-        ORDER BY g.name
-        """
-
-        cursor.execute(query)
-        groups_raw = cursor.fetchall()
-
-        groups = []
-        for group_row in groups_raw:
-            group_id = group_row['id']
-            
-            # Obtener horarios
-            schedules = self._get_schedules(group_id, conn)
-            
-            # Obtener niños
-            kids = self._get_kids_in_group(group_id, conn)
-
-            group_dict = {
-                'id': group_id,
-                'name': group_row['name'],
-                'level': group_row['level'],
-                'coach': {
-                    'id': group_row['coach_id'],
-                    'name': group_row['coach_name'],
-                    'email': group_row['coach_email']  # ✅ ADMIN ve emails
-                },
-                'schedules': schedules,
-                'kids': kids
-            }
-            groups.append(group_dict)
-
-        conn.close()
-        return groups
-
-    def _get_coach_groups(self, coach_id: str) -> List[Dict]:
-        """COACH: Solo sus grupos, sin emails de familias"""
-        conn = self._get_connection()
-        cursor = conn.cursor()
-
-        query = """
-        SELECT 
-            g.id,
-            g.name,
-            g.level,
-            c.id as coach_id,
-            c.name as coach_name
-        FROM groups g
-        JOIN coaches c ON g.coach_id = c.id
-        WHERE g.coach_id = ?
-        ORDER BY g.name
-        """
-
-        cursor.execute(query, (coach_id,))
-        groups_raw = cursor.fetchall()
-
-        groups = []
-        for group_row in groups_raw:
-            group_id = group_row['id']
-            
-            schedules = self._get_schedules(group_id, conn)
-            kids = self._get_kids_in_group(group_id, conn, include_family_id=False)
-
-            group_dict = {
-                'id': group_id,
-                'name': group_row['name'],
-                'level': group_row['level'],
-                'coach': {
-                    'id': group_row['coach_id'],
-                    'name': group_row['coach_name']
-                    # ❌ NO email para coaches (privacidad familias)
-                },
-                'schedules': schedules,
-                'kids': kids
-            }
-            groups.append(group_dict)
-
-        conn.close()
-        return groups
-
-    def _get_family_groups(self, family_id: str) -> List[Dict]:
-        """FAMILY: Solo su grupo, solo sus niños"""
-        conn = self._get_connection()
-        cursor = conn.cursor()
-
-        # Primero obtener los grupos donde tiene niños
-        query = """
-        SELECT DISTINCT
-            g.id,
-            g.name,
-            g.level,
-            c.id as coach_id,
-            c.name as coach_name
-        FROM groups g
-        JOIN coaches c ON g.coach_id = c.id
-        JOIN group_kids gk ON g.id = gk.group_id
-        JOIN kids k ON gk.kid_id = k.id
-        WHERE k.family_id = ?
-        ORDER BY g.name
-        """
-
-        cursor.execute(query, (family_id,))
-        groups_raw = cursor.fetchall()
-
-        groups = []
-        for group_row in groups_raw:
-            group_id = group_row['id']
-            
-            schedules = self._get_schedules(group_id, conn)
-            kids = self._get_kids_in_group_for_family(group_id, family_id, conn)
-
-            group_dict = {
-                'id': group_id,
-                'name': group_row['name'],
-                'level': group_row['level'],
-                'coach': {
-                    'id': group_row['coach_id'],
-                    'name': group_row['coach_name']
-                },
-                'schedules': schedules,
-                'kids': kids
-            }
-            groups.append(group_dict)
-
-        conn.close()
-        return groups
-
-    def _get_schedules(self, group_id: str, conn) -> List[Dict]:
-        """Obtiene horarios de un grupo"""
+            raise ValueError("week_start must be a Monday")
+        
+        week_end = week_start_date + timedelta(days=6)
+        
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        days = {0: 'MON', 1: 'TUE', 2: 'WED', 3: 'THU', 4: 'FRI', 5: 'SAT', 6: 'SUN'}
-
-        query = """
-        SELECT 
-            day_of_week,
-            start_time,
-            end_time,
-            court
-        FROM group_schedules
-        WHERE group_id = ?
-        ORDER BY day_of_week, start_time
-        """
-
-        cursor.execute(query, (group_id,))
-        schedules_raw = cursor.fetchall()
-
-        schedules = []
-        for sched in schedules_raw:
-            schedules.append({
-                'day': days[sched['day_of_week']],
-                'start_time': sched['start_time'],
-                'end_time': sched['end_time'],
-                'court': sched['court']
-            })
-
-        return schedules
-
-    def _get_kids_in_group(
-        self, 
-        group_id: str, 
-        conn,
-        include_family_id: bool = True
-    ) -> List[Dict]:
-        """Obtiene niños de un grupo"""
-        cursor = conn.cursor()
-
-        query = """
-        SELECT 
-            k.id,
-            k.name,
-            k.age,
-            k.family_id
-        FROM kids k
-        JOIN group_kids gk ON k.id = gk.kid_id
-        WHERE gk.group_id = ?
-        ORDER BY k.name
-        """
-
-        cursor.execute(query, (group_id,))
-        kids_raw = cursor.fetchall()
-
-        kids = []
-        for kid in kids_raw:
-            kid_dict = {
-                'id': kid['id'],
-                'name': kid['name'],
-                'age': kid['age']
-            }
-            if include_family_id:
-                kid_dict['family_id'] = kid['family_id']
+        try:
+            if role == 'admin':
+                groups = self._get_admin_groups(cursor, week_start_date, week_end)
+            elif role == 'coach':
+                groups = self._get_coach_groups(cursor, user_id, week_start_date, week_end)
+            elif role == 'family':
+                groups = self._get_family_groups(cursor, user_id, week_start_date, week_end)
+            else:
+                raise ValueError(f"Invalid role: {role}")
             
-            kids.append(kid_dict)
-
-        return kids
-
-    def _get_kids_in_group_for_family(
-        self, 
-        group_id: str, 
-        family_id: str,
-        conn
-    ) -> List[Dict]:
-        """Obtiene SOLO los niños de una familia en un grupo"""
-        cursor = conn.cursor()
-
-        query = """
-        SELECT 
-            k.id,
-            k.name,
-            k.age
-        FROM kids k
-        JOIN group_kids gk ON k.id = gk.kid_id
-        WHERE gk.group_id = ? AND k.family_id = ?
-        ORDER BY k.name
-        """
-
-        cursor.execute(query, (group_id, family_id))
-        kids_raw = cursor.fetchall()
-
-        kids = []
-        for kid in kids_raw:
-            kids.append({
-                'id': kid['id'],
-                'name': kid['name'],
-                'age': kid['age']
+            return {
+                'groups': groups,
+                'week_start': week_start_date.strftime('%A, %B %d, %Y'),
+                'week_end': week_end.strftime('%A, %B %d, %Y'),
+            }
+        
+        finally:
+            conn.close()
+    
+    def _get_admin_groups(self, cursor, week_start, week_end):
+        """Admin sees ALL groups"""
+        query = '''
+            SELECT 
+                g.id,
+                g.name,
+                g.schedule,
+                'All Ages' as level,
+                u.id as coach_id,
+                u.full_name as coach_name,
+                u.email as coach_email
+            FROM groups g
+            LEFT JOIN users u ON g.coach_id = u.id
+            ORDER BY g.name
+        '''
+        cursor.execute(query)
+        groups_data = cursor.fetchall()
+        
+        return self._enrich_groups(cursor, groups_data, week_start, week_end)
+    
+    def _get_coach_groups(self, cursor, user_id, week_start, week_end):
+        """Coach sees ONLY their assigned groups"""
+        query = '''
+            SELECT 
+                g.id,
+                g.name,
+                g.schedule,
+                'All Ages' as level,
+                u.id as coach_id,
+                u.full_name as coach_name,
+                u.email as coach_email
+            FROM groups g
+            LEFT JOIN users u ON g.coach_id = u.id
+            WHERE g.coach_id = ?
+            ORDER BY g.name
+        '''
+        cursor.execute(query, (user_id,))
+        groups_data = cursor.fetchall()
+        
+        return self._enrich_groups(cursor, groups_data, week_start, week_end)
+    
+    def _get_family_groups(self, cursor, user_id, week_start, week_end):
+        """Family sees ONLY their enrolled groups (via group_members)"""
+        query = '''
+            SELECT DISTINCT
+                g.id,
+                g.name,
+                g.schedule,
+                'All Ages' as level,
+                u.id as coach_id,
+                u.full_name as coach_name,
+                u.email as coach_email
+            FROM groups g
+            LEFT JOIN users u ON g.coach_id = u.id
+            WHERE g.id IN (
+                SELECT DISTINCT group_id 
+                FROM group_members 
+                WHERE family_id = ?
+            )
+            ORDER BY g.name
+        '''
+        cursor.execute(query, (user_id,))
+        groups_data = cursor.fetchall()
+        
+        return self._enrich_groups(cursor, groups_data, week_start, week_end)
+    
+    def _enrich_groups(self, cursor, groups_data, week_start, week_end):
+        """Add kids and schedules to each group"""
+        groups = []
+        
+        for g in groups_data:
+            group_id = g['id']
+            
+            # Get kids in this group (only for coaches/admin viewing their groups)
+            kids_query = '''
+                SELECT DISTINCT
+                    gm.kid_name as name,
+                    'Unknown' as age
+                FROM group_members gm
+                WHERE gm.group_id = ?
+            '''
+            cursor.execute(kids_query, (group_id,))
+            kids = [dict(row) for row in cursor.fetchall()]
+            
+            # Parse schedule string to get days/times
+            # Format: "Monday & Wednesday 4:00-5:30 PM"
+            schedules = self._parse_schedule(g['schedule'])
+            
+            groups.append({
+                'id': g['id'],
+                'name': g['name'],
+                'schedule': g['schedule'],
+                'level': g['level'],
+                'coach': {
+                    'id': g['coach_id'],
+                    'name': g['coach_name'] or 'TBD',
+                    'email': g['coach_email'],
+                },
+                'kids': kids,
+                'schedules': schedules,
             })
-
-        return kids
+        
+        return groups
+    
+    def _parse_schedule(self, schedule_text):
+        """
+        Parse schedule text into structured format.
+        Examples:
+        - "Monday & Wednesday 4:00-5:30 PM"
+        - "Tuesday & Thursday 4:00-5:30 PM"
+        - "Saturday 9:00-11:00 AM"
+        
+        Returns list of dicts with day, start_time, end_time, court
+        """
+        if not schedule_text:
+            return []
+        
+        # Simple parser - improve as needed
+        days_map = {
+            'Monday': 0, 'Mon': 0,
+            'Tuesday': 1, 'Tue': 1,
+            'Wednesday': 2, 'Wed': 2,
+            'Thursday': 3, 'Thu': 3,
+            'Friday': 4, 'Fri': 4,
+            'Saturday': 5, 'Sat': 5,
+            'Sunday': 6, 'Sun': 6,
+        }
+        
+        schedules = []
+        
+        # Split by " & " to handle multiple days
+        parts = schedule_text.split(' & ')
+        
+        # Last part contains time info
+        time_part = parts[-1] if parts else ""
+        
+        # Extract times (e.g., "4:00-5:30 PM")
+        times = []
+        if '-' in time_part:
+            time_range = time_part.split()[0]  # Get "4:00-5:30"
+            if '-' in time_range:
+                start, end = time_range.split('-')
+                times = [start.strip(), end.strip()]
+        
+        start_time = times[0] if times else "4:00"
+        end_time = times[1] if len(times) > 1 else "5:30"
+        
+        # Extract days
+        for part in parts[:-1]:  # All but last part are days
+            for day_name, day_num in days_map.items():
+                if day_name.lower() in part.lower():
+                    schedules.append({
+                        'day': day_num,
+                        'start_time': start_time,
+                        'end_time': end_time,
+                        'court': 'Court 1',  # Default court
+                    })
+                    break
+        
+        # Handle last part if it has a day
+        last_part = parts[-1]
+        for day_name, day_num in days_map.items():
+            if day_name.lower() in last_part.lower():
+                schedules.append({
+                    'day': day_num,
+                    'start_time': start_time,
+                    'end_time': end_time,
+                    'court': 'Court 1',  # Default court
+                })
+                break
+        
+        return schedules

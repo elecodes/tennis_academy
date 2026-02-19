@@ -26,7 +26,7 @@ DB_PATH = os.path.join(os.path.dirname(__file__), 'academy.db')
 
 # Email configuration - Using Gmail SMTP (free)
 # Set TEST_MODE = False to send emails to real family addresses.
-TEST_MODE = False
+TEST_MODE = True  # Set to False in production
 REDIRECT_TARGET = 'gelenmp@gmail.com'
 
 SMTP_SERVER = "smtp.gmail.com"
@@ -59,12 +59,12 @@ def init_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS groups (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
+            name TEXT NOT NULL UNIQUE,
             schedule TEXT NOT NULL,
             coach_id INTEGER,
             description TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (coach_id) REFERENCES users (id)
+            FOREIGN KEY (coach_id) REFERENCES users (id) ON DELETE SET NULL
         )
     ''')
     
@@ -76,8 +76,8 @@ def init_db():
             family_id INTEGER NOT NULL,
             kid_name TEXT NOT NULL,
             enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (group_id) REFERENCES groups (id),
-            FOREIGN KEY (family_id) REFERENCES users (id),
+            FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
+            FOREIGN KEY (family_id) REFERENCES users (id) ON DELETE CASCADE,
             UNIQUE(group_id, family_id, kid_name)
         )
     ''')
@@ -93,8 +93,8 @@ def init_db():
             content TEXT NOT NULL,
             sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             is_general INTEGER DEFAULT 0,
-            FOREIGN KEY (sender_id) REFERENCES users (id),
-            FOREIGN KEY (group_id) REFERENCES groups (id)
+            FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
+            FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE SET NULL
         )
     ''')
     
@@ -106,8 +106,8 @@ def init_db():
             user_id INTEGER NOT NULL,
             email_sent INTEGER DEFAULT 0,
             sent_at TIMESTAMP,
-            FOREIGN KEY (message_id) REFERENCES messages (id),
-            FOREIGN KEY (user_id) REFERENCES users (id)
+            FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
     ''')
     
@@ -188,8 +188,12 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        
+        if not email or not password:
+            flash('Email and password are required.', 'danger')
+            return render_template('login.html')
         
         conn = get_db()
         user = conn.execute('SELECT * FROM users WHERE email = ? AND is_active = 1', (email,)).fetchone()
@@ -248,18 +252,10 @@ def dashboard():
             GROUP BY g.id
         ''', (user_id,)).fetchall()
         
-        # Refined visibility: 
-        # 1. Messages they sent
-        # 2. Messages sent to their groups
-        # 3. Messages sent directly to them
-        # 4. General announcements
         recent_messages = conn.execute('''
-            SELECT DISTINCT m.*, m.sender_name, g.name as group_name
-            FROM (
-                SELECT m.*, u.full_name as sender_name
-                FROM messages m
-                JOIN users u ON m.sender_id = u.id
-            ) m
+            SELECT DISTINCT m.*, u.full_name as sender_name, g.name as group_name
+            FROM messages m
+            JOIN users u ON m.sender_id = u.id
             LEFT JOIN groups g ON m.group_id = g.id
             LEFT JOIN message_recipients mr ON m.id = mr.message_id
             WHERE m.sender_id = ? 
@@ -282,17 +278,10 @@ def dashboard():
             WHERE gm.family_id = ?
         ''', (user_id,)).fetchall()
         
-        # Refined visibility:
-        # 1. Messages sent to their groups
-        # 2. Messages sent directly to them
-        # 3. General announcements
         messages = conn.execute('''
-            SELECT DISTINCT m.*, m.sender_name, g.name as group_name
-            FROM (
-                SELECT m.*, u.full_name as sender_name
-                FROM messages m
-                JOIN users u ON m.sender_id = u.id
-            ) m
+            SELECT DISTINCT m.*, u.full_name as sender_name, g.name as group_name
+            FROM messages m
+            JOIN users u ON m.sender_id = u.id
             LEFT JOIN groups g ON m.group_id = g.id
             LEFT JOIN message_recipients mr ON m.id = mr.message_id
             WHERE m.group_id IN (SELECT group_id FROM group_members WHERE family_id = ?)
@@ -327,11 +316,20 @@ def admin_users():
 @app.route('/admin/users/add', methods=['POST'])
 @admin_required
 def admin_add_user():
-    email = request.form['email']
-    full_name = request.form['full_name']
-    role = request.form['role']
-    phone = request.form.get('phone', '')
-    password = request.form['password']
+    email = request.form.get('email', '').strip().lower()
+    full_name = request.form.get('full_name', '').strip()
+    role = request.form.get('role', 'family')
+    phone = request.form.get('phone', '').strip()
+    password = request.form.get('password', '')
+    
+    # Validation
+    if not email or not full_name or not password or role not in ['coach', 'family']:
+        flash('All fields are required and role must be coach or family.', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    if len(password) < 6:
+        flash('Password must be at least 6 characters.', 'danger')
+        return redirect(url_for('admin_users'))
     
     conn = get_db()
     try:
@@ -341,7 +339,7 @@ def admin_add_user():
             VALUES (?, ?, ?, ?, ?)
         ''', (email, hashed_password, full_name, role, phone))
         conn.commit()
-        flash('User added successfully!', 'success')
+        flash(f'User {full_name} added successfully!', 'success')
     except sqlite3.IntegrityError:
         flash('Email already exists.', 'danger')
     finally:
@@ -363,7 +361,7 @@ def admin_groups():
         GROUP BY g.id
         ORDER BY g.created_at DESC
     ''').fetchall()
-    coaches = conn.execute("SELECT * FROM users WHERE role = 'coach'").fetchall()
+    coaches = conn.execute("SELECT id, full_name FROM users WHERE role = 'coach' ORDER BY full_name").fetchall()
     conn.close()
     return render_template('admin/groups.html', groups=groups, coaches=coaches)
 
@@ -371,20 +369,34 @@ def admin_groups():
 @app.route('/admin/groups/add', methods=['POST'])
 @admin_required
 def admin_add_group():
-    name = request.form['name']
-    schedule = request.form['schedule']
-    coach_id = request.form.get('coach_id') or None
-    description = request.form.get('description', '')
+    name = request.form.get('name', '').strip()
+    schedule = request.form.get('schedule', '').strip()
+    coach_id = request.form.get('coach_id')
+    description = request.form.get('description', '').strip()
+    
+    # Validation
+    if not name or not schedule:
+        flash('Group name and schedule are required.', 'danger')
+        return redirect(url_for('admin_groups'))
+    
+    if coach_id and coach_id.strip() == '':
+        coach_id = None
+    else:
+        coach_id = int(coach_id) if coach_id else None
     
     conn = get_db()
-    conn.execute('''
-        INSERT INTO groups (name, schedule, coach_id, description)
-        VALUES (?, ?, ?, ?)
-    ''', (name, schedule, coach_id, description))
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute('''
+            INSERT INTO groups (name, schedule, coach_id, description)
+            VALUES (?, ?, ?, ?)
+        ''', (name, schedule, coach_id, description))
+        conn.commit()
+        flash(f'Group "{name}" created successfully!', 'success')
+    except sqlite3.IntegrityError:
+        flash('A group with this name already exists.', 'danger')
+    finally:
+        conn.close()
     
-    flash('Group created successfully!', 'success')
     return redirect(url_for('admin_groups'))
 
 
@@ -399,8 +411,8 @@ def admin_enrollments():
         JOIN users u ON gm.family_id = u.id
         ORDER BY g.name, u.full_name
     ''').fetchall()
-    groups = conn.execute("SELECT * FROM groups").fetchall()
-    families = conn.execute("SELECT * FROM users WHERE role = 'family'").fetchall()
+    groups = conn.execute("SELECT id, name FROM groups ORDER BY name").fetchall()
+    families = conn.execute("SELECT id, full_name, email FROM users WHERE role = 'family' ORDER BY full_name").fetchall()
     conn.close()
     return render_template('admin/enrollments.html', enrollments=enrollments, groups=groups, families=families)
 
@@ -408,20 +420,27 @@ def admin_enrollments():
 @app.route('/admin/enrollments/add', methods=['POST'])
 @admin_required
 def admin_add_enrollment():
-    group_id = request.form['group_id']
-    family_id = request.form['family_id']
-    kid_name = request.form['kid_name']
+    group_id = request.form.get('group_id')
+    family_id = request.form.get('family_id')
+    kid_name = request.form.get('kid_name', '').strip()
+    
+    # Validation
+    if not group_id or not family_id or not kid_name:
+        flash('All fields are required.', 'danger')
+        return redirect(url_for('admin_enrollments'))
     
     conn = get_db()
     try:
         conn.execute('''
             INSERT INTO group_members (group_id, family_id, kid_name)
             VALUES (?, ?, ?)
-        ''', (group_id, family_id, kid_name))
+        ''', (int(group_id), int(family_id), kid_name))
         conn.commit()
-        flash('Enrollment added successfully!', 'success')
+        flash(f'{kid_name} enrolled successfully!', 'success')
     except sqlite3.IntegrityError:
         flash('This kid is already enrolled in this group.', 'danger')
+    except ValueError:
+        flash('Invalid group or family selected.', 'danger')
     finally:
         conn.close()
     
@@ -434,27 +453,32 @@ def admin_send_message():
     conn = get_db()
     
     if request.method == 'POST':
-        message_type = request.form['message_type']
-        subject = request.form['subject']
-        content = request.form['content']
+        message_type = request.form.get('message_type')
+        subject = request.form.get('subject', '').strip()
+        content = request.form.get('content', '').strip()
         group_id = request.form.get('group_id')
         is_general = 1 if request.form.get('is_general') else 0
+        
+        # Validation
+        if not message_type or not subject or not content:
+            flash('Message type, subject, and content are required.', 'danger')
+            groups = conn.execute("SELECT id, name FROM groups ORDER BY name").fetchall()
+            conn.close()
+            return render_template('admin/send_message.html', groups=groups)
         
         # Insert message
         cursor = conn.execute('''
             INSERT INTO messages (sender_id, group_id, message_type, subject, content, is_general)
             VALUES (?, ?, ?, ?, ?, ?)
-        ''', (session['user_id'], group_id, message_type, subject, content, is_general))
+        ''', (session['user_id'], group_id if group_id else None, message_type, subject, content, is_general))
         message_id = cursor.lastrowid
         
         # Determine recipients
         if is_general:
-            # Send to all families
-            recipients = conn.execute("SELECT * FROM users WHERE role = 'family' AND is_active = 1").fetchall()
+            recipients = conn.execute("SELECT id, email FROM users WHERE role = 'family' AND is_active = 1").fetchall()
         elif group_id:
-            # Send to families in specific group
             recipients = conn.execute('''
-                SELECT DISTINCT u.* FROM users u
+                SELECT DISTINCT u.id, u.email FROM users u
                 JOIN group_members gm ON u.id = gm.family_id
                 WHERE gm.group_id = ? AND u.is_active = 1
             ''', (group_id,)).fetchall()
@@ -490,9 +514,10 @@ This message was sent from the Tennis Academy Communication System.
         
         conn.commit()
         flash(f'Message sent to {sent_count} families!', 'success')
+        conn.close()
         return redirect(url_for('dashboard'))
     
-    groups = conn.execute("SELECT * FROM groups").fetchall()
+    groups = conn.execute("SELECT id, name FROM groups ORDER BY name").fetchall()
     conn.close()
     return render_template('admin/send_message.html', groups=groups)
 
@@ -501,7 +526,7 @@ This message was sent from the Tennis Academy Communication System.
 @admin_required
 def admin_test_email():
     """Send a test email to verify SMTP configuration."""
-    test_recipient = request.form.get('test_email')
+    test_recipient = request.form.get('test_email', '').strip()
     if not test_recipient:
         flash('Please provide a test email address.', 'warning')
         return redirect(url_for('dashboard'))
@@ -509,7 +534,6 @@ def admin_test_email():
     subject = "Tennis Academy - Test Connection"
     body = f"This is a test email sent at {datetime.now()} to verify your SMTP settings are working correctly."
     
-    # We bypass REDIRECT_EMAILS_TO here to test the specific address provided
     success = False
     try:
         msg = MIMEMultipart()
@@ -542,17 +566,22 @@ def coach_send_message():
     conn = get_db()
     coach_id = session['user_id']
     
-    # Get coach's groups
-    my_groups = conn.execute('SELECT * FROM groups WHERE coach_id = ?', (coach_id,)).fetchall()
+    my_groups = conn.execute('SELECT id, name, schedule FROM groups WHERE coach_id = ? ORDER BY name', (coach_id,)).fetchall()
     
     if request.method == 'POST':
-        message_type = request.form['message_type']
-        subject = request.form['subject']
-        content = request.form['content']
-        group_id = request.form['group_id']
+        message_type = request.form.get('message_type')
+        subject = request.form.get('subject', '').strip()
+        content = request.form.get('content', '').strip()
+        group_id = request.form.get('group_id')
+        
+        # Validation
+        if not message_type or not subject or not content or not group_id:
+            flash('All fields are required.', 'danger')
+            conn.close()
+            return render_template('coach/send_message.html', groups=my_groups)
         
         # Verify this group belongs to the coach
-        group = conn.execute('SELECT * FROM groups WHERE id = ? AND coach_id = ?', 
+        group = conn.execute('SELECT id, name FROM groups WHERE id = ? AND coach_id = ?', 
                            (group_id, coach_id)).fetchone()
         if not group:
             flash('Invalid group selected.', 'danger')
@@ -568,7 +597,7 @@ def coach_send_message():
         
         # Get recipients
         recipients = conn.execute('''
-            SELECT DISTINCT u.* FROM users u
+            SELECT DISTINCT u.id, u.email FROM users u
             JOIN group_members gm ON u.id = gm.family_id
             WHERE gm.group_id = ? AND u.is_active = 1
         ''', (group_id,)).fetchall()
@@ -603,6 +632,7 @@ This message was sent from the Tennis Academy Communication System.
         
         conn.commit()
         flash(f'Message sent to {sent_count} families!', 'success')
+        conn.close()
         return redirect(url_for('dashboard'))
     
     conn.close()
@@ -649,7 +679,6 @@ def family_messages():
     conn = get_db()
     user_id = session['user_id']
     
-    # Get family's group IDs
     my_groups = conn.execute('SELECT group_id FROM group_members WHERE family_id = ?', (user_id,)).fetchall()
     my_group_ids = [g['group_id'] for g in my_groups]
     
@@ -704,21 +733,32 @@ def setup():
         return redirect(url_for('login'))
     
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        full_name = request.form['full_name']
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        full_name = request.form.get('full_name', '').strip()
+        
+        if not email or not password or not full_name:
+            flash('All fields are required.', 'danger')
+            return render_template('setup.html')
+        
+        if len(password) < 6:
+            flash('Password must be at least 6 characters.', 'danger')
+            return render_template('setup.html')
         
         conn = get_db()
-        hashed_password = generate_password_hash(password)
-        conn.execute('''
-            INSERT INTO users (email, password, full_name, role)
-            VALUES (?, ?, ?, 'admin')
-        ''', (email, hashed_password, full_name))
-        conn.commit()
-        conn.close()
-        
-        flash('Admin account created! Please log in.', 'success')
-        return redirect(url_for('login'))
+        try:
+            hashed_password = generate_password_hash(password)
+            conn.execute('''
+                INSERT INTO users (email, password, full_name, role)
+                VALUES (?, ?, ?, 'admin')
+            ''', (email, hashed_password, full_name))
+            conn.commit()
+            flash('Admin account created! Please log in.', 'success')
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            flash('Email already exists.', 'danger')
+        finally:
+            conn.close()
     
     return render_template('setup.html')
 
