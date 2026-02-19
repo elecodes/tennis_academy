@@ -10,8 +10,9 @@ A simple, free-tier communication platform for tennis academies to connect admin
 - **Family**: View messages for enrolled groups, see weekly schedules
 
 ### Weekly Timetables
-- **View schedules by week** - Navigate between weeks
+- **View schedules by week** - Navigate between weeks with a clean 7x1 grid
 - **Role-based filtering** - Admins see all, coaches see their groups, families see their kids' groups
+- **Admin Management** - Inline "Add/Delete Session" tools for rapid scheduling
 - **No PII leaks** - Families never see other family emails or IDs
 - **Responsive design** - Works on mobile (≥320px), tablet, desktop
 
@@ -148,16 +149,13 @@ The app will be available at: **http://localhost:5001**
 users(id, email, password, full_name, role, phone, created_at, is_active)
 
 -- Groups (tennis groups)
-groups(id, name, coach_id, level, created_at, updated_at)
+groups(id, name, schedule, coach_id, description, created_at)
 
--- Kids
-kids(id, family_id, name, age, created_at, updated_at)
+-- Group memberships (enrollments)
+group_members(id, group_id, family_id, kid_name, enrolled_at)
 
--- Assign kids to groups
-group_kids(group_id, kid_id, joined_at)
-
--- Weekly schedules
-group_schedules(id, group_id, day_of_week, start_time, end_time, court, created_at, updated_at)
+-- Weekly schedules (structured data)
+group_schedules(id, group_id, day_of_week, start_time, end_time, court, created_at)
 
 -- Messages
 messages(id, sender_id, group_id, message_type, subject, content, sent_at, is_general)

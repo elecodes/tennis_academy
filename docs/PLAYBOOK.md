@@ -93,18 +93,13 @@ curl http://localhost:5001/login  # Should return 200
 ✅ All families in that group get email within seconds
 ```
 
-### Update Group Schedule
-
-```
 1. Login as ADMIN
 2. Admin Dashboard → Groups
 3. Click Edit Group
-4. Update "schedule" field
+4. Update description or coach
 5. Save
 
-⚠️ NOTE: Currently schedule is a TEXT field
-     Plan to migrate to `group_schedules` table next iteration
-```
+✅ To manage the actual session times/courts, use the **Schedules** page.
 
 ---
 
@@ -300,6 +295,23 @@ sqlite3 academy.db ".mode csv" ".headers on" \
 4. Save
 ```
 
+### Add/Delete Sessions (Admin)
+
+```
+1. Login as ADMIN
+2. Dashboard → View Weekly Schedules (Schedules page)
+3. To Add:
+   - Click "Add New Session"
+   - Select group, day, time, and court
+   - Click Save
+4. To Delete:
+   - Hover over a session in the grid
+   - Click the red "x" icon
+   - Confirm deletion
+```
+
+✅ Changes appear immediately for all users.
+
 ### View Weekly Schedule (as Family)
 
 ```
@@ -342,12 +354,12 @@ LEFT JOIN group_members gm ON g.id = gm.group_id
 GROUP BY g.id;
 
 -- Schedule for week of 2026-02-16 (Monday)
+-- Note: '0' is Monday, '6' is Sunday
 SELECT g.name, gs.day_of_week, gs.start_time, gs.end_time, gs.court
 FROM group_schedules gs
 JOIN groups g ON gs.group_id = g.id
-WHERE date('2026-02-16', '+' || gs.day_of_week || ' days') 
-  BETWEEN '2026-02-16' AND '2026-02-22'
-ORDER BY day_of_week, start_time;
+WHERE gs.day_of_week >= 0 AND gs.day_of_week <= 6
+ORDER BY gs.day_of_week, gs.start_time;
 
 -- Messages sent
 SELECT m.subject, u.full_name as from_coach, g.name as to_group, m.sent_at
@@ -369,5 +381,5 @@ LIMIT 10;
 
 ---
 
-**Last Updated**: 2026-02-18
-**Version**: 1.0
+**Last Updated**: 2026-02-19
+**Version**: 1.1
