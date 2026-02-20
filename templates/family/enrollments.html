@@ -3,33 +3,78 @@
 {% block title %}My Enrollments - Tennis Academy{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">My Enrollments</h2>
-        <p>Your kids' tennis group enrollments</p>
+<div class="max-w-7xl mx-auto px-10 pb-24">
+  <div class="flex items-center justify-between mb-10">
+    <div>
+      <h1 class="text-4xl font-display font-bold text-navy mb-2">My Enrollments</h1>
+      <p class="text-navy/60">Your kids' active tennis group memberships and schedules.</p>
     </div>
-    
-    {% if enrollments %}
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-            {% for enrollment in enrollments %}
-            <div class="card" style="border-left: 4px solid #667eea;">
-                <h3 style="color: #667eea; margin-bottom: 10px;">{{ enrollment.kid_name }}</h3>
-                <p><strong>Group:</strong> {{ enrollment.name }}</p>
-                <p><strong>Schedule:</strong> {{ enrollment.schedule }}</p>
-                <p><strong>Coach:</strong> {{ enrollment.coach_name or 'TBA' }}</p>
-                {% if enrollment.description %}
-                <p style="color: #666; font-size: 0.9rem; margin-top: 10px;">
-                    {{ enrollment.description }}
-                </p>
-                {% endif %}
+  </div>
+
+  {% if enrollments %}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {% for enrollment in enrollments %}
+    <div
+      class="card-premium border-t-4 border-t-indigo-500 shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white group">
+      <div class="p-8">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-display font-bold text-navy group-hover:text-indigo-600 transition-colors">{{
+            enrollment.kid_name }}</h3>
+          <div class="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center">
+            <span class="material-symbols-rounded text-indigo-500">sports_tennis</span>
+          </div>
+        </div>
+
+        <div class="space-y-4 mb-8">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-rounded text-navy/20 mt-0.5">group</span>
+            <div>
+              <p class="text-xs font-bold text-navy/40 uppercase tracking-wider mb-0.5">Group</p>
+              <p class="text-navy font-semibold">{{ enrollment.name }}</p>
             </div>
-            {% endfor %}
+          </div>
+
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-rounded text-navy/20 mt-0.5">schedule</span>
+            <div>
+              <p class="text-xs font-bold text-navy/40 uppercase tracking-wider mb-0.5">Schedule</p>
+              <p class="text-navy font-semibold">{{ enrollment.schedule }}</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-rounded text-navy/20 mt-0.5">sports_hands</span>
+            <div>
+              <p class="text-xs font-bold text-navy/40 uppercase tracking-wider mb-0.5">Coach</p>
+              <p class="text-navy font-semibold text-emerald-600">{{ enrollment.coach_name or 'TBA' }}</p>
+            </div>
+          </div>
         </div>
-    {% else %}
-        <div class="alert alert-warning">
-            <p>You don't have any enrollments yet.</p>
-            <p style="margin-top: 10px;">Please contact the admin to enroll your kids in tennis groups.</p>
+
+        {% if enrollment.description %}
+        <div class="pt-6 border-t border-navy/5">
+          <p class="text-navy/60 text-sm leading-relaxed italic">
+            "{{ enrollment.description }}"
+          </p>
         </div>
-    {% endif %}
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card-premium p-16 text-center shadow-xl border border-navy/10">
+    <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
+      <span class="material-symbols-rounded text-4xl text-indigo-500">app_registration</span>
+    </div>
+    <h2 class="text-2xl font-display font-bold text-navy mb-4">No Enrollments Yet</h2>
+    <p class="text-navy/60 max-w-md mx-auto mb-8">
+      You don't have any kids enrolled in tennis groups yet.
+    </p>
+    <button class="bg-navy text-white px-8 py-3 rounded-xl font-bold hover:bg-navy/90 transition-all">
+      Contact Admin to Enroll
+    </button>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

@@ -3,9 +3,10 @@
 ## Table of Contents
 1. [Setup Initial](#setup-initial)
 2. [Daily Operations](#daily-operations)
-3. [Troubleshooting](#troubleshooting)
-4. [Backup & Recovery](#backup--recovery)
-5. [Common Tasks](#common-tasks)
+3. [Design System](#design-system)
+4. [Troubleshooting](#troubleshooting)
+5. [Backup & Recovery](#backup--recovery)
+6. [Common Tasks](#common-tasks)
 
 ---
 
@@ -102,6 +103,22 @@ curl http://localhost:5001/login  # Should return 200
 ✅ To manage the actual session times/courts, use the **Schedules** page.
 
 ---
+
+## Design System
+
+### Premium UI Standards
+As of Feb 2026, the application follows a **Premium Centered Layout** (`max-w-7xl mx-auto`).
+
+1. **Typography**: Headings use `font-display` (Playfair Display), body uses `font-sans` (Inter).
+2. **Colors**: Primary color is Navy (`#0A192F`), accents use Gold and Emerald.
+3. **Cards**: Use `.card-premium` for elevated, bordered containers.
+4. **Modals**: Use the custom Vanilla JS system (see `ADR-002`).
+
+### Working with Modals
+To add a new modal:
+1. Wrap your form in `<div id="myModal" class="modal-overlay hidden">`.
+2. Ensure the close button has `onclick="closeModal('myModal')'`.
+3. Trigger it using `onclick="openModal('myModal')"` on your action button.
 
 ## Troubleshooting
 
@@ -381,5 +398,6 @@ LIMIT 10;
 
 ---
 
-**Last Updated**: 2026-02-19
-**Version**: 1.1
+**Last Updated**: 2026-02-20
+**Version**: 1.2
+```

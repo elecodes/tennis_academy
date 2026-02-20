@@ -12,9 +12,9 @@ A simple, free-tier communication platform for tennis academies to connect admin
 ### Weekly Timetables
 - **View schedules by week** - Navigate between weeks with a clean 7x1 grid
 - **Role-based filtering** - Admins see all, coaches see their groups, families see their kids' groups
-- **Admin Management** - Inline "Add/Delete Session" tools for rapid scheduling
-- **No PII leaks** - Families never see other family emails or IDs
-- **Responsive design** - Works on mobile (≥320px), tablet, desktop
+- **Premium Centered Layout** - Elegant, focused experience using `max-w-7xl mx-auto` containers
+- **Custom Modal System** - Reliable, vanilla JS interactions for all record creation (no Bootstrap JS dependencies)
+- **Responsive design** - Optimized for mobile, tablet, and high-res desktops
 
 ### Message Types
 - Rain cancellations (urgent)
@@ -166,8 +166,9 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 
 ## 📚 Documentation
 
-- **[ADR-001](docs/ADR-001-timetable-repository.md)** - Architecture Decision: Timetable Repository Pattern
-- **[PLAYBOOK](docs/PLAYBOOK.md)** - Operations manual, troubleshooting, common tasks
+- **[ADR-001](docs/ADR-001:%20Weekly%20Timetable%20Repository%20Pattern)** - Architecture Decision: Timetable Repository Pattern
+- **[ADR-002](docs/ADR-002:%20Vanilla%20JS%20Modal%20System.md)** - Architecture Decision: Custom Modal System
+- **[PLAYBOOK](docs/PLAYBOOK.md)** - Operations manual, Troubleshooting, Design Standards
 - **[API Reference](docs/API.md)** - API endpoints (coming soon)
 
 ## 🔒 Security
@@ -313,14 +314,16 @@ MIT License - Free to use and modify!
 ✅ RBAC:           Complete
 ✅ Email:          Complete
 ✅ Timetables:     Complete (with RBAC)
+✅ Premium UI:     Complete (centered layout)
+✅ Modal System:   Complete (vanilla JS)
 ✅ Tests:          Unit tests passing (13/13)
 🔜 Integration Tests: Coming soon
 🔜 PDF Export:      Coming soon
 🔜 Calendar View:   Coming soon
 ```
 
-**Last Updated**: 2026-02-18  
-**Version**: 1.0.0  
+**Last Updated**: 2026-02-20  
+**Version**: 1.1.0  
 **Status**: Production Ready ✅
 
 ---
