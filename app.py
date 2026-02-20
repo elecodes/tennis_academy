@@ -280,7 +280,12 @@ def dashboard():
             ORDER BY m.sent_at DESC LIMIT 10
         ''', (user_id, user_id, user_id)).fetchall()
         
-        stats = {'my_groups': my_groups, 'recent_messages': recent_messages}
+        total_families = sum(group['member_count'] for group in my_groups)
+        stats = {
+            'my_groups': my_groups, 
+            'recent_messages': recent_messages,
+            'total_families': total_families
+        }
         template = 'coach_dashboard.html'
         
     else:  # family

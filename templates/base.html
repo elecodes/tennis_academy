@@ -1,260 +1,613 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Tennis Academy{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #0d6efd;
-            --success-color: #198754;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --info-color: #0dcaf0;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SF Tennis Kids Academy{% endblock %}</title>
+
+  <!-- Design System: Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Tailwind Play CDN (Golden Setup: Config Before Script) -->
+  <script>
+    tailwind = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#1A237E',
+            accent: '#F57C00',
+            clay: '#D32F2F',
+            obsidian: '#0A0D2E',
+            mist: '#F8F9FA',
+          },
+          fontFamily: {
+            serif: ['Playfair Display', 'serif'],
+            sans: ['Inter', 'sans-serif'],
+          }
         }
-        
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .navbar {
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.3rem;
-            letter-spacing: 0.5px;
-        }
-        
-        .navbar-brand i {
-            margin-right: 0.5rem;
-        }
-        
-        .nav-link {
-            margin: 0 0.25rem;
-            transition: all 0.3s ease;
-        }
-        
-        .nav-link:hover {
-            color: #ffc107 !important;
-        }
-        
-        .nav-link.active {
-            color: #ffc107 !important;
-            font-weight: 600;
-        }
-        
-        main {
-            min-height: calc(100vh - 200px);
-            padding: 2rem 0;
-        }
-        
-        .card {
-            border: none;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-        
-        .card-header {
-            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-            font-weight: 600;
-        }
-        
-        .btn {
-            border-radius: 0.375rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary {
-            background-color: var(--primary-color);
-        }
-        
-        .btn-primary:hover {
-            background-color: #0b5ed7;
-            transform: translateY(-2px);
-        }
-        
-        .badge {
-            padding: 0.5rem 0.75rem;
-            font-weight: 500;
-        }
-        
-        footer {
-            background-color: #fff;
-            border-top: 1px solid #dee2e6;
-            margin-top: 3rem;
-        }
-        
-        .alert {
-            border: none;
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .dropdown-menu {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-            border: none;
-        }
-        
-        .dropdown-item:hover {
-            background-color: #f8f9fa;
-            color: var(--primary-color);
-        }
-        
-        @media (max-width: 768px) {
-            .navbar-brand {
-                font-size: 1.1rem;
-            }
-            
-            main {
-                padding: 1rem 0;
-            }
-            
-            .nav-link {
-                padding: 0.5rem 0 !important;
-                margin: 0.25rem 0;
-            }
-        }
-    </style>
+      }
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style type="text/tailwindcss">
+    @layer components {
+      .btn-primary {
+        @apply bg-navy text-white px-8 py-3 rounded-full font-bold hover:bg-accent transition-all hover:shadow-xl hover:-translate-y-0.5 active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer;
+      }
+      .btn-outline {
+        @apply border-2 border-navy text-navy px-8 py-3 rounded-full font-bold hover:bg-navy hover:text-white transition-all active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer;
+      }
+      .card-premium {
+        @apply bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1;
+        border: 1px solid rgba(26, 35, 126, 0.08); /* Fixed opacity navy border */
+      }
+    }
+    
+    @layer base {
+      h1, h2, h3, .font-serif {
+        @apply font-serif;
+      }
+    }
+  </style>
+
+  <style>
+    /* Fail-safe System Styles */
+    :root {
+      --navy: #1A237E;
+      --accent: #F57C00;
+      --clay: #D32F2F;
+      --mist: #F8F9FA;
+      --obsidian: #0A0D2E;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+      background-color: #F8F9FA !important;
+      color: #0A0D2E;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    h1,
+    h2,
+    h3,
+    .font-serif {
+      font-family: 'Playfair Display', serif !important;
+      color: #1A237E;
+    }
+
+    /* Essential Layout Utilities (Fail-safe) */
+    .max-w-7xl {
+      max-width: 80rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .mx-auto {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .px-6 {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+
+    .pt-12 {
+      padding-top: 3rem;
+    }
+
+    .py-32 {
+      padding-top: 8rem;
+      padding-bottom: 8rem;
+    }
+
+    .grid {
+      display: grid;
+    }
+
+    .grid-cols-1 {
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+
+    .flex {
+      display: flex;
+    }
+
+    .flex-col {
+      flex-direction: column;
+    }
+
+    .flex-wrap {
+      flex-wrap: wrap;
+    }
+
+    .items-center {
+      align-items: center;
+    }
+
+    .justify-between {
+      justify-content: space-between;
+    }
+
+    .gap-6 {
+      gap: 1.5rem;
+    }
+
+    .gap-8 {
+      gap: 2rem;
+    }
+
+    .gap-12 {
+      gap: 3rem;
+    }
+
+    .gap-16 {
+      gap: 4rem;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    @media (min-width: 768px) {
+      .md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .md\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .md\:grid-cols-7 {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+      }
+
+      .md\:flex-row {
+        flex-direction: row;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .lg\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .lg\:text-left {
+        text-align: left;
+      }
+    }
+
+    .text-navy {
+      color: var(--navy) !important;
+    }
+
+    .text-accent {
+      color: var(--accent) !important;
+    }
+
+    .text-white {
+      color: white !important;
+    }
+
+    .bg-navy {
+      background-color: var(--navy) !important;
+    }
+
+    .bg-accent {
+      background-color: var(--accent) !important;
+    }
+
+    .bg-white {
+      background-color: white !important;
+    }
+
+    .bg-mist {
+      background-color: var(--mist) !important;
+    }
+
+    .bg-obsidian {
+      background-color: var(--obsidian) !important;
+    }
+
+    /* Special Backgrounds & Visuals */
+    .hero-bg {
+      background: linear-gradient(135deg, var(--navy), var(--obsidian)) !important;
+      border-radius: 2.5rem;
+      color: white !important;
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      height: 100%;
+      min-height: 300px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-premium {
+      background: white !important;
+      border-radius: 2rem;
+      padding: 2.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(26, 35, 126, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .card-premium:hover {
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      transform: translateY(-4px);
+    }
+
+    .shadow-xl {
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .shadow-2xl {
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    .rounded-2xl {
+      border-radius: 1rem;
+    }
+
+    .rounded-3xl {
+      border-radius: 1.5rem;
+    }
+
+    .rounded-full {
+      border-radius: 9999px;
+    }
+
+    .aspect-square {
+      aspect-ratio: 1 / 1;
+    }
+
+    .w-full {
+      width: 100%;
+    }
+
+    .h-full {
+      height: 100%;
+    }
+
+    .material-symbols-rounded {
+      font-family: 'Material Symbols Rounded' !important;
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      font-style: normal;
+      text-transform: none;
+      line-height: 1;
+    }
+
+    .btn-primary {
+      background-color: var(--navy);
+      color: white !important;
+      text-decoration: none;
+      border-radius: 9999px;
+      padding: 0.75rem 2.5rem;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Dropdown/Absolute Fail-safe */
+    .absolute {
+      position: absolute !important;
+    }
+
+    .relative {
+      position: relative !important;
+    }
+
+    .top-full {
+      top: 100% !important;
+    }
+
+    .right-0 {
+      right: 0 !important;
+    }
+
+    .z-50 {
+      z-index: 50 !important;
+    }
+
+    .opacity-0 {
+      opacity: 0 !important;
+    }
+
+    .invisible {
+      visibility: hidden !important;
+    }
+
+    .group:hover .group-hover\:opacity-100 {
+      opacity: 1 !important;
+    }
+
+    .group:hover .group-hover\:visible {
+      visibility: visible !important;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #F8F9FA;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(26, 35, 126, 0.2);
+      border-radius: 9999px;
+    }
+  </style>
 </head>
-<body>
-    {% if 'user_id' in session %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
-                <i class="fas fa-trophy"></i> Tennis Academy
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">
-                            <i class="fas fa-home"></i> Dashboard
-                        </a>
-                    </li>
-                    
-                    {% if session.role == 'admin' %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-cog"></i> Admin
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('admin_users') }}"><i class="fas fa-users"></i> Users</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_groups') }}"><i class="fas fa-layer-group"></i> Groups</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_enrollments') }}"><i class="fas fa-clipboard-list"></i> Enrollments</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_send_message') }}"><i class="fas fa-envelope"></i> Send Message</a></li>
-                        </ul>
-                    </li>
-                    {% elif session.role == 'coach' %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('coach_my_groups') }}">
-                            <i class="fas fa-layer-group"></i> My Groups
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('coach_send_message') }}">
-                            <i class="fas fa-envelope"></i> Send Message
-                        </a>
-                    </li>
-                    {% elif session.role == 'family' %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('family_enrollments') }}">
-                            <i class="fas fa-child"></i> My Enrollments
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('family_messages') }}">
-                            <i class="fas fa-inbox"></i> Messages
-                        </a>
-                    </li>
-                    {% endif %}
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('timetables.get_timetable_page') }}">
-                            <i class="fas fa-calendar-alt"></i> Schedules
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle"></i> {{ session.full_name }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                        </ul>
-                    </li>
-                </ul>
+
+<body class="bg-mist font-sans text-obsidian antialiased">
+  <!-- Premium Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-navy/10 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <!-- Branding -->
+      <a href="{{ url_for('dashboard') if 'user_id' in session else url_for('index') }}"
+        class="flex items-center gap-3 group">
+        <div
+          class="w-10 h-10 bg-navy rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
+          <span class="material-symbols-rounded text-white text-2xl">sports_tennis</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-serif text-obsidian text-xl font-black leading-tight tracking-tight uppercase">SF
+            Tennis</span>
+          <span
+            class="text-accent font-bold text-[10px] tracking-[0.2em] uppercase -mt-1 opacity-80 decoration-accent decoration-2 group-hover:underline">Kids
+            Academy</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <div class="hidden lg:flex items-center gap-8">
+        {% if 'user_id' in session %}
+        <a href="{{ url_for('dashboard') }}"
+          class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
+          <span class="material-symbols-rounded text-xl">dashboard</span> Dashboard
+        </a>
+
+        {% if session.role == 'admin' %}
+        <div class="relative group">
+          <button
+            class="text-obsidian/60 group-hover:text-navy font-semibold transition-colors flex items-center gap-2">
+            <span class="material-symbols-rounded text-xl">settings</span> Admin <span
+              class="material-symbols-rounded">expand_more</span>
+          </button>
+          <div
+            class="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-navy/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-2 z-50">
+            <a href="{{ url_for('admin_users') }}"
+              class="block px-4 py-2 text-sm text-obsidian/70 hover:bg-mist hover:text-navy">Users</a>
+            <a href="{{ url_for('admin_groups') }}"
+              class="block px-4 py-2 text-sm text-obsidian/70 hover:bg-mist hover:text-navy">Groups</a>
+            <a href="{{ url_for('admin_enrollments') }}"
+              class="block px-4 py-2 text-sm text-obsidian/70 hover:bg-mist hover:text-navy">Enrollments</a>
+            <div class="border-t border-navy/5 my-1"></div>
+            <a href="{{ url_for('admin_send_message') }}"
+              class="block px-4 py-2 text-sm text-obsidian/70 hover:bg-mist hover:text-navy">Send Message</a>
+          </div>
+        </div>
+        {% elif session.role == 'coach' %}
+        <a href="{{ url_for('coach_my_groups') }}"
+          class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
+          <span class="material-symbols-rounded text-xl">groups</span> My Groups
+        </a>
+        <a href="{{ url_for('coach_send_message') }}"
+          class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
+          <span class="material-symbols-rounded text-xl">mail</span> Send Message
+        </a>
+        {% elif session.role == 'family' %}
+        <a href="{{ url_for('family_enrollments') }}"
+          class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
+          <span class="material-symbols-rounded text-xl">assignment</span> Enrollments
+        </a>
+        <a href="{{ url_for('family_messages') }}"
+          class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
+          <span class="material-symbols-rounded text-xl">mail</span> Messages
+        </a>
+        {% endif %}
+
+        <a href="{{ url_for('timetables.get_timetable_page') }}"
+          class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
+          <span class="material-symbols-rounded text-xl">calendar_month</span> Schedules
+        </a>
+        {% else %}
+        <a href="#about" class="text-obsidian/60 hover:text-navy font-semibold transition-colors">Programs</a>
+        <a href="#schedule" class="text-obsidian/60 hover:text-navy font-semibold transition-colors">Schedule</a>
+        <a href="#coaches" class="text-obsidian/60 hover:text-navy font-semibold transition-colors">Coaches</a>
+        {% endif %}
+      </div>
+
+      <!-- Action Area -->
+      <div class="flex items-center gap-4">
+        {% if 'user_id' in session %}
+        <div class="relative group">
+          <button
+            class="flex items-center gap-3 bg-navy/5 hover:bg-navy/10 transition-colors pl-2 pr-4 py-1.5 rounded-full">
+            <div class="w-8 h-8 bg-navy rounded-full flex items-center justify-center text-white text-xs font-bold">
+              {{ session.full_name[:1] }}
             </div>
+            <span class="text-sm font-bold text-navy hidden md:block">{{ session.full_name }}</span>
+            <span class="material-symbols-rounded text-navy">expand_more</span>
+          </button>
+          <div
+            class="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-navy/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-2 z-50">
+            <a href="{{ url_for('logout') }}"
+              class="flex items-center gap-2 px-4 py-2 text-sm text-clay hover:bg-clay/5 font-semibold">
+              <span class="material-symbols-rounded text-lg">logout</span> Logout
+            </a>
+          </div>
         </div>
-    </nav>
-    {% endif %}
+        {% else %}
+        <a href="{{ url_for('login') }}"
+          class="bg-navy text-white px-6 py-2.5 rounded-full font-bold hover:bg-accent transition-all hover:shadow-lg active:scale-95 text-sm">
+          Login
+        </a>
+        {% endif %}
 
-    <main class="container-fluid">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                <div class="container mt-3">
-                    {% if category == 'danger' %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle"></i> {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% elif category == 'success' %}
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle"></i> {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% elif category == 'warning' %}
-                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-triangle"></i> {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info alert-dismissible fade show" role="alert">
-                            <i class="fas fa-info-circle"></i> {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        {% block content %}{% endblock %}
-    </main>
+        <!-- Mobile Menu Button -->
+        <button class="lg:hidden w-10 h-10 flex items-center justify-center text-navy" onclick="toggleMobileMenu()">
+          <span class="material-symbols-rounded" id="menuIcon">menu</span>
+        </button>
+      </div>
+    </div>
 
-    <footer class="bg-light text-center py-4">
-        <div class="container">
-            <p class="mb-1"><strong>🎾 Tennis Academy Communication System</strong></p>
-            <p class="mb-0 text-muted small">&copy; 2026 All rights reserved | Built with ❤️ for Tennis Academies</p>
+    <!-- Mobile Menu (Hidden by default) -->
+    <div id="mobileMenu"
+      class="hidden lg:hidden absolute top-full left-0 right-0 bg-white border-b border-navy/10 py-6 px-6 flex flex-col gap-4 shadow-xl animate-fade-in">
+      <!-- Mobile links will be populated here if needed, or structured explicitly -->
+      {% if 'user_id' in session %}
+      <a href="{{ url_for('dashboard') }}"
+        class="flex items-center gap-3 text-obsidian/70 font-semibold py-2 border-b border-gray-100">Dashboard</a>
+      <a href="{{ url_for('index') }}#schedule"
+        class="flex items-center gap-3 text-obsidian/70 font-semibold py-2 border-b border-gray-100">Schedules</a>
+      <a href="{{ url_for('logout') }}" class="flex items-center gap-3 text-clay font-semibold py-2">Logout</a>
+      {% else %}
+      <a href="/login" class="bg-navy text-white px-6 py-3 rounded-xl font-bold text-center">Login</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="min-h-screen pt-24 pb-12">
+    <!-- Flash Messages -->
+    <div class="max-w-7xl mx-auto px-6 mb-8">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      {% for category, message in messages %}
+      <div
+        class="animate-slide-up flex items-center justify-between p-4 rounded-2xl shadow-sm border mb-4 
+                            {% if category == 'danger' %} bg-clay/5 border-clay/10 text-clay {% elif category == 'success' %} bg-accent/5 border-accent/10 text-accent {% else %} bg-navy/5 border-navy/10 text-navy {% endif %}">
+        <div class="flex items-center gap-3 font-semibold">
+          <span class="material-symbols-rounded">
+            {% if category == 'danger' %}error{% elif category == 'success' %}check_circle{% else %}info{% endif %}
+          </span>
+          {{ message }}
         </div>
-    </footer>
+        <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 transition-opacity">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Auto-close alerts after 5 seconds
-        document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                setTimeout(() => {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                }, 5000);
-            });
+    <!-- Page Content Block -->
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Premium Footer -->
+  <footer class="bg-navy pt-20 pb-10 text-white/80">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-white/10 pb-12 mb-10">
+      <div class="col-span-1 md:col-span-2">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
+            <span class="material-symbols-rounded text-navy text-2xl">sports_tennis</span>
+          </div>
+          <span class="font-serif text-white text-2xl font-black uppercase tracking-tight">SF Tennis Kids</span>
+        </div>
+        <p class="max-w-md leading-relaxed">
+          Based at San Francisco State University, we are dedicated to nurturing the next generation of tennis champions
+          with world-class coaching and an academic approach to sports excellence.
+        </p>
+      </div>
+
+      <div>
+        <h4 class="text-white font-bold mb-6 flex items-center gap-2">
+          <span class="w-1.5 h-1.5 bg-accent rounded-full"></span> Quick Links
+        </h4>
+        <div class="flex flex-col gap-4 text-sm">
+          <a href="{{ url_for('timetables.get_timetable_page') }}" class="hover:text-accent transition-colors">Weekly
+            Schedule</a>
+          <a href="{{ url_for('login') }}" class="hover:text-accent transition-colors">Client Portal</a>
+          <a href="#" class="hover:text-accent transition-colors">Academy Rules</a>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="text-white font-bold mb-6 flex items-center gap-2">
+          <span class="w-1.5 h-1.5 bg-accent rounded-full"></span> Connect
+        </h4>
+        <div class="flex items-center gap-4 text-white">
+          <a href="#"
+            class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-navy transition-all">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="#"
+            class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-navy transition-all">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a href="#"
+            class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-navy transition-all">
+            <i class="fab fa-twitter"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-sm font-medium">
+      <p>&copy; 2026 SF Tennis Kids Academy. Founded at SFSU.</p>
+      <div class="flex items-center gap-8">
+        <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+        <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+        <div class="flex items-center gap-2 text-accent">
+          <span class="material-symbols-rounded text-lg">verified</span>
+          <span>Approved Academic Partner</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      const icon = document.getElementById('menuIcon');
+      const isHidden = menu.classList.contains('hidden');
+
+      if (isHidden) {
+        menu.classList.remove('hidden');
+        icon.textContent = 'close';
+      } else {
+        menu.classList.add('hidden');
+        icon.textContent = 'menu';
+      }
+    }
+
+    // Auto-remove flash messages
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const alerts = document.querySelectorAll('.animate-slide-up');
+        alerts.forEach(alert => {
+          alert.classList.add('opacity-0');
+          alert.style.transform = 'translateY(-20px)';
+          alert.style.transition = 'all 0.5s ease-out';
+          setTimeout(() => alert.remove(), 500);
         });
-    </script>
+      }, 6000);
+    });
+  </script>
 </body>
+
 </html>

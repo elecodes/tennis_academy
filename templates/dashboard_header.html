@@ -1,0 +1,31 @@
+<!-- Dashboard Header Component -->
+<div class="bg-navy text-white py-12 mb-8 relative overflow-hidden">
+  <!-- Background Pattern -->
+  <div class="absolute inset-0 opacity-10 pointer-events-none">
+    <div class="absolute top-0 right-0 w-64 h-64 border-8 border-white rounded-full -mr-32 -mt-32"></div>
+    <div class="absolute bottom-0 left-0 w-32 h-32 border-4 border-accent rounded-full -ml-16 -mb-16"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-6 relative z-10 text-center lg:text-left">
+    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+      <div>
+        <div class="text-accent font-bold tracking-[0.2em] uppercase text-xs mb-3 animate-slide-up">
+          San Francisco State University
+        </div>
+        <h1 class="text-4xl lg:text-6xl font-black tracking-tight mb-2 font-serif animate-slide-up">
+          SF TENNIS <span class="italic text-accent">KIDS</span> Club
+        </h1>
+        <p class="text-lg text-white/70 italic font-medium animate-slide-up" style="animation-delay: 0.1s">
+          "The Gift of Tennis - A Lifetime Sport!"
+        </p>
+      </div>
+
+      <div class="flex items-center gap-4 animate-fade-in" style="animation-delay: 0.2s">
+        <div class="bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-2xl">
+          <span class="text-xs font-bold text-accent uppercase tracking-widest block mb-1">Current User</span>
+          <span class="text-sm font-medium">{{ session.full_name }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

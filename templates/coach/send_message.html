@@ -1,59 +1,104 @@
 {% extends 'base.html' %}
 
-{% block title %}Send Message - Tennis Academy{% endblock %}
+{% block title %}Send Message - SF Tennis Kids{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Send Message to Your Group</h2>
+{% include 'dashboard_header.html' %}
+
+<div class="max-w-4xl mx-auto px-6 pb-24">
+  <div class="card-premium">
+    <div class="flex items-center gap-4 mb-8">
+      <div class="w-12 h-12 bg-navy/5 rounded-2xl flex items-center justify-center text-navy">
+        <span class="material-symbols-rounded">mail</span>
+      </div>
+      <div>
+        <h2 class="text-2xl font-black text-navy font-serif">Compose Alert</h2>
+        <p class="text-sm text-obsidian/50">Send a notification to your group families.</p>
+      </div>
     </div>
-    
+
     {% if groups %}
-    <form method="POST" action="{{ url_for('coach_send_message') }}">
-        <div class="form-group">
-            <label for="message_type">Message Type</label>
-            <select class="form-control" id="message_type" name="message_type" required>
-                <option value="rain_cancellation">Rain Cancellation</option>
-                <option value="coach_delay">Coach Delay</option>
-                <option value="announcement">Announcement</option>
-                <option value="schedule_change">Schedule Change</option>
-            </select>
+    <form method="POST" action="{{ url_for('coach_send_message') }}" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Message Type -->
+        <div class="space-y-2">
+          <label for="message_type" class="text-xs font-bold text-accent uppercase tracking-widest pl-1">Message
+            Type</label>
+          <select
+            class="w-full bg-mist border-none rounded-2xl px-5 py-4 text-navy font-bold focus:ring-2 focus:ring-accent/20 transition-all appearance-none cursor-pointer"
+            id="message_type" name="message_type" required>
+            <option value="rain_cancellation">🌧️ Rain Cancellation</option>
+            <option value="coach_delay">⏱️ Coach Delay</option>
+            <option value="announcement">📢 Announcement</option>
+            <option value="schedule_change">📅 Schedule Change</option>
+          </select>
         </div>
-        
-        <div class="form-group">
-            <label for="subject">Subject</label>
-            <input type="text" class="form-control" id="subject" name="subject" 
-                   placeholder="e.g., Running 15 minutes late" required>
+
+        <!-- Group Selection -->
+        <div class="space-y-2">
+          <label for="group_id" class="text-xs font-bold text-accent uppercase tracking-widest pl-1">Target
+            Group</label>
+          <select
+            class="w-full bg-mist border-none rounded-2xl px-5 py-4 text-navy font-bold focus:ring-2 focus:ring-accent/20 transition-all appearance-none cursor-pointer"
+            id="group_id" name="group_id" required>
+            <option value="">-- Select Group --</option>
+            {% for group in groups %}
+            <option value="{{ group.id }}">{{ group.name }}</option>
+            {% endfor %}
+          </select>
         </div>
-        
-        <div class="form-group">
-            <label for="content">Message Content</label>
-            <textarea class="form-control" id="content" name="content" rows="6" 
-                      placeholder="Enter your message here..." required></textarea>
-        </div>
-        
-        <div class="form-group">
-            <label for="group_id">Select Group</label>
-            <select class="form-control" id="group_id" name="group_id" required>
-                <option value="">-- Select Group --</option>
-                {% for group in groups %}
-                <option value="{{ group.id }}">{{ group.name }} - {{ group.schedule }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <div class="alert alert-info">
-            <strong>Note:</strong> This message will be sent via email to all families in the selected group.
-        </div>
-        
-        <button type="submit" class="btn btn-primary">Send Message</button>
-        <a href="{{ url_for('dashboard') }}" class="btn" style="background: #6c757d; color: white;">Cancel</a>
+      </div>
+
+      <!-- Subject -->
+      <div class="space-y-2">
+        <label for="subject" class="text-xs font-bold text-accent uppercase tracking-widest pl-1">Subject Line</label>
+        <input type="text"
+          class="w-full bg-mist border-none rounded-2xl px-5 py-4 text-navy font-bold placeholder:text-navy/20 focus:ring-2 focus:ring-accent/20 transition-all"
+          id="subject" name="subject" placeholder="e.g., Practice canceled due to rain" required>
+      </div>
+
+      <!-- Content -->
+      <div class="space-y-2">
+        <label for="content" class="text-xs font-bold text-accent uppercase tracking-widest pl-1">Message
+          Details</label>
+        <textarea
+          class="w-full bg-mist border-none rounded-2xl px-5 py-4 text-navy font-medium placeholder:text-navy/20 focus:ring-2 focus:ring-accent/20 transition-all min-h-[200px]"
+          id="content" name="content" placeholder="Type your message to families here..." required></textarea>
+      </div>
+
+      <div class="p-6 bg-accent/5 rounded-3xl border border-accent/10 flex gap-4 items-start">
+        <span class="material-symbols-rounded text-accent">info</span>
+        <p class="text-xs text-obsidian/70 leading-relaxed font-medium">
+          <strong class="text-accent uppercase tracking-tight block mb-1">Important</strong>
+          This message will be sent instantly via email to all active families enrolled in the selected group.
+          Please double-check the details before sending.
+        </p>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-4 pt-4">
+        <button type="submit" class="btn-primary flex-1">
+          <span class="material-symbols-rounded">send</span>
+          Send Notification
+        </button>
+        <a href="{{ url_for('dashboard') }}" class="btn-outline">
+          Back to Dashboard
+        </a>
+      </div>
     </form>
     {% else %}
-    <div class="alert alert-warning">
-        You are not assigned to any groups yet. Please contact the admin.
+    <div class="text-center py-12">
+      <div class="w-20 h-20 bg-mist rounded-full flex items-center justify-center mx-auto mb-6 text-navy/20">
+        <span class="material-symbols-rounded text-4xl">group_off</span>
+      </div>
+      <h3 class="text-xl font-bold text-navy mb-2">No Groups Assigned</h3>
+      <p class="text-obsidian/50 mb-8">You haven't been assigned to any groups yet. Please contact the administrator to
+        get started.</p>
+      <a href="{{ url_for('dashboard') }}" class="btn-primary mx-auto">
+        <span class="material-symbols-rounded">arrow_back</span>
+        Return to Dashboard
+      </a>
     </div>
-    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
     {% endif %}
+  </div>
 </div>
 {% endblock %}

@@ -1,195 +1,158 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard - Tennis Academy{% endblock %}
+{% block title %}Admin Dashboard - SF Tennis Kids{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <h1 class="mb-1"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
-            <p class="text-muted">Welcome back, {{ session.full_name }}! 👋</p>
-        </div>
+{% include 'dashboard_header.html' %}
+
+<div class="max-w-7xl mx-auto px-6 pb-24">
+  <!-- Statistics Snapshot -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    <div class="card-premium flex items-center gap-6">
+      <div class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy">
+        <span class="material-symbols-rounded">group</span>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-accent uppercase tracking-widest mb-1">Total Users</div>
+        <div class="text-3xl font-black text-navy">{{ stats.total_users }}</div>
+      </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title text-white-50">Total Users</h6>
-                            <h2 class="mb-0">{{ stats.total_users }}</h2>
-                        </div>
-                        <i class="fas fa-users fa-3x opacity-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title text-white-50">Active Groups</h6>
-                            <h2 class="mb-0">{{ stats.total_groups }}</h2>
-                        </div>
-                        <i class="fas fa-layer-group fa-3x opacity-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title text-white-50">Messages Sent</h6>
-                            <h2 class="mb-0">{{ stats.total_messages }}</h2>
-                        </div>
-                        <i class="fas fa-envelope fa-3x opacity-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title text-white-50">System Status</h6>
-                            <h2 class="mb-0"><span class="badge bg-success">OK</span></h2>
-                        </div>
-                        <i class="fas fa-heartbeat fa-3x opacity-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="card-premium flex items-center gap-6">
+      <div class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy">
+        <span class="material-symbols-rounded">layers</span>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-accent uppercase tracking-widest mb-1">Active Groups</div>
+        <div class="text-3xl font-black text-navy">{{ stats.total_groups }}</div>
+      </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-flash"></i> Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 col-sm-6 mb-2">
-                            <a href="{{ url_for('admin_users') }}" class="btn btn-primary w-100">
-                                <i class="fas fa-plus-circle"></i> Add User
-                            </a>
-                        </div>
-                        <div class="col-md-3 col-sm-6 mb-2">
-                            <a href="{{ url_for('admin_groups') }}" class="btn btn-success w-100">
-                                <i class="fas fa-plus-circle"></i> Create Group
-                            </a>
-                        </div>
-                        <div class="col-md-3 col-sm-6 mb-2">
-                            <a href="{{ url_for('admin_enrollments') }}" class="btn btn-info w-100">
-                                <i class="fas fa-plus-circle"></i> Enroll Kid
-                            </a>
-                        </div>
-                        <div class="col-md-3 col-sm-6 mb-2">
-                            <a href="{{ url_for('admin_send_message') }}" class="btn btn-warning w-100">
-                                <i class="fas fa-envelope"></i> Send Message
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="card-premium flex items-center gap-6">
+      <div class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy">
+        <span class="material-symbols-rounded">chat</span>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-accent uppercase tracking-widest mb-1">Messages</div>
+        <div class="text-3xl font-black text-navy">{{ stats.total_messages }}</div>
+      </div>
     </div>
 
-    <!-- Recent Messages -->
-    {% if stats.recent_messages %}
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-inbox"></i> Recent Messages (Last 5)</h5>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th><i class="fas fa-envelope"></i> Subject</th>
-                                <th><i class="fas fa-user"></i> From</th>
-                                <th><i class="fas fa-layer-group"></i> Group</th>
-                                <th><i class="fas fa-clock"></i> Date</th>
-                                <th><i class="fas fa-tag"></i> Type</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for msg in stats.recent_messages %}
-                            <tr>
-                                <td><strong>{{ msg.subject }}</strong></td>
-                                <td>{{ msg.sender_name }}</td>
-                                <td>
-                                    {% if msg.group_name %}
-                                        <span class="badge bg-info">{{ msg.group_name }}</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">General</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <small class="text-muted">{{ msg.sent_at }}</small>
-                                </td>
-                                <td>
-                                    {% if msg.message_type == 'rain_cancellation' %}
-                                        <span class="badge bg-danger">Rain Cancel</span>
-                                    {% elif msg.message_type == 'coach_delay' %}
-                                        <span class="badge bg-warning text-dark">Coach Delay</span>
-                                    {% elif msg.message_type == 'announcement' %}
-                                        <span class="badge bg-info">Announcement</span>
-                                    {% else %}
-                                        <span class="badge bg-primary">{{ msg.message_type }}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+    <div class="card-premium flex items-center gap-6">
+      <div class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy">
+        <span class="material-symbols-rounded">check_circle</span>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-accent uppercase tracking-widest mb-1">System</div>
+        <div class="text-3xl font-black text-navy">OK</div>
+      </div>
     </div>
-    {% endif %}
+  </div>
+
+  <!-- Quick Management -->
+  <div class="mb-16">
+    <div class="flex items-center gap-3 mb-8">
+      <span class="w-8 h-[2px] bg-accent"></span>
+      <h2 class="text-2xl font-black text-navy font-serif">Academy Management</h2>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <a href="{{ url_for('admin_users') }}"
+        class="group p-6 bg-white border border-navy/5 rounded-3xl hover:bg-navy transition-all shadow-sm">
+        <div
+          class="w-12 h-12 bg-navy/5 rounded-xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-4 transition-all">
+          <span class="material-symbols-rounded text-2xl">person_add</span>
+        </div>
+        <div class="font-bold text-navy group-hover:text-white mb-1">Manage Users</div>
+        <div class="text-xs text-obsidian/50 group-hover:text-white/70">Add/edit academy members</div>
+      </a>
+
+      <a href="{{ url_for('admin_groups') }}"
+        class="group p-6 bg-white border border-navy/5 rounded-3xl hover:bg-navy transition-all shadow-sm">
+        <div
+          class="w-12 h-12 bg-navy/5 rounded-xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-4 transition-all">
+          <span class="material-symbols-rounded text-2xl">category</span>
+        </div>
+        <div class="font-bold text-navy group-hover:text-white mb-1">Training Groups</div>
+        <div class="text-xs text-obsidian/50 group-hover:text-white/70">Configure group schedules</div>
+      </a>
+
+      <a href="{{ url_for('admin_enrollments') }}"
+        class="group p-6 bg-white border border-navy/5 rounded-3xl hover:bg-navy transition-all shadow-sm">
+        <div
+          class="w-12 h-12 bg-navy/5 rounded-xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-4 transition-all">
+          <span class="material-symbols-rounded text-2xl">app_registration</span>
+        </div>
+        <div class="font-bold text-navy group-hover:text-white mb-1">Kid Enrollment</div>
+        <div class="text-xs text-obsidian/50 group-hover:text-white/70">Register and assign kids</div>
+      </a>
+
+      <a href="{{ url_for('admin_send_message') }}"
+        class="group p-6 bg-white border border-navy/5 rounded-3xl hover:bg-navy transition-all shadow-sm">
+        <div
+          class="w-12 h-12 bg-navy/5 rounded-xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-4 transition-all">
+          <span class="material-symbols-rounded text-2xl">send</span>
+        </div>
+        <div class="font-bold text-navy group-hover:text-white mb-1">Broadcast</div>
+        <div class="text-xs text-obsidian/50 group-hover:text-white/70">Send academy-wide alerts</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Communication Log -->
+  {% if stats.recent_messages %}
+  <div class="card-premium overflow-hidden p-0">
+    <div class="p-8 border-b border-navy/5 bg-navy/5">
+      <h3 class="text-xl font-black text-navy font-serif">Recent Communication Log</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="bg-navy/5 text-xs font-bold text-accent uppercase tracking-widest">
+            <th class="px-8 py-4">Subject</th>
+            <th class="px-8 py-4">Sender</th>
+            <th class="px-8 py-4">Target Group</th>
+            <th class="px-8 py-4">Date</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-navy/5">
+          {% for msg in stats.recent_messages %}
+          <tr class="hover:bg-mist transition-colors">
+            <td class="px-8 py-5">
+              <div class="flex items-center gap-3">
+                {% if msg.message_type == 'rain_cancellation' %}
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                {% elif msg.message_type == 'coach_delay' %}
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                {% else %}
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                {% endif %}
+                <span class="font-bold text-navy">{{ msg.subject }}</span>
+              </div>
+            </td>
+            <td class="px-8 py-5 text-sm text-obsidian/70">
+              {{ msg.sender_name }}
+            </td>
+            <td class="px-8 py-5">
+              {% if msg.group_name %}
+              <span
+                class="px-3 py-1 bg-navy/5 text-navy text-[10px] font-bold uppercase rounded-full border border-navy/10">
+                {{ msg.group_name }}
+              </span>
+              {% else %}
+              <span class="px-3 py-1 bg-obsidian/5 text-obsidian/60 text-[10px] font-bold uppercase rounded-full">
+                General
+              </span>
+              {% endif %}
+            </td>
+            <td class="px-8 py-5 text-xs text-obsidian/50">
+              {{ msg.sent_at }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
 </div>
-
-<style>
-    .card {
-        margin-bottom: 1.5rem;
-    }
-    
-    .bg-primary {
-        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
-    }
-    
-    .bg-success {
-        background: linear-gradient(135deg, #198754 0%, #157347 100%) !important;
-    }
-    
-    .bg-info {
-        background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%) !important;
-    }
-    
-    .bg-warning {
-        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%) !important;
-    }
-    
-    @media (max-width: 768px) {
-        .card-body {
-            padding: 1rem;
-        }
-        
-        h1 {
-            font-size: 1.5rem;
-        }
-    }
-</style>
 {% endblock %}

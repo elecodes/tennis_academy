@@ -1,32 +1,327 @@
 {% extends 'base.html' %}
 
-{% block title %}Welcome - Tennis Academy{% endblock %}
+{% block title %}SF Tennis Kids - Premier Tennis Academy at SFSU{% endblock %}
 
 {% block content %}
-<div style="text-align: center; padding: 80px 20px; color: white;">
-    <h1 style="font-size: 3rem; margin-bottom: 20px;">Tennis Academy</h1>
-    <p style="font-size: 1.3rem; margin-bottom: 40px; opacity: 0.9;">
-        Communication System for Coaches, Families, and Administrators
+<!-- Hero Section -->
+<section class="max-w-7xl mx-auto px-6 pt-12 pb-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+  <div class="animate-slide-up flex flex-col gap-8">
+    <div
+      class="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase">
+      <span class="w-2 h-2 bg-accent rounded-full animate-pulse"></span> Enrollment Open Spring 2026
+    </div>
+
+    <h1 class="text-6xl lg:text-8xl font-black text-navy leading-[1.05] tracking-tighter">
+      SF TENNIS <br />
+      <span class="text-transparent bg-clip-text bg-gradient-to-r from-navy to-accent italic text-navy">KIDS</span>
+      <br />
+      ACADEMY.
+    </h1>
+
+    <p class="text-xl text-obsidian/60 leading-relaxed max-w-lg font-medium">
+      Building future champions through academic discipline and professional tennis training at San Francisco State
+      University.
     </p>
-    <div style="display: flex; gap: 20px; justify-content: center;">
-        <a href="{{ url_for('login') }}" class="btn btn-primary" style="padding: 15px 40px; font-size: 1.1rem;">
-            Login
-        </a>
+
+    <div class="flex flex-wrap items-center gap-6">
+      <a href="{{ url_for('login') }}" class="btn-primary group">
+        Begin Journey <span
+          class="material-symbols-rounded group-hover:translate-x-1 transition-transform">arrow_forward</span>
+      </a>
+      <a href="#about" class="btn-outline">
+        Our Programs
+      </a>
     </div>
-    
-    <div style="margin-top: 60px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; max-width: 900px; margin-left: auto; margin-right: auto;">
-        <div class="card" style="color: #333;">
-            <h3>For Admins</h3>
-            <p>Manage users, groups, and send announcements to all families.</p>
-        </div>
-        <div class="card" style="color: #333;">
-            <h3>For Coaches</h3>
-            <p>Communicate with your groups about delays, cancellations, and updates.</p>
-        </div>
-        <div class="card" style="color: #333;">
-            <h3>For Families</h3>
-            <p>Receive important notifications about your child's tennis sessions.</p>
-        </div>
+
+    <div class="flex items-center gap-12 pt-8 border-t border-navy/10 mt-4">
+      <div>
+        <div class="text-4xl font-black text-navy">150+</div>
+        <div class="text-xs font-bold text-accent uppercase tracking-widest mt-1 opacity-70">Active Students</div>
+      </div>
+      <div>
+        <div class="text-4xl font-black text-navy">8</div>
+        <div class="text-xs font-bold text-accent uppercase tracking-widest mt-1 opacity-70">Expert Coaches</div>
+      </div>
+      <div>
+        <div class="text-4xl font-black text-navy">SFSU</div>
+        <div class="text-xs font-bold text-accent uppercase tracking-widest mt-1 opacity-70">Official Partner</div>
+      </div>
     </div>
-</div>
+  </div>
+
+  <div class="relative animate-fade-in">
+    <!-- Abstract Tennis Court Visual -->
+    <div
+      class="aspect-square bg-gradient-to-br from-navy to-[#0A0D2E] hero-bg rounded-[2rem] overflow-hidden shadow-2xl relative">
+      <div class="absolute inset-x-0 bottom-0 h-1/2 bg-accent/20 backdrop-blur-3xl transform rotate-6 scale-125"></div>
+      <div class="absolute top-1/4 left-1/4 w-1/2 h-[2px] bg-white/20"></div>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="w-64 h-64 border-4 border-white/10 rounded-full flex items-center justify-center">
+          <div
+            class="w-48 h-48 border-2 border-accent/30 rounded-full flex items-center justify-center animate-spin-slow">
+            <span class="material-symbols-rounded text-white/50 text-9xl leading-none">sports_tennis</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating Badge -->
+      <div
+        class="absolute bottom-8 left-8 bg-white p-6 rounded-3xl shadow-2xl flex items-center gap-4 animate-bounce-subtle">
+        <div class="w-12 h-12 bg-accent rounded-2xl flex items-center justify-center">
+          <span class="material-symbols-rounded text-white">workspace_premium</span>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-obsidian/40 uppercase tracking-widest">Academy Rank</div>
+          <div class="text-xl font-black text-navy">#1 in San Francisco</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Background Decorations -->
+    <div class="absolute -top-12 -right-12 w-64 h-64 bg-accent/10 rounded-full blur-3xl -z-10"></div>
+    <div class="absolute -bottom-12 -left-12 w-80 h-80 bg-navy/10 rounded-full blur-3xl -z-10 transition-colors"></div>
+  </div>
+</section>
+
+<!-- Core Values -->
+<section id="about" class="bg-white py-32 border-b border-navy/5">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col md:flex-row items-end justify-between gap-8 mb-20">
+      <div class="flex flex-col gap-4">
+        <div class="text-accent font-bold tracking-[0.3em] uppercase text-sm">Our Philosophy</div>
+        <h2 class="text-5xl font-black text-navy leading-tight tracking-tight">
+          Beyond the Court. <br />
+          Into the <span
+            class="italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-navy to-accent opacity-80">Future.</span>
+        </h2>
+      </div>
+      <p class="max-w-md text-obsidian/60 font-medium leading-relaxed pb-2">
+        We combine technical tennis mastery with cognitive development and academic excellence to create well-rounded
+        individuals.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+      <!-- Academic Foundation -->
+      <div class="card-premium group">
+        <div
+          class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy mb-8 group-hover:bg-navy group-hover:text-white transition-all duration-500">
+          <span class="material-symbols-rounded text-3xl">school</span>
+        </div>
+        <h3 class="text-2xl font-black text-navy mb-4 font-serif">Academic Foundation</h3>
+        <p class="text-obsidian/60 leading-relaxed font-medium">
+          Integrated learning paths where young athletes develop discipline, focus, and strategic thinking applicable to
+          both sports and classroom.
+        </p>
+      </div>
+
+      <!-- Expert Coaching -->
+      <div class="card-premium group">
+        <div
+          class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy mb-8 group-hover:bg-accent group-hover:text-white transition-all duration-500">
+          <span class="material-symbols-rounded text-3xl">psychology</span>
+        </div>
+        <h3 class="text-2xl font-black text-navy mb-4 font-serif">Expert Coaching</h3>
+        <p class="text-obsidian/60 leading-relaxed font-medium">
+          Our certified instructors at SFSU bring decades of pro-circuit experience and pedagogical expertise to every
+          session.
+        </p>
+      </div>
+
+      <!-- Modern Facility -->
+      <div class="card-premium group">
+        <div
+          class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy mb-8 group-hover:bg-clay group-hover:text-white transition-all duration-500">
+          <span class="material-symbols-rounded text-3xl">stadium</span>
+        </div>
+        <h3 class="text-2xl font-black text-navy mb-4 font-serif">University Facility</h3>
+        <p class="text-obsidian/60 leading-relaxed font-medium">
+          Access to SFSU's premium courts and sports science labs, providing a collegiate atmosphere that inspires young
+          minds.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Professional Solutions -->
+<section class="py-32 bg-mist/50">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="mb-16 text-center lg:text-left">
+      <div class="text-accent font-bold tracking-[0.3em] uppercase text-sm mb-4">Ecosystem</div>
+      <h2 class="text-5xl font-black text-navy tracking-tight font-serif">Professional Solutions</h2>
+      <p class="text-obsidian/60 mt-4 text-lg font-medium">Tailored experiences for every member of the academy.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Admins -->
+      <div
+        class="bg-white p-10 rounded-[2.5rem] border border-navy/5 shadow-xl hover:shadow-2xl transition-all group card-premium">
+        <div
+          class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy mb-6 group-hover:bg-navy group-hover:text-white transition-all">
+          <span class="material-symbols-rounded">admin_panel_settings</span>
+        </div>
+        <h3 class="text-2xl font-black text-navy mb-4 font-serif">Administrators</h3>
+        <p class="text-obsidian/70 font-medium mb-6">Streamline academy operations with automated tools.</p>
+        <ul class="space-y-4">
+          <li class="flex items-center gap-3 text-sm text-obsidian/60 font-semibold">
+            <span class="material-symbols-rounded text-accent text-lg">group</span>
+            User & Group management
+          </li>
+          <li class="flex items-center gap-3 text-sm text-obsidian/60 font-semibold">
+            <span class="material-symbols-rounded text-accent text-lg">payments</span>
+            Automated billing cycles
+          </li>
+        </ul>
+      </div>
+
+      <!-- Coaches -->
+      <div
+        class="bg-white p-10 rounded-[2.5rem] border border-navy/5 shadow-xl hover:shadow-2xl transition-all group card-premium">
+        <div
+          class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy mb-6 group-hover:bg-navy group-hover:text-white transition-all">
+          <span class="material-symbols-rounded">chat_bubble</span>
+        </div>
+        <h3 class="text-2xl font-black text-navy mb-4 font-serif">Coaches</h3>
+        <p class="text-obsidian/70 font-medium mb-6">Direct communication and performance tracking.</p>
+        <ul class="space-y-4">
+          <li class="flex items-center gap-3 text-sm text-obsidian/60 font-semibold">
+            <span class="material-symbols-rounded text-accent text-lg">warning</span>
+            Instant rain delay updates
+          </li>
+          <li class="flex items-center gap-3 text-sm text-obsidian/60 font-semibold">
+            <span class="material-symbols-rounded text-accent text-lg">analytics</span>
+            Performance tracking tools
+          </li>
+        </ul>
+      </div>
+
+      <!-- Families -->
+      <div
+        class="bg-white p-10 rounded-[2.5rem] border border-navy/5 shadow-xl hover:shadow-2xl transition-all group card-premium">
+        <div
+          class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy mb-6 group-hover:bg-navy group-hover:text-white transition-all">
+          <span class="material-symbols-rounded">family_restroom</span>
+        </div>
+        <h3 class="text-2xl font-black text-navy mb-4 font-serif">Families</h3>
+        <p class="text-obsidian/70 font-medium mb-6">Stay connected with your child's progress.</p>
+        <ul class="space-y-4">
+          <li class="flex items-center gap-3 text-sm text-obsidian/60 font-semibold">
+            <span class="material-symbols-rounded text-accent text-lg">calendar_view_month</span>
+            Mini schedule & sync
+          </li>
+          <li class="flex items-center gap-3 text-sm text-obsidian/60 font-semibold">
+            <span class="material-symbols-rounded text-accent text-lg">notifications_active</span>
+            Real-time booking alerts
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Schedule Snapshot -->
+<section id="schedule" class="pt-32 pb-48 relative overflow-hidden">
+  <div class="max-w-7xl mx-auto px-6 relative z-10">
+    <div class="text-center max-w-2xl mx-auto mb-20 flex flex-col gap-4">
+      <div class="text-accent font-bold tracking-[0.3em] uppercase text-sm">Snapshot</div>
+      <h2 class="text-5xl font-black text-navy tracking-tight">Weekly Foundation</h2>
+      <p class="text-obsidian/60 font-medium">Our structured timetable ensures every age group gets the right balance of
+        technical drills and academic integration.</p>
+    </div>
+
+    <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-navy/5 group">
+      <div class="grid grid-cols-1 md:grid-cols-7 border-b border-navy/5 bg-navy/5">
+        {% for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+        <div class="py-6 text-center font-bold text-navy/40 uppercase tracking-widest text-[10px]">{{ day }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="p-8">
+        <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center text-accent">
+              <span class="material-symbols-rounded">calendar_month</span>
+            </div>
+            <div>
+              <div class="text-sm font-bold text-navy">Current Session</div>
+              <div class="text-xs font-bold text-obsidian/40 uppercase tracking-widest">Spring Term 2026</div>
+            </div>
+          </div>
+          <a href="{{ url_for('timetables.get_timetable_page') }}"
+            class="text-navy font-bold hover:text-accent transition-colors flex items-center gap-2">
+            View Full Schedule <span class="material-symbols-rounded">north_east</span>
+          </a>
+        </div>
+
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-60 group-hover:opacity-100 transition-opacity">
+          <!-- Sample Schedule Items -->
+          <div class="p-6 bg-mist rounded-2xl border border-navy/5 flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+              <span
+                class="px-3 py-1 bg-navy/10 text-navy text-[10px] font-bold rounded-lg uppercase tracking-widest">Under
+                10s</span>
+              <span class="text-navy/40 font-bold text-xs italic">15:00 - 16:30</span>
+            </div>
+            <div class="text-lg font-black text-navy px-1">Junior Foundations</div>
+          </div>
+          <div class="p-6 bg-mist rounded-2xl border border-navy/5 flex flex-col gap-4 border-l-4 border-l-accent">
+            <div class="flex items-center justify-between">
+              <span
+                class="px-3 py-1 bg-accent/10 text-accent text-[10px] font-bold rounded-lg uppercase tracking-widest">Under
+                14s</span>
+              <span class="text-navy/40 font-bold text-xs italic">16:30 - 18:00</span>
+            </div>
+            <div class="text-lg font-black text-navy px-1">Academy Pro Elite</div>
+          </div>
+          <div class="p-6 bg-mist rounded-2xl border border-navy/5 flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+              <span
+                class="px-3 py-1 bg-navy/10 text-navy text-[10px] font-bold rounded-lg uppercase tracking-widest">Under
+                10s</span>
+              <span class="text-navy/40 font-bold text-xs italic">15:00 - 16:30</span>
+            </div>
+            <div class="text-lg font-black text-navy px-1">Strategy & Logic</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Background Decor -->
+  <div class="absolute top-1/2 left-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl transform -translate-x-1/2"></div>
+</section>
+
+<style>
+  @keyframes spin-slow {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 20s linear infinite;
+  }
+
+  @keyframes bounce-subtle {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-bounce-subtle {
+    animation: bounce-subtle 4s ease-in-out infinite;
+  }
+</style>
 {% endblock %}
