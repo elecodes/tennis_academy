@@ -1,105 +1,87 @@
 {% extends "base.html" %}
- {% block title
-  %}Manage Users - Tennis Academy{% endblock %} {% block content %} <div class="container mt-4">
-  <div class="row mb-4">
-    <div class="col-md-8">
-      <h1><i class="fas fa-users"></i> Manage Users</h1>
+
+{% block title %}Manage Users - Tennis Academy{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-10 pb-24">
+  <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
+    <div class="flex items-center gap-4">
+      <span class="w-12 h-1 bg-accent rounded-full"></span>
+      <h1 class="text-4xl font-black text-navy font-serif tracking-tight">Manage Users</h1>
     </div>
-    <div class="col-md-4 text-end">
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-        <i class="fas fa-plus-circle"></i> Add User
-      </button>
-    </div>
-  </div>
-
-  <!-- Add User Modal -->
-  <div class="modal fade" id="addUserModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title"><i class="fas fa-user-plus"></i> Add New User</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <form method="POST" action="{{ url_for('admin_add_user') }}">
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="email" class="form-label">Email *</label>
-              <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-
-            <div class="mb-3">
-              <label for="full_name" class="form-label">Full Name *</label>
-              <input type="text" class="form-control" id="full_name" name="full_name" required>
-            </div>
-
-            <div class="mb-3">
-              <label for="role" class="form-label">Role *</label>
-              <select class="form-select" id="role" name="role" required>
-                <option value="">Select role...</option>
-                <option value="coach">Coach</option>
-                <option value="family">Family</option>
-              </select>
-            </div>
-
-            <div class="mb-3">
-              <label for="phone" class="form-label">Phone</label>
-              <input type="tel" class="form-control" id="phone" name="phone" placeholder="555-0100">
-            </div>
-
-            <div class="mb-3">
-              <label for="password" class="form-label">Password *</label>
-              <input type="text" class="form-control" id="password" name="password" value="password123" required>
-              <small class="text-muted">Min 6 characters</small>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Add User</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <button class="btn-primary" data-modal-target="addUserModal">
+      <span class="material-symbols-outlined">person_add</span> Add User
+    </button>
   </div>
 
   <!-- Users Table -->
-  <div class="card">
-    <div class="card-header bg-primary text-white">
-      <h5 class="mb-0">{{ users|length }} Users</h5>
+  <div class="card-premium p-0 overflow-hidden border border-navy/10 shadow-xl">
+    <div class="p-8 border-b border-navy/5 bg-navy/5 flex items-center justify-between">
+      <h3 class="text-2xl font-black text-navy font-serif">{{ users|length }} Total Members</h3>
+      <span class="px-4 py-1.5 bg-navy/5 rounded-full text-[10px] font-black text-navy uppercase tracking-widest">Active
+        Directory</span>
     </div>
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead class="table-light">
-          <tr>
-            <th><i class="fas fa-envelope"></i> Email</th>
-            <th><i class="fas fa-user"></i> Name</th>
-            <th><i class="fas fa-tag"></i> Role</th>
-            <th><i class="fas fa-phone"></i> Phone</th>
-            <th><i class="fas fa-calendar"></i> Created</th>
-            <th><i class="fas fa-child"></i> Enrollments</th>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left premium-table">
+        <thead>
+          <tr class="text-xs font-bold text-accent uppercase tracking-widest">
+            <th class="px-8 py-5">User Details</th>
+            <th class="px-8 py-5">Role</th>
+            <th class="px-8 py-5">Contact</th>
+            <th class="px-8 py-5">Enrollments</th>
+            <th class="px-8 py-5">Joined</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="divide-y divide-navy/5">
           {% if users %}
           {% for user in users %}
-          <tr>
-            <td><code>{{ user.email }}</code></td>
-            <td><strong>{{ user.full_name }}</strong></td>
-            <td>
+          <tr class="hover:bg-navy/[0.02] transition-colors">
+            <td class="px-8 py-6">
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-10 h-10 rounded-full bg-navy/5 flex items-center justify-center text-xs font-black text-navy border border-navy/10">
+                  {{ user.full_name[:2].upper() }}
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-bold text-navy leading-tight">{{ user.full_name }}</span>
+                  <span class="text-xs text-obsidian/40">{{ user.email }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="px-8 py-6">
               {% if user.role == 'coach' %}
-              <span class="badge bg-info">Coach</span>
+              <span
+                class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase rounded-full border border-blue-100 tracking-widest">Coach</span>
               {% elif user.role == 'family' %}
-              <span class="badge bg-success">Family</span>
+              <span
+                class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase rounded-full border border-emerald-100 tracking-widest">Family</span>
+              {% else %}
+              <span
+                class="px-3 py-1 bg-navy/5 text-navy text-[10px] font-black uppercase rounded-full border border-navy/10 tracking-widest">{{
+                user.role }}</span>
               {% endif %}
             </td>
-            <td>{{ user.phone or '-' }}</td>
-            <td><small class="text-muted">{{ user.created_at[:10] }}</small></td>
-            <td><span class="badge bg-secondary">{{ user.enrollments }}</span></td>
+            <td class="px-8 py-6">
+              <span class="text-sm font-semibold text-obsidian/70">{{ user.phone or 'No phone' }}</span>
+            </td>
+            <td class="px-8 py-6 text-center">
+              <span
+                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-navy/5 text-navy font-bold text-sm">
+                {{ user.enrollments }}
+              </span>
+            </td>
+            <td class="px-8 py-6">
+              <span class="text-sm font-bold text-navy/40">{{ user.created_at[:10] }}</span>
+            </td>
           </tr>
           {% endfor %}
           {% else %}
           <tr>
-            <td colspan="6" class="text-center text-muted py-4">
-              No users yet. <a href="#" data-bs-toggle="modal" data-bs-target="#addUserModal">Add one</a>
+            <td colspan="5" class="px-8 py-20 text-center">
+              <div class="flex flex-col items-center gap-4 opacity-20">
+                <span class="material-symbols-outlined text-6xl">person_off</span>
+                <p class="font-black uppercase tracking-[0.3em] text-xs">No users found</p>
+              </div>
             </td>
           </tr>
           {% endif %}
@@ -107,8 +89,63 @@
       </table>
     </div>
   </div>
-  </div>
-  {% endblock %}
-  EOF
+</div>
 
-  echo "✅ admin/users.html created"
+<!-- Add User Modal -->
+<div class="modal-backdrop" id="addUserModal">
+  <div class="modal-dialog max-w-xl w-full">
+    <div class="modal-content !rounded-[2.5rem] !border-none shadow-2xl overflow-hidden">
+      <div class="bg-navy p-8 text-white relative">
+        <h5 class="text-2xl font-black font-serif">Add New User</h5>
+        <p class="text-white/60 text-sm">Create credentials for a new academy member.</p>
+        <button type="button" class="absolute top-8 right-8 text-white/40 hover:text-white transition-colors"
+          data-modal-close="addUserModal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form method="POST" action="{{ url_for('admin_add_user') }}" class="p-8 space-y-6">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Full Name *</label>
+          <input type="text" name="full_name" class="form-input" placeholder="e.g., John Smith" required>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Email Address *</label>
+          <input type="email" name="email" class="form-input" placeholder="e.g., john@example.com" required>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Role *</label>
+            <select name="role" class="form-input" required>
+              <option value="">Select role...</option>
+              <option value="coach">Coach</option>
+              <option value="family">Family</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Phone</label>
+            <input type="tel" name="phone" class="form-input" placeholder="555-0100">
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Initial Password *</label>
+          <div class="relative">
+            <input type="text" name="password" class="form-input" value="password123" required>
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-navy/20">lock</span>
+          </div>
+          <p class="text-[10px] text-obsidian/40 ml-4 font-bold">Min 6 characters recommended.</p>
+        </div>
+
+        <div class="flex items-center gap-4 pt-4">
+          <button type="submit" class="btn-primary flex-1 justify-center">Create User</button>
+          <button type="button"
+            class="px-8 py-3 text-sm font-bold text-obsidian/40 hover:text-obsidian transition-colors"
+            data-modal-close="addUserModal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

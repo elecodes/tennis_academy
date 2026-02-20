@@ -1,277 +1,216 @@
 {% extends "base.html" %}
 
-{% block title %}Weekly Schedules - Tennis Academy{% endblock %}
+{% block title %}Weekly Schedules - SF Tennis Kids{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-  <div class="row">
-    <div class="col-12">
-      <h1 class="mb-3"><i class="fas fa-calendar-alt"></i> Weekly Schedules</h1>
+<div class="max-w-7xl mx-auto px-10 pb-24">
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 py-16 animate-slide-up">
+    <div>
+      <div class="flex items-center gap-4 mb-4">
+        <span class="w-12 h-1 bg-accent rounded-full"></span>
+        <span class="text-[10px] font-black text-accent uppercase tracking-[0.3em]">Operational Timetable</span>
+      </div>
+      <h1 class="text-5xl font-black text-navy font-serif tracking-tight mb-2">Academy Schedule</h1>
+      <p class="text-obsidian/40 font-medium">Coordinate and track active cohorts across all court assignments.</p>
+    </div>
 
-      <!-- Week Navigation -->
-      <div class="card mb-4">
-        <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-md-3 mb-2 mb-md-0">
-              <a href="{{ url_for('timetables.get_timetable_page', date=prev_week) }}"
-                class="btn btn-outline-primary w-100">
-                <i class="fas fa-chevron-left"></i> Previous Week
-              </a>
-            </div>
+    <!-- Week Navigation -->
+    <div class="flex items-center bg-white p-2 rounded-[1.5rem] border border-navy/5 shadow-xl">
+      <a href="{{ url_for('timetables.get_timetable_page', date=prev_week) }}"
+        class="w-12 h-12 flex items-center justify-center text-navy hover:bg-navy hover:text-white rounded-xl transition-all">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </a>
+      <div class="px-8 text-center min-w-[240px]">
+        <div class="text-[9px] font-black text-accent uppercase tracking-widest mb-1">Session Period</div>
+        <div class="text-sm font-black text-navy">{{ week_start }} — {{ week_end }}</div>
+      </div>
+      <a href="{{ url_for('timetables.get_timetable_page', date=next_week) }}"
+        class="w-12 h-12 flex items-center justify-center text-navy hover:bg-navy hover:text-white rounded-xl transition-all">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </a>
+    </div>
+  </div>
 
-            <div class="col-md-6 mb-2 mb-md-0 text-center">
-              <h5 class="mb-0">
-                <strong>{{ week_start }}</strong> to <strong>{{ week_end }}</strong>
-              </h5>
-              <small class="text-muted">Week view</small>
-            </div>
+  <!-- Admin Actions -->
+  {% if session.role == 'admin' %}
+  <div class="mb-12 flex justify-end animate-fade-in">
+    <button type="button" class="btn-primary shadow-xl shadow-navy/10" data-modal-target="addSessionModal">
+      <span class="material-symbols-outlined">calendar_add_on</span>
+      Provision New Session
+    </button>
+  </div>
+  {% endif %}
 
-            <div class="col-md-3 mb-2 mb-md-0">
-              <a href="{{ url_for('timetables.get_timetable_page', date=next_week) }}"
-                class="btn btn-outline-primary w-100">
-                Next Week <i class="fas fa-chevron-right"></i>
-              </a>
+  <!-- Groups Display -->
+  <div class="space-y-12">
+    {% if groups %}
+    {% for group in groups %}
+    <div class="card-premium overflow-hidden p-0 border border-navy/10 shadow-2xl group animate-fade-in">
+      <div
+        class="p-8 border-b border-navy/5 bg-navy/[0.02] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div class="flex items-center gap-6">
+          <div
+            class="w-14 h-14 bg-navy text-white rounded-2xl flex items-center justify-center text-xl font-black font-serif shadow-lg shadow-navy/20">
+            {{ group.name[0] }}
+          </div>
+          <div>
+            <h5 class="text-2xl font-black text-navy font-serif mb-1">{{ group.name }}</h5>
+            <div class="flex items-center gap-3">
+              <span
+                class="px-2 py-0.5 bg-accent/10 text-accent font-black uppercase text-[9px] rounded-md tracking-widest border border-accent/10">{{
+                group.level }}</span>
+              <span class="text-xs font-bold text-obsidian/40 italic">Managed by {{ group.coach.name }}</span>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Admin Actions -->
-      {% if session.role == 'admin' %}
-      <div class="mb-4 d-flex justify-content-end">
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addSessionModal">
-          <i class="fas fa-plus"></i> Add New Session
-        </button>
-      </div>
-      {% endif %}
-
-      <!-- Groups Display -->
-      {% if groups %}
-      {% for group in groups %}
-      <div class="card mb-4 shadow-sm" aria-labelledby="group-title-{{ group.id }}">
-        <div class="card-header bg-primary text-white">
-          <div class="row align-items-center">
-            <div class="col-md-6 mb-2 mb-md-0">
-              <h5 class="mb-0" id="group-title-{{ group.id }}">{{ group.name }}</h5>
-              <small>Level: <strong>{{ group.level }}</strong></small>
-            </div>
-            <div class="col-md-6">
-              <p class="mb-0 text-end">
-                <strong>Coach:</strong>
-                {{ group.coach.name }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <!-- Weekly Schedule Table -->
-          <h6 class="mb-3"><i class="fas fa-clock"></i> Weekly Schedule</h6>
-          <div class="table-responsive">
-            <table class="table table-sm table-bordered" aria-label="Weekly schedule for {{ group.name }}">
-              <thead class="table-light">
-                <tr>
-                  <th width="14%" scope="col">Mon</th>
-                  <th width="14%" scope="col">Tue</th>
-                  <th width="14%" scope="col">Wed</th>
-                  <th width="14%" scope="col">Thu</th>
-                  <th width="14%" scope="col">Fri</th>
-                  <th width="14%" scope="col">Sat</th>
-                  <th width="14%" scope="col">Sun</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  {% for day_num in range(7) %}
-                  <td class="timetable-cell">
-                    {% set day_schedules = group.schedules | selectattr('day', 'equalto', day_num) | list %}
-                    {% if day_schedules %}
-                    {% for sched in day_schedules %}
-                    <div
-                      class="mb-2 p-2 bg-light rounded border-start border-primary border-3 position-relative schedule-entry">
-                      <small class="d-block"><strong>{{ sched.start_time }} - {{ sched.end_time }}</strong></small>
-                      <small class="d-block text-muted">{{ sched.court }}</small>
-
-                      {% if session.role == 'admin' %}
-                      <form action="{{ url_for('timetables.delete_timetable_session', session_id=sched.id) }}"
-                        method="POST" class="d-inline position-absolute top-0 end-0 p-1">
-                        <button type="submit" class="btn btn-link btn-sm text-danger p-0 delete-session-btn"
-                          title="Delete session" aria-label="Delete {{ group.name }} session on {{ sched.start_time }}"
-                          onclick="return confirm('Delete this session?')">
-                          <i class="fas fa-times-circle"></i>
-                        </button>
-                      </form>
-                      {% endif %}
-                    </div>
-                    {% endfor %}
-                    {% else %}
-                    <span class="text-muted" aria-hidden="true">—</span>
-                    <span class="visually-hidden">No sessions</span>
-                    {% endif %}
-                  </td>
-                  {% endfor %}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Kids List (only for coaches and admin) -->
-          {% if group.kids and session.role in ['coach', 'admin'] %}
-          <hr class="my-3">
-          <h6 class="mt-3 mb-3"><i class="fas fa-child"></i> Kids in Group ({{ group.kids | length }})</h6>
-          <div class="row">
-            {% for kid in group.kids %}
-            <div class="col-md-6 col-lg-4 mb-2">
-              <div class="p-2 bg-light rounded">
-                <strong>{{ kid.name }}</strong>
-                <span class="badge bg-info">{{ kid.age }} y/o</span>
-              </div>
+        {% if group.kids and session.role in ['coach', 'admin'] %}
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-black text-navy/20 uppercase tracking-widest mr-2">Cohort Size</span>
+          <div class="flex -space-x-2">
+            {% for kid in group.kids[:5] %}
+            <div
+              class="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center text-[10px] font-black border-2 border-white shadow-sm"
+              title="{{ kid.name }}">
+              {{ kid.name[0] }}
             </div>
             {% endfor %}
+            {% if group.kids|length > 5 %}
+            <div
+              class="w-8 h-8 rounded-full bg-mist text-navy/40 flex items-center justify-center text-[10px] font-black border-2 border-white">
+              +{{ group.kids|length - 5 }}
+            </div>
+            {% endif %}
           </div>
-          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="p-8">
+        <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+          {% for day_name in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+          <div class="flex flex-col gap-4">
+            <div
+              class="text-[9px] font-black text-navy/20 uppercase tracking-[0.2em] text-center pb-2 border-b border-navy/5">
+              {{ day_name[:3] }}
+            </div>
+            <div class="min-h-[120px] space-y-3">
+              {% set day_num = loop.index0 %}
+              {% set day_schedules = group.schedules | selectattr('day', 'equalto', day_num) | list %}
+              {% if day_schedules %}
+              {% for sched in day_schedules %}
+              <div
+                class="p-4 bg-mist/50 rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
+                <div class="text-xs font-black text-navy group-hover/entry:text-white mb-1 transition-colors">{{
+                  sched.start_time }}</div>
+                <div
+                  class="text-[10px] font-bold text-obsidian/40 group-hover/entry:text-white/60 uppercase tracking-tighter transition-colors">
+                  {{ sched.court }}</div>
+
+                {% if session.role == 'admin' %}
+                <form action="{{ url_for('timetables.delete_timetable_session', session_id=sched.id) }}" method="POST"
+                  class="absolute top-2 right-2 opacity-0 group-hover/entry:opacity-100 transition-opacity">
+                  <button type="submit"
+                    class="w-6 h-6 flex items-center justify-center text-white/50 hover:text-white transition-colors"
+                    onclick="return confirm('Terminate this session assignment?')">
+                    <span class="material-symbols-outlined text-base">close</span>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+              {% endfor %}
+              {% else %}
+              <div class="h-full flex items-center justify-center">
+                <span class="w-1.5 h-1.5 rounded-full bg-navy/5"></span>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
         </div>
       </div>
-      {% endfor %}
-      {% else %}
-      <div class="alert alert-info shadow-sm" role="alert">
-        <h4 class="alert-heading"><i class="fas fa-info-circle"></i> No Sessions Scheduled</h4>
-        <p class="mb-0">There are no group sessions scheduled for this week.</p>
-      </div>
-      {% endif %}
     </div>
+    {% endfor %}
+    {% else %}
+    <div class="card-premium p-24 text-center border-2 border-dashed border-navy/10 animate-fade-in shadow-inner">
+      <div class="w-24 h-24 bg-navy/5 rounded-full flex items-center justify-center mx-auto mb-8 text-navy/10">
+        <span class="material-symbols-outlined text-6xl">event_busy</span>
+      </div>
+      <h3 class="text-3xl font-black text-navy mb-4 font-serif">No Sessions Scheduled</h3>
+      <p class="text-obsidian/40 font-medium max-w-md mx-auto leading-relaxed">The academy's operational calendar is
+        currently clear for this period. Please check alternative weeks or consult the academic director.</p>
+    </div>
+    {% endif %}
   </div>
 </div>
 
-<!-- Add Session Modal (Admin Only) -->
+<!-- Add Session Modal -->
 {% if session.role == 'admin' %}
-<div class="modal fade" id="addSessionModal" tabindex="-1" aria-labelledby="addSessionModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="addSessionModalLabel">Add New Session</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal-backdrop" id="addSessionModal">
+  <div class="modal-dialog max-w-xl w-full">
+    <div class="modal-content !rounded-[2.5rem] border-none shadow-2xl overflow-hidden">
+      <div class="p-8 bg-navy text-white flex justify-between items-center">
+        <h5 class="text-2xl font-black font-serif">Provision Session</h5>
+        <button type="button" class="text-white/50 hover:text-white transition-colors"
+          data-modal-close="addSessionModal">
+          <span class="material-symbols-outlined text-3xl">close</span>
+        </button>
       </div>
       <form action="{{ url_for('timetables.add_timetable_session') }}" method="POST">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="group_id" class="form-label">Group</label>
-            <select class="form-select" id="group_id" name="group_id" required>
-              <option value="">Select a group...</option>
+        <div class="p-10 space-y-8">
+          <div class="space-y-2">
+            <label for="group_id" class="text-[10px] font-black text-accent uppercase tracking-widest pl-1">Target
+              Cohort</label>
+            <select class="form-input appearance-none" id="group_id" name="group_id" required>
+              <option value="">-- Select Group --</option>
               {% for g in all_groups %}
               <option value="{{ g.id }}">{{ g.name }}</option>
               {% endfor %}
             </select>
           </div>
-          <div class="mb-3">
-            <label for="day" class="form-label">Day of Week</label>
-            <select class="form-select" id="day" name="day" required>
-              <option value="0">Monday</option>
-              <option value="1">Tuesday</option>
-              <option value="2">Wednesday</option>
-              <option value="3">Thursday</option>
-              <option value="4">Friday</option>
-              <option value="5">Saturday</option>
-              <option value="6">Sunday</option>
-            </select>
-          </div>
-          <div class="row mb-3">
-            <div class="col">
-              <label for="start_time" class="form-label">Start Time</label>
-              <input type="time" class="form-control" id="start_time" name="start_time" required>
+
+          <div class="grid grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label for="day" class="text-[10px] font-black text-accent uppercase tracking-widest pl-1">Weekly
+                Alignment</label>
+              <select class="form-input appearance-none" id="day" name="day" required>
+                <option value="0">Monday</option>
+                <option value="1">Tuesday</option>
+                <option value="2">Wednesday</option>
+                <option value="3">Thursday</option>
+                <option value="4">Friday</option>
+                <option value="5">Saturday</option>
+                <option value="6">Sunday</option>
+              </select>
             </div>
-            <div class="col">
-              <label for="end_time" class="form-label">End Time</label>
-              <input type="time" class="form-control" id="end_time" name="end_time" required>
+            <div class="space-y-2">
+              <label for="court" class="text-[10px] font-black text-accent uppercase tracking-widest pl-1">Assignment
+                Venue</label>
+              <input type="text" class="form-input" id="court" name="court" value="Court 1" required>
             </div>
           </div>
-          <div class="mb-3">
-            <label for="court" class="form-label">Court</label>
-            <input type="text" class="form-control" id="court" name="court" value="Court 1" required>
+
+          <div class="grid grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label for="start_time"
+                class="text-[10px] font-black text-accent uppercase tracking-widest pl-1">Commencement</label>
+              <input type="time" class="form-input" id="start_time" name="start_time" required>
+            </div>
+            <div class="space-y-2">
+              <label for="end_time"
+                class="text-[10px] font-black text-accent uppercase tracking-widest pl-1">Conclusion</label>
+              <input type="time" class="form-input" id="end_time" name="end_time" required>
+            </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Session</button>
+        <div class="p-8 bg-mist flex gap-4">
+          <button type="button" class="btn-outline flex-1 justify-center !h-14"
+            data-modal-close="addSessionModal">Cancel</button>
+          <button type="submit" class="btn-primary flex-1 justify-center !h-14 shadow-xl">Authorize Session</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 {% endif %}
-</div>
-</div>
-</div>
-
-<style>
-  .timetable-cell {
-    padding: 0.5rem;
-    font-size: 0.9rem;
-    vertical-align: top;
-    min-height: 100px;
-    background-color: #fff;
-  }
-
-  .schedule-entry {
-    transition: all 0.2s ease-in-out;
-  }
-
-  .schedule-entry:hover {
-    background-color: #f1f8ff !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  .delete-session-btn {
-    opacity: 0.3;
-    transition: opacity 0.2s;
-    text-decoration: none;
-  }
-
-  .schedule-entry:hover .delete-session-btn {
-    opacity: 1;
-  }
-
-  .table-sm td {
-    padding: 0.5rem;
-    font-size: 0.9rem;
-    vertical-align: top;
-  }
-
-  .border-start {
-    border-left: 4px solid var(--bs-border-color) !important;
-  }
-
-  @media (max-width: 768px) {
-    .table {
-      font-size: 0.8rem;
-    }
-
-    .table-sm td {
-      padding: 0.25rem;
-      min-height: 80px !important;
-    }
-
-    .card-header h5 {
-      font-size: 1rem;
-    }
-
-    .card-header p {
-      font-size: 0.9rem;
-      text-align: left !important;
-      margin-top: 0.5rem;
-    }
-  }
-
-  @media (max-width: 576px) {
-    .table-sm td {
-      padding: 0.15rem;
-      min-height: 60px;
-      font-size: 0.75rem;
-    }
-
-    .p-2 {
-      padding: 0.35rem !important;
-    }
-  }
-</style>
 {% endblock %}

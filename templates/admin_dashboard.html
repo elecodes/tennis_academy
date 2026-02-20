@@ -5,154 +5,180 @@
 {% block content %}
 {% include 'dashboard_header.html' %}
 
-<div class="max-w-7xl mx-auto px-6 pb-24">
+<div class="max-w-7xl mx-auto px-10 pb-24">
   <!-- Statistics Snapshot -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-    <div class="card-premium flex items-center gap-6">
-      <div class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy">
-        <span class="material-symbols-rounded">group</span>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+    <div class="card-premium flex items-center gap-6 group">
+      <div
+        class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-navy group-hover:text-white transition-all duration-500 shadow-sm">
+        <span class="material-symbols-outlined text-3xl">group</span>
       </div>
       <div>
-        <div class="text-xs font-bold text-accent uppercase tracking-widest mb-1">Total Users</div>
-        <div class="text-3xl font-black text-navy">{{ stats.total_users }}</div>
+        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">Total Users</div>
+        <div class="text-4xl font-black text-navy">{{ stats.total_users }}</div>
       </div>
     </div>
 
-    <div class="card-premium flex items-center gap-6">
-      <div class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy">
-        <span class="material-symbols-rounded">layers</span>
+    <div class="card-premium flex items-center gap-6 group">
+      <div
+        class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-navy group-hover:text-white transition-all duration-500 shadow-sm">
+        <span class="material-symbols-outlined text-3xl">layers</span>
       </div>
       <div>
-        <div class="text-xs font-bold text-accent uppercase tracking-widest mb-1">Active Groups</div>
-        <div class="text-3xl font-black text-navy">{{ stats.total_groups }}</div>
+        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">Active Groups</div>
+        <div class="text-4xl font-black text-navy">{{ stats.total_groups }}</div>
       </div>
     </div>
 
-    <div class="card-premium flex items-center gap-6">
-      <div class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy">
-        <span class="material-symbols-rounded">chat</span>
+    <div class="card-premium flex items-center gap-6 group">
+      <div
+        class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-navy group-hover:text-white transition-all duration-500 shadow-sm">
+        <span class="material-symbols-outlined text-3xl">chat</span>
       </div>
       <div>
-        <div class="text-xs font-bold text-accent uppercase tracking-widest mb-1">Messages</div>
-        <div class="text-3xl font-black text-navy">{{ stats.total_messages }}</div>
+        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">Messages</div>
+        <div class="text-4xl font-black text-navy">{{ stats.total_messages }}</div>
       </div>
     </div>
 
-    <div class="card-premium flex items-center gap-6">
-      <div class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy">
-        <span class="material-symbols-rounded">check_circle</span>
+    <div class="card-premium flex items-center gap-6 group">
+      <div
+        class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-navy group-hover:text-white transition-all duration-500 shadow-sm">
+        <span class="material-symbols-outlined text-3xl">check_circle</span>
       </div>
       <div>
-        <div class="text-xs font-bold text-accent uppercase tracking-widest mb-1">System</div>
-        <div class="text-3xl font-black text-navy">OK</div>
+        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">System Health</div>
+        <div class="text-4xl font-black text-navy">Optimal</div>
       </div>
     </div>
   </div>
 
   <!-- Quick Management -->
-  <div class="mb-16">
-    <div class="flex items-center gap-3 mb-8">
-      <span class="w-8 h-[2px] bg-accent"></span>
-      <h2 class="text-2xl font-black text-navy font-serif">Academy Management</h2>
+  <div class="mb-20">
+    <div class="flex items-center gap-4 mb-10">
+      <span class="w-12 h-1 bg-accent rounded-full"></span>
+      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Academy Command Center</h2>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <a href="{{ url_for('admin_users') }}"
-        class="group p-6 bg-white border border-navy/5 rounded-3xl hover:bg-navy transition-all shadow-sm">
+        class="group p-8 bg-white border border-navy/5 rounded-[2.5rem] hover:bg-navy transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-2">
         <div
-          class="w-12 h-12 bg-navy/5 rounded-xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-4 transition-all">
-          <span class="material-symbols-rounded text-2xl">person_add</span>
+          class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-6 transition-all duration-500">
+          <span class="material-symbols-outlined text-3xl">person_add</span>
         </div>
-        <div class="font-bold text-navy group-hover:text-white mb-1">Manage Users</div>
-        <div class="text-xs text-obsidian/50 group-hover:text-white/70">Add/edit academy members</div>
+        <div class="text-xl font-black text-navy group-hover:text-white mb-2 transition-colors">Users</div>
+        <p class="text-sm text-obsidian/40 group-hover:text-white/60 leading-relaxed transition-colors">Onboard and
+          manage academy members.</p>
       </a>
 
       <a href="{{ url_for('admin_groups') }}"
-        class="group p-6 bg-white border border-navy/5 rounded-3xl hover:bg-navy transition-all shadow-sm">
+        class="group p-8 bg-white border border-navy/5 rounded-[2.5rem] hover:bg-navy transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-2">
         <div
-          class="w-12 h-12 bg-navy/5 rounded-xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-4 transition-all">
-          <span class="material-symbols-rounded text-2xl">category</span>
+          class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-6 transition-all duration-500">
+          <span class="material-symbols-outlined text-3xl">category</span>
         </div>
-        <div class="font-bold text-navy group-hover:text-white mb-1">Training Groups</div>
-        <div class="text-xs text-obsidian/50 group-hover:text-white/70">Configure group schedules</div>
+        <div class="text-xl font-black text-navy group-hover:text-white mb-2 transition-colors">Groups</div>
+        <p class="text-sm text-obsidian/40 group-hover:text-white/60 leading-relaxed transition-colors">Configure
+          training levels and schedules.</p>
       </a>
 
       <a href="{{ url_for('admin_enrollments') }}"
-        class="group p-6 bg-white border border-navy/5 rounded-3xl hover:bg-navy transition-all shadow-sm">
+        class="group p-8 bg-white border border-navy/5 rounded-[2.5rem] hover:bg-navy transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-2">
         <div
-          class="w-12 h-12 bg-navy/5 rounded-xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-4 transition-all">
-          <span class="material-symbols-rounded text-2xl">app_registration</span>
+          class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-6 transition-all duration-500">
+          <span class="material-symbols-outlined text-3xl">app_registration</span>
         </div>
-        <div class="font-bold text-navy group-hover:text-white mb-1">Kid Enrollment</div>
-        <div class="text-xs text-obsidian/50 group-hover:text-white/70">Register and assign kids</div>
+        <div class="text-xl font-black text-navy group-hover:text-white mb-2 transition-colors">Enrollments</div>
+        <p class="text-sm text-obsidian/40 group-hover:text-white/60 leading-relaxed transition-colors">Manage kids and
+          group assignments.</p>
       </a>
 
       <a href="{{ url_for('admin_send_message') }}"
-        class="group p-6 bg-white border border-navy/5 rounded-3xl hover:bg-navy transition-all shadow-sm">
+        class="group p-8 bg-white border border-navy/5 rounded-[2.5rem] hover:bg-navy transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-2">
         <div
-          class="w-12 h-12 bg-navy/5 rounded-xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-4 transition-all">
-          <span class="material-symbols-rounded text-2xl">send</span>
+          class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-6 transition-all duration-500">
+          <span class="material-symbols-outlined text-3xl">broadcast_on_home</span>
         </div>
-        <div class="font-bold text-navy group-hover:text-white mb-1">Broadcast</div>
-        <div class="text-xs text-obsidian/50 group-hover:text-white/70">Send academy-wide alerts</div>
+        <div class="text-xl font-black text-navy group-hover:text-white mb-2 transition-colors">Broadcast</div>
+        <p class="text-sm text-obsidian/40 group-hover:text-white/60 leading-relaxed transition-colors">Push
+          academy-wide alerts and updates.</p>
       </a>
     </div>
   </div>
 
   <!-- Communication Log -->
-  {% if stats.recent_messages %}
-  <div class="card-premium overflow-hidden p-0">
-    <div class="p-8 border-b border-navy/5 bg-navy/5">
-      <h3 class="text-xl font-black text-navy font-serif">Recent Communication Log</h3>
+  <div class="card-premium overflow-hidden p-0 border border-navy/10 shadow-xl">
+    <div class="p-8 border-b border-navy/5 bg-navy/5 flex items-center justify-between">
+      <h3 class="text-2xl font-black text-navy font-serif">Academy Communication Log</h3>
+      <span class="px-4 py-1.5 bg-navy/5 rounded-full text-[10px] font-black text-navy uppercase tracking-widest">Live
+        Updates</span>
     </div>
     <div class="overflow-x-auto">
-      <table class="w-full text-left">
+      <table class="w-full text-left premium-table">
         <thead>
-          <tr class="bg-navy/5 text-xs font-bold text-accent uppercase tracking-widest">
-            <th class="px-8 py-4">Subject</th>
-            <th class="px-8 py-4">Sender</th>
-            <th class="px-8 py-4">Target Group</th>
-            <th class="px-8 py-4">Date</th>
+          <tr class="text-xs font-bold text-accent uppercase tracking-widest">
+            <th class="px-8 py-5">Subject</th>
+            <th class="px-8 py-5">Sender</th>
+            <th class="px-8 py-5">Target Group</th>
+            <th class="px-8 py-5">Timestamp</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-navy/5">
+          {% if stats.recent_messages %}
           {% for msg in stats.recent_messages %}
-          <tr class="hover:bg-mist transition-colors">
-            <td class="px-8 py-5">
-              <div class="flex items-center gap-3">
-                {% if msg.message_type == 'rain_cancellation' %}
-                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                {% elif msg.message_type == 'coach_delay' %}
-                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                {% else %}
-                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                {% endif %}
-                <span class="font-bold text-navy">{{ msg.subject }}</span>
+          <tr class="hover:bg-navy/[0.02] transition-colors">
+            <td class="px-8 py-6">
+              <div class="flex items-center gap-4">
+                <div class="w-2.5 h-2.5 rounded-full 
+                    {% if msg.message_type == 'rain_cancellation' %} bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse
+                    {% elif msg.message_type == 'coach_delay' %} bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]
+                    {% else %} bg-navy/20 {% endif %}">
+                </div>
+                <span class="font-bold text-navy leading-tight">{{ msg.subject }}</span>
               </div>
             </td>
-            <td class="px-8 py-5 text-sm text-obsidian/70">
-              {{ msg.sender_name }}
+            <td class="px-8 py-6">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 rounded-full bg-navy/5 flex items-center justify-center text-[10px] font-black text-navy border border-navy/10">
+                  {{ msg.sender_name[:2].upper() }}
+                </div>
+                <span class="text-sm font-semibold text-obsidian/70">{{ msg.sender_name }}</span>
+              </div>
             </td>
-            <td class="px-8 py-5">
+            <td class="px-8 py-6">
               {% if msg.group_name %}
               <span
-                class="px-3 py-1 bg-navy/5 text-navy text-[10px] font-bold uppercase rounded-full border border-navy/10">
+                class="px-3 py-1 bg-navy/5 text-navy text-[10px] font-black uppercase rounded-full border border-navy/10 tracking-widest">
                 {{ msg.group_name }}
               </span>
               {% else %}
-              <span class="px-3 py-1 bg-obsidian/5 text-obsidian/60 text-[10px] font-bold uppercase rounded-full">
+              <span
+                class="px-3 py-1 bg-white text-obsidian/40 text-[10px] font-black uppercase rounded-full border border-dashed border-obsidian/10 tracking-widest">
                 General
               </span>
               {% endif %}
             </td>
-            <td class="px-8 py-5 text-xs text-obsidian/50">
-              {{ msg.sent_at }}
+            <td class="px-8 py-6">
+              <div class="flex flex-col">
+                <span class="text-sm font-bold text-navy/40">{{ msg.sent_at }}</span>
+              </div>
             </td>
           </tr>
           {% endfor %}
+          {% else %}
+          <tr>
+            <td colspan="4" class="px-8 py-20 text-center">
+              <div class="flex flex-col items-center gap-4 opacity-20">
+                <span class="material-symbols-outlined text-6xl">leak_remove</span>
+                <p class="font-black uppercase tracking-[0.3em] text-xs">No Recent Communications</p>
+              </div>
+            </td>
+          </tr>
+          {% endif %}
         </tbody>
       </table>
     </div>
   </div>
-  {% endif %}
 </div>
 {% endblock %}

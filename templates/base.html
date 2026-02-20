@@ -10,15 +10,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap"
     rel="stylesheet">
   <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 
-  <!-- Tailwind Play CDN (Golden Setup: Config Before Script) -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind = {
+    tailwind.config = {
       theme: {
         extend: {
           colors: {
@@ -36,339 +36,38 @@
       }
     }
   </script>
-  <script src="https://cdn.tailwindcss.com"></script>
 
   <style type="text/tailwindcss">
     @layer components {
-      .btn-primary {
-        @apply bg-navy text-white px-8 py-3 rounded-full font-bold hover:bg-accent transition-all hover:shadow-xl hover:-translate-y-0.5 active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer;
-      }
-      .btn-outline {
-        @apply border-2 border-navy text-navy px-8 py-3 rounded-full font-bold hover:bg-navy hover:text-white transition-all active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer;
-      }
       .card-premium {
-        @apply bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1;
-        border: 1px solid rgba(26, 35, 126, 0.08); /* Fixed opacity navy border */
+        @apply bg-white rounded-[2.5rem] p-8 shadow-[0_10px_30px_rgba(10,13,46,0.03)] border border-navy/5 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_30px_60px_rgba(10,13,46,0.08)];
       }
-    }
-    
-    @layer base {
-      h1, h2, h3, .font-serif {
-        @apply font-serif;
+      .modal-backdrop {
+        @apply fixed inset-0 z-[100] bg-obsidian/40 backdrop-blur-sm flex items-center justify-center p-6 opacity-0 pointer-events-none transition-all duration-300;
       }
-    }
-  </style>
-
-  <style>
-    /* Fail-safe System Styles */
-    :root {
-      --navy: #1A237E;
-      --accent: #F57C00;
-      --clay: #D32F2F;
-      --mist: #F8F9FA;
-      --obsidian: #0A0D2E;
-    }
-
-    body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
-      background-color: #F8F9FA !important;
-      color: #0A0D2E;
-      margin: 0;
-      line-height: 1.5;
-    }
-
-    h1,
-    h2,
-    h3,
-    .font-serif {
-      font-family: 'Playfair Display', serif !important;
-      color: #1A237E;
-    }
-
-    /* Essential Layout Utilities (Fail-safe) */
-    .max-w-7xl {
-      max-width: 80rem;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .mx-auto {
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .px-6 {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
-
-    .pt-12 {
-      padding-top: 3rem;
-    }
-
-    .py-32 {
-      padding-top: 8rem;
-      padding-bottom: 8rem;
-    }
-
-    .grid {
-      display: grid;
-    }
-
-    .grid-cols-1 {
-      grid-template-columns: repeat(1, minmax(0, 1fr));
-    }
-
-    .flex {
-      display: flex;
-    }
-
-    .flex-col {
-      flex-direction: column;
-    }
-
-    .flex-wrap {
-      flex-wrap: wrap;
-    }
-
-    .items-center {
-      align-items: center;
-    }
-
-    .justify-between {
-      justify-content: space-between;
-    }
-
-    .gap-6 {
-      gap: 1.5rem;
-    }
-
-    .gap-8 {
-      gap: 2rem;
-    }
-
-    .gap-12 {
-      gap: 3rem;
-    }
-
-    .gap-16 {
-      gap: 4rem;
-    }
-
-    .text-center {
-      text-align: center;
-    }
-
-    @media (min-width: 768px) {
-      .md\:grid-cols-2 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      .modal-backdrop.active {
+        @apply opacity-100 pointer-events-auto;
       }
-
-      .md\:grid-cols-3 {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+      .modal-backdrop > .modal-dialog {
+        @apply transition-all duration-300 translate-y-8;
       }
-
-      .md\:grid-cols-7 {
-        grid-template-columns: repeat(7, minmax(0, 1fr));
+      .modal-backdrop.active > .modal-dialog {
+        @apply translate-y-0;
       }
-
-      .md\:flex-row {
-        flex-direction: row;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .lg\:grid-cols-2 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .lg\:text-left {
-        text-align: left;
-      }
-    }
-
-    .text-navy {
-      color: var(--navy) !important;
-    }
-
-    .text-accent {
-      color: var(--accent) !important;
-    }
-
-    .text-white {
-      color: white !important;
-    }
-
-    .bg-navy {
-      background-color: var(--navy) !important;
-    }
-
-    .bg-accent {
-      background-color: var(--accent) !important;
-    }
-
-    .bg-white {
-      background-color: white !important;
-    }
-
-    .bg-mist {
-      background-color: var(--mist) !important;
-    }
-
-    .bg-obsidian {
-      background-color: var(--obsidian) !important;
-    }
-
-    /* Special Backgrounds & Visuals */
-    .hero-bg {
-      background: linear-gradient(135deg, var(--navy), var(--obsidian)) !important;
-      border-radius: 2.5rem;
-      color: white !important;
-      aspect-ratio: 1 / 1;
-      width: 100%;
-      height: 100%;
-      min-height: 300px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    }
-
-    .card-premium {
-      background: white !important;
-      border-radius: 2rem;
-      padding: 2.5rem;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      border: 1px solid rgba(26, 35, 126, 0.05);
-      transition: all 0.3s ease;
-    }
-
-    .card-premium:hover {
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-      transform: translateY(-4px);
-    }
-
-    .shadow-xl {
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
-    .shadow-2xl {
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    }
-
-    .rounded-2xl {
-      border-radius: 1rem;
-    }
-
-    .rounded-3xl {
-      border-radius: 1.5rem;
-    }
-
-    .rounded-full {
-      border-radius: 9999px;
-    }
-
-    .aspect-square {
-      aspect-ratio: 1 / 1;
-    }
-
-    .w-full {
-      width: 100%;
-    }
-
-    .h-full {
-      height: 100%;
-    }
-
-    .material-symbols-rounded {
-      font-family: 'Material Symbols Rounded' !important;
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      display: inline-block;
-      vertical-align: middle;
-      font-style: normal;
-      text-transform: none;
-      line-height: 1;
-    }
-
-    .btn-primary {
-      background-color: var(--navy);
-      color: white !important;
-      text-decoration: none;
-      border-radius: 9999px;
-      padding: 0.75rem 2.5rem;
-      font-weight: bold;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    .btn-primary:hover {
-      background-color: var(--accent);
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Dropdown/Absolute Fail-safe */
-    .absolute {
-      position: absolute !important;
-    }
-
-    .relative {
-      position: relative !important;
-    }
-
-    .top-full {
-      top: 100% !important;
-    }
-
-    .right-0 {
-      right: 0 !important;
-    }
-
-    .z-50 {
-      z-index: 50 !important;
-    }
-
-    .opacity-0 {
-      opacity: 0 !important;
-    }
-
-    .invisible {
-      visibility: hidden !important;
-    }
-
-    .group:hover .group-hover\:opacity-100 {
-      opacity: 1 !important;
-    }
-
-    .group:hover .group-hover\:visible {
-      visibility: visible !important;
-    }
-
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #F8F9FA;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: rgba(26, 35, 126, 0.2);
-      border-radius: 9999px;
     }
   </style>
 </head>
 
 <body class="bg-mist font-sans text-obsidian antialiased">
   <!-- Premium Navigation -->
-  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-navy/10 px-6 py-4">
+  <nav class="fixed top-0 left-0 right-0 z-50 header-glass px-6 py-4">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       <!-- Branding -->
       <a href="{{ url_for('dashboard') if 'user_id' in session else url_for('index') }}"
         class="flex items-center gap-3 group">
         <div
-          class="w-10 h-10 bg-navy rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
-          <span class="material-symbols-rounded text-white text-2xl">sports_tennis</span>
+          class="w-10 h-10 bg-navy rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-all duration-500">
+          <span class="material-symbols-outlined text-white text-2xl">sports_tennis</span>
         </div>
         <div class="flex flex-col">
           <span class="font-serif text-obsidian text-xl font-black leading-tight tracking-tight uppercase">SF
@@ -384,52 +83,61 @@
         {% if 'user_id' in session %}
         <a href="{{ url_for('dashboard') }}"
           class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
-          <span class="material-symbols-rounded text-xl">dashboard</span> Dashboard
+          <span class="material-symbols-outlined text-xl">dashboard</span> Dashboard
         </a>
 
         {% if session.role == 'admin' %}
         <div class="relative group">
           <button
             class="text-obsidian/60 group-hover:text-navy font-semibold transition-colors flex items-center gap-2">
-            <span class="material-symbols-rounded text-xl">settings</span> Admin <span
-              class="material-symbols-rounded">expand_more</span>
+            <span class="material-symbols-outlined text-xl">settings</span> Admin
+            <span
+              class="material-symbols-outlined text-sm transition-transform group-hover:rotate-180">expand_more</span>
           </button>
           <div
-            class="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-navy/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-2 z-50">
+            class="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-navy/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 py-2 z-50 translate-y-2 group-hover:translate-y-0">
             <a href="{{ url_for('admin_users') }}"
-              class="block px-4 py-2 text-sm text-obsidian/70 hover:bg-mist hover:text-navy">Users</a>
+              class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-obsidian/70 hover:bg-navy/5 hover:text-navy transition-colors">
+              <span class="material-symbols-outlined text-lg">group</span> Users
+            </a>
             <a href="{{ url_for('admin_groups') }}"
-              class="block px-4 py-2 text-sm text-obsidian/70 hover:bg-mist hover:text-navy">Groups</a>
+              class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-obsidian/70 hover:bg-navy/5 hover:text-navy transition-colors">
+              <span class="material-symbols-outlined text-lg">category</span> Groups
+            </a>
             <a href="{{ url_for('admin_enrollments') }}"
-              class="block px-4 py-2 text-sm text-obsidian/70 hover:bg-mist hover:text-navy">Enrollments</a>
+              class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-obsidian/70 hover:bg-navy/5 hover:text-navy transition-colors">
+              <span class="material-symbols-outlined text-lg">app_registration</span> Enrollments
+            </a>
             <div class="border-t border-navy/5 my-1"></div>
             <a href="{{ url_for('admin_send_message') }}"
-              class="block px-4 py-2 text-sm text-obsidian/70 hover:bg-mist hover:text-navy">Send Message</a>
+              class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-obsidian/70 hover:bg-navy/5 hover:text-navy transition-colors">
+              <span class="material-symbols-outlined text-lg">send</span> Broadcast Alert
+            </a>
           </div>
         </div>
         {% elif session.role == 'coach' %}
         <a href="{{ url_for('coach_my_groups') }}"
           class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
-          <span class="material-symbols-rounded text-xl">groups</span> My Groups
+          <span class="material-symbols-outlined text-xl">groups</span> My Groups
         </a>
         <a href="{{ url_for('coach_send_message') }}"
           class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
-          <span class="material-symbols-rounded text-xl">mail</span> Send Message
+          <span class="material-symbols-outlined text-xl">mail</span> Send Message
         </a>
         {% elif session.role == 'family' %}
         <a href="{{ url_for('family_enrollments') }}"
           class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
-          <span class="material-symbols-rounded text-xl">assignment</span> Enrollments
+          <span class="material-symbols-outlined text-xl">assignment</span> Enrollments
         </a>
         <a href="{{ url_for('family_messages') }}"
           class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
-          <span class="material-symbols-rounded text-xl">mail</span> Messages
+          <span class="material-symbols-outlined text-xl">mail</span> Messages
         </a>
         {% endif %}
 
         <a href="{{ url_for('timetables.get_timetable_page') }}"
           class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
-          <span class="material-symbols-rounded text-xl">calendar_month</span> Schedules
+          <span class="material-symbols-outlined text-xl">calendar_month</span> Schedules
         </a>
         {% else %}
         <a href="#about" class="text-obsidian/60 hover:text-navy font-semibold transition-colors">Programs</a>
@@ -448,42 +156,51 @@
               {{ session.full_name[:1] }}
             </div>
             <span class="text-sm font-bold text-navy hidden md:block">{{ session.full_name }}</span>
-            <span class="material-symbols-rounded text-navy">expand_more</span>
+            <span
+              class="material-symbols-outlined text-navy transition-transform group-hover:rotate-180">expand_more</span>
           </button>
           <div
-            class="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-navy/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-2 z-50">
+            class="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-navy/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 py-2 z-50 translate-y-2 group-hover:translate-y-0">
             <a href="{{ url_for('logout') }}"
-              class="flex items-center gap-2 px-4 py-2 text-sm text-clay hover:bg-clay/5 font-semibold">
-              <span class="material-symbols-rounded text-lg">logout</span> Logout
+              class="flex items-center gap-3 px-4 py-3 text-sm text-clay hover:bg-clay/5 font-bold transition-colors">
+              <span class="material-symbols-outlined text-lg">logout</span> Logout
             </a>
           </div>
         </div>
         {% else %}
-        <a href="{{ url_for('login') }}"
-          class="bg-navy text-white px-6 py-2.5 rounded-full font-bold hover:bg-accent transition-all hover:shadow-lg active:scale-95 text-sm">
+        <a href="{{ url_for('login') }}" class="btn-primary !py-2 !px-8 text-sm">
           Login
         </a>
         {% endif %}
 
         <!-- Mobile Menu Button -->
-        <button class="lg:hidden w-10 h-10 flex items-center justify-center text-navy" onclick="toggleMobileMenu()">
-          <span class="material-symbols-rounded" id="menuIcon">menu</span>
+        <button
+          class="lg:hidden w-10 h-10 flex items-center justify-center text-navy rounded-full hover:bg-navy/5 transition-colors"
+          onclick="toggleMobileMenu()">
+          <span class="material-symbols-outlined" id="menuIcon">menu</span>
         </button>
       </div>
     </div>
 
-    <!-- Mobile Menu (Hidden by default) -->
+    <!-- Mobile Menu -->
     <div id="mobileMenu"
-      class="hidden lg:hidden absolute top-full left-0 right-0 bg-white border-b border-navy/10 py-6 px-6 flex flex-col gap-4 shadow-xl animate-fade-in">
-      <!-- Mobile links will be populated here if needed, or structured explicitly -->
+      class="hidden lg:hidden absolute top-full left-0 right-0 bg-white border-b border-navy/10 py-6 px-6 flex flex-col gap-2 shadow-2xl animate-fade-in z-50">
       {% if 'user_id' in session %}
       <a href="{{ url_for('dashboard') }}"
-        class="flex items-center gap-3 text-obsidian/70 font-semibold py-2 border-b border-gray-100">Dashboard</a>
-      <a href="{{ url_for('index') }}#schedule"
-        class="flex items-center gap-3 text-obsidian/70 font-semibold py-2 border-b border-gray-100">Schedules</a>
-      <a href="{{ url_for('logout') }}" class="flex items-center gap-3 text-clay font-semibold py-2">Logout</a>
+        class="flex items-center gap-4 text-obsidian/70 font-bold py-3 px-4 rounded-xl hover:bg-navy/5 hover:text-navy transition-all">
+        <span class="material-symbols-outlined">dashboard</span> Dashboard
+      </a>
+      <a href="{{ url_for('timetables.get_timetable_page') }}"
+        class="flex items-center gap-4 text-obsidian/70 font-bold py-3 px-4 rounded-xl hover:bg-navy/5 hover:text-navy transition-all">
+        <span class="material-symbols-outlined">calendar_month</span> Schedules
+      </a>
+      <div class="border-t border-navy/5 my-2"></div>
+      <a href="{{ url_for('logout') }}"
+        class="flex items-center gap-4 text-clay font-bold py-3 px-4 rounded-xl hover:bg-clay/5 transition-all">
+        <span class="material-symbols-outlined">logout</span> Logout
+      </a>
       {% else %}
-      <a href="/login" class="bg-navy text-white px-6 py-3 rounded-xl font-bold text-center">Login</a>
+      <a href="{{ url_for('login') }}" class="btn-primary w-full justify-center">Login</a>
       {% endif %}
     </div>
   </nav>
@@ -499,13 +216,13 @@
         class="animate-slide-up flex items-center justify-between p-4 rounded-2xl shadow-sm border mb-4 
                             {% if category == 'danger' %} bg-clay/5 border-clay/10 text-clay {% elif category == 'success' %} bg-accent/5 border-accent/10 text-accent {% else %} bg-navy/5 border-navy/10 text-navy {% endif %}">
         <div class="flex items-center gap-3 font-semibold">
-          <span class="material-symbols-rounded">
+          <span class="material-symbols-outlined">
             {% if category == 'danger' %}error{% elif category == 'success' %}check_circle{% else %}info{% endif %}
           </span>
           {{ message }}
         </div>
         <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 transition-opacity">
-          <span class="material-symbols-rounded">close</span>
+          <span class="material-symbols-outlined">close</span>
         </button>
       </div>
       {% endfor %}
@@ -523,7 +240,7 @@
       <div class="col-span-1 md:col-span-2">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-            <span class="material-symbols-rounded text-navy text-2xl">sports_tennis</span>
+            <span class="material-symbols-outlined text-navy text-2xl">sports_tennis</span>
           </div>
           <span class="font-serif text-white text-2xl font-black uppercase tracking-tight">SF Tennis Kids</span>
         </div>
@@ -573,7 +290,7 @@
         <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
         <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
         <div class="flex items-center gap-2 text-accent">
-          <span class="material-symbols-rounded text-lg">verified</span>
+          <span class="material-symbols-outlined text-lg">verified</span>
           <span>Approved Academic Partner</span>
         </div>
       </div>
@@ -594,6 +311,40 @@
         icon.textContent = 'menu';
       }
     }
+
+    // Custom Modal System
+    function openModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      const targetBtn = e.target.closest('[data-modal-target]');
+      if (targetBtn) {
+        openModal(targetBtn.getAttribute('data-modal-target'));
+      }
+
+      const closeBtn = e.target.closest('[data-modal-close]');
+      if (closeBtn) {
+        closeModal(closeBtn.getAttribute('data-modal-close'));
+      }
+
+      // Close on backdrop click
+      if (e.target.classList.contains('modal-backdrop')) {
+        closeModal(e.target.id);
+      }
+    });
 
     // Auto-remove flash messages
     document.addEventListener('DOMContentLoaded', () => {

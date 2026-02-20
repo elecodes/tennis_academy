@@ -1,83 +1,92 @@
- {% extends "base.html" %} {%
-  block title %}Send Message - Tennis Academy{% endblock %} {% block content %} <div class="container mt-4">
-  <div class="row mb-4">
-    <div class="col-md-8">
-      <h1><i class="fas fa-envelope"></i> Send Message</h1>
+{% extends "base.html" %}
+
+{% block title %}Send Message - Tennis Academy{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-10 pb-24">
+  <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
+    <div class="flex items-center gap-4">
+      <span class="w-12 h-1 bg-accent rounded-full"></span>
+      <h1 class="text-4xl font-black text-navy font-serif tracking-tight">Broadcast Alert</h1>
     </div>
-    <div class="col-md-4 text-end">
-      <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Back
-      </a>
-    </div>
+    <a href="{{ url_for('dashboard') }}"
+      class="px-8 py-3 text-sm font-bold text-obsidian/40 hover:text-obsidian transition-colors flex items-center gap-2">
+      <span class="material-symbols-outlined">arrow_back</span> Back to Dashboard
+    </a>
   </div>
 
-  <div class="card">
-    <div class="card-header bg-primary text-white">
-      <h5 class="mb-0">Compose Message</h5>
+  <div class="card-premium border border-navy/10 shadow-2xl p-0 overflow-hidden bg-white">
+    <div class="bg-navy p-10 text-white relative">
+      <h3 class="text-3xl font-black font-serif mb-2">Compose Broadcast</h3>
+      <p class="text-white/60 text-lg">Send notifications via email to select groups or the entire academy.</p>
+      <div class="absolute -right-8 -bottom-8 opacity-5">
+        <span class="material-symbols-outlined !text-[12rem]">broadcast_on_home</span>
+      </div>
     </div>
-    <div class="card-body">
-      <form method="POST">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label for="message_type" class="form-label">Message Type *</label>
-              <select class="form-select" id="message_type" name="message_type" required>
-                <option value="">Select type...</option>
-                <option value="announcement">Announcement</option>
-                <option value="rain_cancellation">Rain Cancellation</option>
-                <option value="coach_delay">Coach Delay</option>
-                <option value="schedule_change">Schedule Change</option>
-              </select>
-            </div>
-          </div>
 
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label for="group_id" class="form-label">Select Group</label>
-              <select class="form-select" id="group_id" name="group_id">
-                <option value="">-- All Groups --</option>
-                {% for group in groups %}
-                <option value="{{ group.id }}">{{ group.name }}</option>
-                {% endfor %}
-              </select>
-            </div>
-          </div>
+    <form method="POST" class="p-12 space-y-10">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div class="space-y-3">
+          <label class="text-xs font-black text-accent uppercase tracking-[0.2em] ml-4">Message Type *</label>
+          <select id="message_type" name="message_type" class="form-input text-lg py-4" required>
+            <option value="">Select type...</option>
+            <option value="announcement">Announcement</option>
+            <option value="rain_cancellation">Rain Cancellation</option>
+            <option value="coach_delay">Coach Delay</option>
+            <option value="schedule_change">Schedule Change</option>
+          </select>
         </div>
 
-        <div class="mb-3">
-          <label for="subject" class="form-label">Subject *</label>
-          <input type="text" class="form-control" id="subject" name="subject"
+        <div class="space-y-3">
+          <label class="text-xs font-black text-accent uppercase tracking-[0.2em] ml-4">Target Audience</label>
+          <select id="group_id" name="group_id" class="form-input text-lg py-4 border-dashed">
+            <option value="">-- All Academy Families --</option>
+            {% for group in groups %}
+            <option value="{{ group.id }}">{{ group.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <label class="text-xs font-black text-accent uppercase tracking-[0.2em] ml-4">Subject Header *</label>
+        <div class="relative">
+          <input type="text" name="subject" class="form-input text-lg py-4 pr-12"
             placeholder="e.g., Session Cancelled Due to Rain" required>
+          <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-navy/20">title</span>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <label class="text-xs font-black text-accent uppercase tracking-[0.2em] ml-4">Email Content *</label>
+        <textarea name="content" class="form-input h-64 text-lg py-6 resize-none"
+          placeholder="Write your message here... Detailed information helps families plan accordingly."
+          required></textarea>
+      </div>
+
+      <div class="flex flex-col md:flex-row items-center justify-between gap-8 pt-6 border-t border-navy/5">
+        <div class="flex items-center gap-4">
+          <label class="relative flex items-center gap-4 cursor-pointer group">
+            <input type="checkbox" name="is_general"
+              class="w-6 h-6 rounded-lg border-2 border-navy/10 text-navy focus:ring-navy transition-all cursor-pointer">
+            <span class="text-sm font-bold text-navy/60 group-hover:text-navy transition-colors">
+              Override for ALL families (General Announcement)
+            </span>
+          </label>
         </div>
 
-        <div class="mb-3">
-          <label for="content" class="form-label">Message Content *</label>
-          <textarea class="form-control" id="content" name="content" rows="5" placeholder="Write your message here..."
-            required></textarea>
-        </div>
-
-        <div class="mb-3">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="is_general" name="is_general">
-            <label class="form-check-label" for="is_general">
-              Send to ALL families (General Announcement)
-            </label>
-          </div>
-        </div>
-
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-primary">
-            <i class="fas fa-paper-plane"></i> Send Message
-          </button>
-          <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
-            <i class="fas fa-times"></i> Cancel
+        <div class="flex items-center gap-6 w-full md:w-auto">
+          <a href="{{ url_for('dashboard') }}"
+            class="px-10 py-4 text-sm font-bold text-obsidian/40 hover:text-obsidian transition-colors">
+            Cancel Draft
           </a>
+          <button type="submit"
+            class="btn-primary !px-12 !py-5 text-lg shadow-2xl hover:shadow-accent/40 w-full md:w-auto justify-center">
+            <span class="material-symbols-outlined">send</span> Push Broadcast
+          </button>
         </div>
-      </form>
-    </div>
+      </div>
+    </form>
   </div>
-  </div>
-  {% endblock %}
-  EOF
-
-  echo "✅ admin/send_message.html created"
+</div>
+{% endblock %}

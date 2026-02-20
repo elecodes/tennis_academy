@@ -57,7 +57,7 @@ cd tennis_academy
 ### 3. Create Virtual Environment
 
 ```bash
-python -m venv venv
+python3 -m venv venv
 
 # Activate it:
 # On Mac/Linux:
@@ -100,7 +100,7 @@ set SENDER_PASSWORD=xxxx-xxxx-xxxx-xxxx
 ### 6. Run the Application
 
 ```bash
-python app.py
+python3 app.py
 ```
 
 The app will be available at: **http://localhost:5001**
@@ -205,7 +205,7 @@ python3 -c "import smtplib; \
 ```bash
 # Reset database
 rm academy.db
-python app.py  # Will recreate DB automatically
+python3 app.py  # Will recreate DB automatically
 
 # Or run migrations
 python3 scripts/init_migrations.py

@@ -5,14 +5,20 @@ echo ==========================================
 echo.
 
 REM Check if Python is installed
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo Error: Python is not installed. Please install Python 3 first.
-    exit /b 1
+set PYTHON_CMD=python
+python3 --version >nul 2>&1
+if not errorlevel 1 (
+    set PYTHON_CMD=python3
+) else (
+    python --version >nul 2>&1
+    if errorlevel 1 (
+        echo Error: Python is not installed. Please install Python 3 first.
+        exit /b 1
+    )
 )
 
 echo Step 1: Creating virtual environment...
-python -m venv venv
+%PYTHON_CMD% -m venv venv
 
 echo Step 2: Activating virtual environment...
 call venv\Scripts\activate
