@@ -54,3 +54,28 @@ Secrets are **never committed** to the repository. The `.gitignore` file include
 - [x] **Parameterized Queries**: All database interactions use parameterized SQL via `sqlite3` to prevent **SQL Injection**.
 - [x] **CSRF Protection**: Flask session cookies are used to maintain user state securely.
 - [x] **XSS Mitigation**: Jinja2 auto-escaping is enabled for all templates, preventing reflected and stored XSS.
+## 6. Agent Enforcement Rules
+
+AI agents working on this project **must** enforce these security rules:
+
+### Never Do:
+- Hard-code `SENDER_EMAIL` or `SENDER_PASSWORD`
+- Log `session` contents, user PII, or SMTP credentials
+- Use `shell=True` subprocess calls
+- Render raw user input in Jinja2 templates without `|e` filter
+- Access `academy.db` directly in tests (use tmp_db fixture)
+
+### Always Do:
+- Validate all form inputs (email format, required fields, length limits)
+- Use `@login_required`, `@admin_required`, `@coach_required` decorators
+- Mock SMTP in tests (`monkeypatch.setattr(smtplib, 'SMTP', MockSMTP)`)
+- Check `app.config['TEST_MODE']` before sending real emails
+
+### Quick Security Checklist for PRs:
+[]  No hardcoded secrets
+[ ] All forms validate required fields
+[ ] RBAC decorators on protected routes
+[ ] No PII in logs/console output
+[ ] Tests use tmp_db, not production DB
+[ ] SMTP mocked in tests
+

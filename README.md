@@ -168,7 +168,10 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 
 - **[ADR-001](docs/ADR-001:%20Weekly%20Timetable%20Repository%20Pattern)** - Architecture Decision: Timetable Repository Pattern
 - **[ADR-002](docs/ADR-002:%20Vanilla%20JS%20Modal%20System.md)** - Architecture Decision: Custom Modal System
+- **[ADR-003](docs/ADR-003:%20Agentic%20Guardians%20and%20Testing%20Strategy.md)** - Architecture Decision: Agentic Guardians and Testing Strategy
 - **[PLAYBOOK](docs/PLAYBOOK.md)** - Operations manual, Troubleshooting, Design Standards
+- **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
+- **[TESTING](TESTING.md)** - Detailed testing strategy and pytest conventions
 - **[API Reference](docs/API.md)** - API endpoints (coming soon)
 
 ## 🔒 Security
@@ -222,14 +225,27 @@ See **[PLAYBOOK.md](docs/PLAYBOOK.md)** for more troubleshooting.
 
 ## 📈 Testing
 
-### Run Unit Tests
+The project follows a strict testing strategy defined in **[TESTING.md](TESTING.md)**.
+
+### Coverage Targets
+- **CORE (Domain/RBAC)**: 100%
+- **GLOBAL (Routes/UI)**: 80%
+
+### Run Tests
 ```bash
+# All tests
 pytest tests/ -v
 
-# With coverage
-pytest tests/ --cov=repositories --cov=routes --cov-report=html
+# Unit only
+pytest tests/unit/ -v
+
+# Integration + coverage
+pytest tests/integration/ --cov=app --cov-report=html
 ```
 
+### Mocking Requirement
+- ⚠️ **Always mock SMTP** in tests to avoid sending real emails.
+- ⚠️ **Use `tmp_db` fixture** to avoid writing to `academy.db`.
 ### Test Credentials
 ```
 Admin:  admin@tennis.com / admin123

@@ -1,0 +1,35 @@
+{
+  "name": "tennis_academy",
+  "version": "1.0.0",
+  "description": "A simple, free-tier communication platform for tennis academies to connect administrators, coaches, and families via email notifications.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.py": [
+      "./venv/bin/black",
+      "./venv/bin/flake8"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elecodes/tennis_academy.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/elecodes/tennis_academy/issues"
+  },
+  "homepage": "https://github.com/elecodes/tennis_academy#readme",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7"
+  }
+}

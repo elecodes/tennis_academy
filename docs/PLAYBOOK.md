@@ -388,6 +388,22 @@ LIMIT 10;
 ```
 
 ---
+## Working with AI Agents
+
+The project uses a "Guardian" system to ensure security and quality.
+
+### 🤖 Agent Roles
+- **Developer Agent**: Implements features and fixes.
+- **Testing Guardian**: Enforces the rules in `TESTING.md`.
+- **Security Guardian**: Enforces the rules in `SECURITY.md`.
+
+### 🎾 Invoking Skills
+When working with AI agents, you can ask them to use specific skills:
+- `RBACGuardian`: Checks route decorators and permissions.
+- `EmailSafety`: Ensures SMTP is mocked in tests.
+- `QualityTesting`: Checks coverage targets.
+
+For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ## Contact & Support
 
@@ -400,4 +416,3 @@ LIMIT 10;
 
 **Last Updated**: 2026-02-20
 **Version**: 1.2
-```
