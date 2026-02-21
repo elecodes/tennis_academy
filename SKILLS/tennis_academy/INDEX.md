@@ -1,136 +1,124 @@
-# Tennis Academy Skill Bundle
+# 🎾 tennis_academy Complete Skill Index
 
-**Usage:** Invoke by name, e.g. "Review this code using `RBACGuardian` and `EmailSafety` skills."
+**Official skill registry** for Tennis Academy Communication System (Flask + RBAC + pytest).  
+**Priority:** Project → High Standards → Universal → Testing → Security
 
-**Priority:** Project skills override Universal Engineering skills when there is conflict.
+**Usage:** `"Review using RBACGuardian + Coverage100_80_0 + DDDTactical"`
 
-## 🏆 Project‑Specific Skills
+---
 
-### 🎾 RBACGuardian
-**Purpose:** Enforce role‑based access control (admin/coach/family) at all layers.
+## 🏆 PRIORITY 1: Project-Specific (Highest)
 
-**Mandatory Checks:**
-- Admin: full access (users, groups, schedules, messages to all).
-- Coach: only assigned groups + their schedules.
-- Family: only enrolled kids' groups + their messages.
-- **Never** add routes or logic that bypasses these rules.
+| Skill | Purpose | Triggers | pytest Location | Source |
+|-------|---------|----------|-----------------|--------|
+| **`RBACGuardian`** | **Admin/Coach/Family permissions** | **New routes, auth changes** | `tests/integration/test_rbac.py` | `SECURITY.md` + README |
+| **`EmailSafety`** | Secure SMTP + test mocking | Email logic, message sending | `tests/integration/test_email.py` | README + `TESTING.md` |
+| **`TimetableExpert`** | Weekly grid + role filtering | Timetable routes/templates | `tests/integration/test_timetables.py` | README features |
+| **`PytestFlaskExpert`** | Flask `test_client()` + `tmp_db` | **All testing tasks** | All `tests/` | `TESTING.md` |
 
-**Test Requirements:**
-- Integration test for every role/endpoint combination.
-- Unit test for RBAC helpers.
+## 🎯 PRIORITY 2: High Standards Suite 
 
-**Examples:**
-```python
-# GOOD: coach can only see own groups
-def test_coach_sees_only_assigned_groups(client, tmp_db):
-    ...
+| Skill | Source File | Flask Adaptation | Coverage Target |
+|-------|-------------|------------------|-----------------|
+| **`ManifestoGuardian`** | `ENGINEERING_MANIFESTO.md` | Repository Pattern (your ADRs) | All refactors |
+| **`DDDTactical`** | `TACTICAL_DDD_STANDARDS.md` | `Group.enroll_family()`, Value Objects | Domain models |
+| **`Coverage100_80_0`** | `QUALITY_AND_TESTING_POLICY.md` | **100% repositories/RBAC, 80% routes** | `pytest-cov` |
+| **`UXMicrocopy`** | `UX_AND_MICROCOPY_STANDARDS.md` | Bootstrap flash messages + modals | Templates/UI |
+| **`DevSecOpsFlask`** | `DEVSECOPS_AND_SECURITY.md` | Flask-WTF forms + session security | Security reviews |
 
-# BAD: coach accesses admin panel (must fail)
-def test_coach_cannot_access_admin_panel(client, tmp_db):
-    ...
-📧 EmailSafety
-Purpose: Ensure email sending is secure, testable, and production‑ready.
+## 🌐 PRIORITY 3: Universal Engineering Bundle
 
-Mandatory:
+| Skill | Purpose | Status |
+|-------|---------|--------|
+| **`AdaptiveProjectAnalysis`** | Architecture health check | **🟢 GREEN** (healthy Flask monolith) |
+| **`ArchitectureDesign`** | Modular monolith + SOLID | Repository pattern validated |
+| **`SecurityDevSecOps`** | OWASP + input validation | Flask-WTF + session security |
+| **`ResilientLogic`** | Email retries + idempotency | Gmail SMTP specifics |
+| **`UniversalUX`** | Accessibility + status visibility | Bootstrap WCAG compliant |
 
-Use SENDER_EMAIL and SENDER_PASSWORD from env vars only.
+## 🧪 PRIORITY 4: Testing Framework
 
-Never hard‑code credentials or log real passwords.
+| Skill | pytest Files | Enforcement |
+|-------|--------------|-------------|
+| **`TestingGuardian`** | All `tests/` | **Blocks PRs <80% coverage** |
+| **`TestingAdvisor`** | Test generation | AAA + `tmp_db` fixture |
 
-In tests: mock SMTP, never send real emails.
+## 🔒 PRIORITY 5: Security
 
-Test Requirements:
+| Skill | OWASP Coverage | Enforcement |
+|-------|----------------|-------------|
+| **`SecurityGuardian`** | Session/CSRF/XSS | `SECURITY_SKILL.md` |
 
-Unit test email templates/formatting.
+---
 
-Integration test: message sent → SMTP called correct number of times.
+## 💬 Invocation Matrix
 
-🗓️ TimetableExpert
-Purpose: Preserve weekly timetable behaviour and RBAC filtering.
+| Task Type | Recommended Skills |
+|-----------|-------------------|
+| **New Route** | `RBACGuardian + PytestFlaskExpert + DevSecOpsFlask` |
+| **RBAC Change** | `RBACGuardian + Coverage100_80_0 + TestingGuardian` |
+| **Email Logic** | `EmailSafety + DevSecOpsFlask + PytestFlaskExpert` |
+| **Timetable UI** | `TimetableExpert + UXMicrocopy + DDDTactical` |
+| **Refactor** | `ManifestoGuardian + ArchitectureDesign + DDDTactical` |
+| **Full PR Review** | `RBACGuardian + Coverage100_80_0 + SecurityGuardian + UXMicrocopy` |
 
-Core Rules:
+## 📋 Standards Compliance Status
 
-Admin: all groups.
+| Standard | Status | Enforcement |
+|----------|--------|-------------|
+| **100/80/0 Coverage** | 🟡 13/13 unit tests, needs integration | `Coverage100_80_0` |
+| **DDD Value Objects** | 🔴 Missing (`GroupId`, `Email`) | `DDDTactical` |
+| **RBAC Tests** | 🟡 Partial (needs all roles/endpoints) | `RBACGuardian` |
+| **UX Microcopy** | 🟢 Bootstrap flash messages | `UXMicrocopy` |
+| **Security Headers** | 🔴 Missing Flask-Talisman | `DevSecOpsFlask` |
 
-Coach: assigned groups only.
+---
 
-Family: enrolled kids' groups only.
+## 🚀 Quick Start Commands
 
-7×1 grid layout preserved.
+Single skill
+"Review /admin/users using RBACGuardian"
 
-Test Requirements:
+Multiple skills
+"New feature: family dashboard. Use RBACGuardian + UXMicrocopy + PytestFlaskExpert"
 
-Integration test: each role sees correct data.
+Full standards suite
+"Apply high standards: ManifestoGuardian + Coverage100_80_0 + DevSecOpsFlask"
 
-Unit test: filtering logic.
+Standards + project
+"Refactor timetables with TimetableExpert + DDDTactical + Coverage100_80_0"
 
-🧪 PytestFlaskExpert
-Purpose: Generate pytest tests that work with Flask test client + temporary SQLite.
+## ⚙️ Priority Resolution Rules
 
-Conventions:
+Project skills OVERRIDE standards (RBACGuardian > SecurityDevSecOps)
 
-tests/unit/test_<module>.py
+TESTING.md is SOURCE OF TRUTH (Coverage100_80_0 aligns with pytest)
 
-tests/integration/test_<flow>.py
+README workflows are SACRED (EmailSafety > ResilientLogic)
 
-Use tmp_db fixture for SQLite.
+Human says → Human wins (all skills defer to user)
+## 📊 Agent Output Format
 
-Flask test_client() for HTTP.
+🎾 SKILL REVIEW [PR #5 - Add Family Dashboard]
 
-Example Structure:
+✅ PASS: RBACGuardian
 
-python
-def test_admin_view_timetables(client, tmp_db):
-    # Arrange
-    create_test_data(client)
-    
-    # Act
-    response = client.get('/timetables')
-    
-    # Assert
-    assert response.status_code == 200
-    assert 'all groups shown' in response.text
-🔗 Universal Skills (imported)
-Include all Universal Engineering skills by reference:
+All routes have @family_required decorator
 
-AdaptiveProjectAnalysis → Status: GREEN (healthy Flask monolith).
+test_family_cannot_access_coach_panel ✅
 
-ArchitectureDesign → Follow repository pattern (as in your ADRs).
+✅ PASS: UXMicrocopy
 
-SecurityDevSecOps → Strict env var validation + session security.
+Flash messages use active voice
 
-QualityTesting → 100% domain (RBAC/timetables), 80% Flask routes.
+Bootstrap modals have ARIA labels
 
-ResilientLogic → Email retries + idempotent message sending.
+❌ FAIL: Coverage100_80_0
 
-UniversalUX → Bootstrap modals + clear feedback.
+routes/family.py: 62% coverage (needs 80%)
 
-DDDImplementation → Domain entities like Group, Enrollment as Value Objects.
+FIX: tests/integration/test_family_dashboard.py
 
-⚙️ Invocation Priority
-Project skills (RBACGuardian, EmailSafety, etc.)
+🔧 RECOMMENDED: DDDTactical
 
-Universal skills (imported from skills/UNIVERSAL.md)
-
-Testing skill (skills/testing/TESTING_SKILL.md)
-
-Security skill (skills/security/SECURITY_SKILL.md)
-
-📋 Example Usage
-text
-Review this PR using:
-1. RBACGuardian (check role permissions)
-2. EmailSafety (no real SMTP in tests)
-3. TimetableExpert (schedule filtering)
-4. QualityTesting (pytest coverage)
-Output format:
-
-text
-✅ PASS: [skill name]
-- What works well
-- Evidence (code snippet)
-
-❌ FAIL: [skill name]  
-- What needs fixing
-- Concrete fix (code snippet)
-- Test to prevent regression
+Extract FamilyId Value Object from family.family_id: int

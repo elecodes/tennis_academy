@@ -1,1 +1,1 @@
-npx lint-staged && ./venv/bin/pytest
+npx lint-staged && export PYTHONPATH=$PYTHONPATH:. && ./venv/bin/pytest

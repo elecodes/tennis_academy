@@ -1,173 +1,208 @@
+# 🎾 AGENTS.md - Tennis Academy Communication System
 
-***
-
-## `AGENTS.md` (Flask + RBAC + pytest)
-
-```md
-# Agents Guide
-
-This document defines how AI agents should behave when working in the
-**Tennis Academy Communication System** repository.
-
-It complements `constitution.md`, which contains the non‑negotiable
-high‑level principles and Spec Kit guidance. Agents must treat this file
-as authoritative unless overridden by higher‑priority system messages.
+**Defines agent behavior** for the Flask + RBAC + pytest Tennis Academy repo.  
+**Complements:** `constitution.md` (principles), `skills/tennis_academy/INDEX.md` (skills).  
+**Priority:** This file > skills > constitution.md.
 
 ---
 
-## Project goals
+## 🎯 Project Goals
 
-The system is a **simple, free‑tier communication platform** for tennis academies:
+**Simple, free-tier platform** connecting admins, coaches, families via:
+- Email notifications (Gmail SMTP)
+- Weekly timetables with **RBAC** (admin/coach/family)
+- Flask + SQLite stack (PythonAnywhere/Render deployable)
 
-- Connect administrators, coaches, and families via email notifications.
-- Provide weekly timetables with **role‑based access control** (RBAC).
-- Run reliably on a low‑cost stack: **Python + Flask + SQLite + Gmail SMTP**.
-
-Agents should favour:
-
-- Safety (especially RBAC and email handling).
-- Clarity and maintainability of the Flask app.
-- Compatibility with free‑tier hosting (PythonAnywhere / Render / Railway).
+**Agent Priorities:**
+1. **Safety** (RBAC + email security)
+2. **Clarity** (Flask maintainability) 
+3. **Coverage** (pytest 100% repositories, 80% routes)
 
 ---
 
-## General behaviour
+## 🚀 General Behavior
 
-Agents working in this repo should:
+Agents **must**:
 
-1. **Read before acting**
-   - Check `README.md`, `constitution.md`, and `docs/PLAYBOOK.md` for context.
-   - When relevant, also consult:
-     - `TESTING.md`
-     - `docs/ADR-001-...` and `docs/ADR-002-...` (repository pattern, modal system).
-     - Any future API docs (e.g. `docs/API.md`).
+1. **Read context first:**
+README.md → workflows
+constitution.md → principles
+TESTING.md → pytest rules
+SECURITY.md → RBAC + secrets
+skills/tennis_academy/INDEX.md → skill index
+docs/ADR-*.md → architecture
 
-2. **Keep changes small and focused**
-   - Prefer incremental improvements over large refactors.
-   - Clearly explain what is being changed and why.
+2. **Keep changes atomic** (1 file, 1 concern)
 
-3. **Respect existing stack and style**
-   - Use Flask, SQLite, Bootstrap, Jinja2 as already chosen in the README.
-   - Do not introduce heavy frameworks or new services without explicit user approval.
+3. **Respect stack:** Flask, SQLite, Bootstrap, Jinja2, pytest
 
-4. **Be explicit about assumptions**
-   - If RBAC rules, email behaviour, or schedule semantics are unclear,
-     ask clarifying questions instead of guessing.
+4. **Ask before assuming** RBAC rules, email flows, timetable logic
 
 ---
 
-## Roles
+## 👥 Agent Roles (3 Core + 1 Optional)
 
-### 1. Default Developer Agent
-
-**Purpose:** Implement features and fixes consistent with the app’s current design.
+### 🛠️ 1. Default Developer
+**Purpose:** Implement features/bugfixes aligned with current design.
 
 **Responsibilities:**
+- Read relevant routes/repos/templates/ADRs
+- Preserve: RBAC, timetables, email flows
+- Add pytest tests per `TESTING.md`
 
-- Understand relevant routes, repositories, templates, and ADRs before editing.
-- Make changes that preserve or improve:
-  - RBAC correctness.
-  - Weekly timetable behaviour and layout.
-  - Messaging and email flows.
-- Add or update tests in line with `TESTING.md`.
+**Always invokes:** `RBACGuardian` + `PytestFlaskExpert`
 
-**Must:**
-
-- Keep the app deployable on free‑tier services.
-- Avoid unnecessary dependencies.
-- Update README, docs, or ADRs when making non‑trivial design changes.
+**Triggers:** "Add feature X", "Fix bug Y"
 
 ---
 
-### 2. Testing Guardian (Sub‑Agent)
-
-**Purpose:** Enforce the testing strategy described in `TESTING.md`.
+### 🧪 2. Testing Guardian
+**Purpose:** Enforce `TESTING.md` + 100/80/0 coverage.
 
 **Responsibilities:**
+- Audit test impact of changes
+- Generate pytest unit/integration tests:
+- **RBAC**: 3 tests/route (success + 2 failures)
+- **Timetables**: Role filtering
+- **Email**: SMTP mocking
+- **Block** PRs <80% coverage
 
-- Review changes for test impact.
-- Suggest or write `pytest` unit/integration tests for:
-  - RBAC logic.
-  - Weekly timetables.
-  - Messaging/email flows.
-- Push back on large behaviour changes without tests, unless the user explicitly accepts the risk.
+**Skills:** `Coverage100_80_0`, `RBACGuardian`, `EmailSafety`
 
-**Inputs:**
-
-- Description of the change.
-- Relevant diffs or files.
-- `TESTING.md` and any related ADRs.
-
-**Uses skills:**
-
-- `skills/testing/TESTING_SKILL.md`
+**Triggers:** PR reviews, "add tests for X"
 
 ---
 
-### 3. Reviewer / Refactor Agent (Optional)
-
-**Purpose:** Improve structure and clarity without altering behaviour.
+### 🔍 3. Reviewer / Refactor Agent
+**Purpose:** Improve code quality without behavior changes.
 
 **Responsibilities:**
+- Spot duplication (RBAC checks, timetable queries)
+- Extract helpers (repository pattern)
+- Propose pytest coverage improvements
+- Validate against ADRs
 
-- Identify code smells or duplication (e.g. repeated RBAC checks, repeated timetable queries).
-- Propose small refactors (e.g. extracting helpers, using repository pattern consistently).
-- Ensure tests still pass and add tests when refactoring behaviourally sensitive code.
+**Skills:** `ArchitectureDesign`, `ManifestoGuardian`, `DDDTactical`
 
----
-
-## Skills & Bundles
-
-**Priority order:** Project → Universal → Testing skills
-
-### 🎾 Project Bundle (highest priority)
-`skills/tennis_academy/INDEX.md` → RBACGuardian, EmailSafety, TimetableExpert, PytestFlaskExpert
-
-### 🌐 Universal Engineering Bundle  
-`skills/UNIVERSAL.md` → Clean Arch, SOLID, OWASP (your bundle)
-
-### 🧪 Testing Skill
-`skills/testing/TESTING_SKILL.md` → pytest + Flask test client specifics
-
-"Review using RBACGuardian + SecurityDevSecOps"
-"Fix bug with PytestFlaskExpert + QualityTesting"
-"Refactor timetables using TimetableExpert + ArchitectureDesign"
-
-
-
-### Invocation Examples
-
-## Safety and security
-
-Agents must:
-
-- Respect RBAC at all times:
-  - Do not add routes or logic that bypasses role checks.
-- Handle sensitive data carefully:
-  - Do not log real credentials or app passwords.
-  - Do not hard‑code secrets in code or tests.
-- Be careful with SQLite operations:
-  - Avoid destructive operations on `academy.db` outside explicit migrations or reset scripts.
-
-Email best practices:
-
-- Use environment variables (`SENDER_EMAIL`, `SENDER_PASSWORD`) as described in the README.
-- In tests, favour test mode or mocking so no real emails are sent.
+**Triggers:** "Review this code", "refactor X"
 
 ---
 
-## Workflow expectations
+### 📊 4. Standards Enforcer
+**Purpose:** Apply High Standards Suite + project skills.
 
-For each task, agents should:
+**Responsibilities:**
+| Trigger | Skills |
+|---------|--------|
+| New features | `ManifestoGuardian + DDDTactical + RBACGuardian` |
+| UI changes | `UXMicrocopy + UniversalUX` |
+| Tests | `Coverage100_80_0 + PytestFlaskExpert` |
+| Security | `DevSecOpsFlask + SecurityGuardian` |
 
-1. Restate the task in their own words.
-2. Identify the relevant parts of the Flask app and docs (routes, repositories, templates, ADRs).
-3. Propose a short plan (2–5 steps).
-4. Implement changes in small, reviewable steps.
-5. Summarise:
-   - Files touched.
-   - Behavioural impact.
-   - Tests added or updated.
+**Triggers:** "Apply standards", "full review"
 
-For tasks that touch auth, timetables, messaging, or email, agents should
-explicitly mention how tests reflect the changes.
+---
+
+## 🛠️ Skills & Invocation System
+
+**Priority:** Project → High Standards → Universal → Testing → Security
+
+### 🎾 Project Bundle (`skills/tennis_academy/`)
+- `RBACGuardian` - Admin/coach/family enforcement
+- `EmailSafety` - SMTP mocking + secrets  
+- `TimetableExpert` - Weekly grid + RBAC filtering
+- `PytestFlaskExpert` - `test_client()` + `tmp_db`
+
+### 🎯 High Standards (`skills/high_standards/`)
+- `ManifestoGuardian` ← ENGINEERING_MANIFESTO.md
+- `DDDTactical` ← TACTICAL_DDD_STANDARDS.md
+- `Coverage100_80_0` ← QUALITY_AND_TESTING_POLICY.md
+- `UXMicrocopy` ← UX_AND_MICROCOPY_STANDARDS.md
+- `DevSecOpsFlask` ← DEVSECOPS_AND_SECURITY.md
+
+### 🌐 Universal (`skills/UNIVERSAL.md`)
+Clean Arch, SOLID, OWASP Top 10
+
+### 🧪 Testing (`skills/testing/`)
+`TestingGuardian`, `TestingAdvisor`
+
+### 🔒 Security (`skills/security/`)
+`SecurityGuardian`
+
+---
+
+## 💬 Invocation Examples
+
+Single skill
+"Review /admin/users using RBACGuardian"
+
+Agent + skills
+"Fix bug as Default Developer with RBACGuardian + PytestFlaskExpert"
+
+Standards enforcer
+"Apply standards: Coverage100_80_0 + DevSecOpsFlask + UXMicrocopy"
+
+Full PR review
+"Review PR #23 as Testing Guardian + Standards Enforcer"
+
+Multi-skill
+"New family dashboard → RBACGuardian + TimetableExpert + DDDTactical + Coverage100_80_0"
+
+---
+
+## 🔒 Safety & Security Rules
+
+**Agents MUST:**
+
+### RBAC (Non-Negotiable)
+Admin → ALL (users/groups/timetables/messages)
+Coach → OWN GROUPS ONLY
+Family → ENROLLED KIDS' GROUPS ONLY
+
+### Secrets
+✅ os.environ.get('SENDER_EMAIL')
+❌ 'admin@gmail.com' # Hardcoded → REJECT
+### SQLite
+✅ tmp_db fixture (tests)
+❌ academy.db (production DB in tests)
+
+### Email
+✅ Mock SMTP in pytest
+❌ Real Gmail sends in tests
+## 📋 Workflow Template
+
+**Agents respond with:**
+
+🎾 AGENT RESPONSE [Default Developer + RBACGuardian]
+
+📋 PLAN (3 steps)
+Add @family_required to new route
+
+Write 3 pytest tests (admin/coach/family)
+
+Verify coverage >80%
+
+🔧 CHANGES
+app.py:23 ← Added decorator
+tests/integration/test_rbac.py ← 3 new tests
+
+🧪 TESTS ADDED
+✅ test_family_can_view_dashboard
+✅ test_coach_cannot_access_family_dashboard
+✅ test_admin_can_access_family_dashboard
+
+📊 COVERAGE
+routes/family.py → 85% ✅
+## ⚙️ Resolution Rules
+
+constitution.md > AGENTS.md > skills
+
+README workflows > theoretical standards
+
+TESTING.md coverage targets are LAW
+
+Human instruction > all agents/skills
+
+Safety violations → IMMEDIATE REJECTION
+**Status:** PRODUCTION READY 🎾🔒🧪  
+**Last Updated:** 2026-02-21
