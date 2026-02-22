@@ -2,7 +2,7 @@ import sqlite3
 import os
 import re
 
-DB_PATH = "academy.db"
+DB_PATH = os.path.join(os.path.dirname(__file__), "..", "academy.db")
 
 
 def parse_schedule(text):
@@ -90,7 +90,8 @@ def migrate():
     cursor = conn.cursor()
 
     # Ensure table exists
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS group_schedules (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             group_id INTEGER NOT NULL,
@@ -102,7 +103,8 @@ def migrate():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
         )
-    """)
+    """
+    )
 
     cursor.execute("SELECT id, name, schedule FROM groups")
     groups = cursor.fetchall()

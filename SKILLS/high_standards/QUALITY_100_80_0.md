@@ -9,14 +9,14 @@
 
 | Layer | Coverage | Files |
 |-------|----------|-------|
-| **CORE (100%)** | RBAC, repositories | `repositories/`, RBAC decorators |
-| **GLOBAL (80%)** | Flask routes, services | `routes/`, `app.py` |
-| **INFRA (0%)** | Static templates, config | `templates/`, `static/` |
+| **CORE (100%)** | RBAC, repositories | `backend/repositories/`, backend/app.py (decorators) |
+| **GLOBAL (80%)** | Flask routes, services | `backend/routes/`, `backend/app.py` |
+| **INFRA (0%)** | Static templates, config | `frontend/templates/`, `frontend/static/` |
 
 ## pytest-cov Commands
 ```bash
 # CORE only
-pytest tests/unit/ --cov=repositories --cov-fail-under=100
+export PYTHONPATH=$PYTHONPATH:. && pytest tests/unit/ --cov=backend/repositories --cov-fail-under=100
 
 # GLOBAL  
-pytest tests/integration/ --cov=routes --cov-fail-under=80
+export PYTHONPATH=$PYTHONPATH:. && pytest tests/integration/ --cov=backend/routes --cov-fail-under=80

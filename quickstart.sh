@@ -18,16 +18,16 @@ echo "Step 2: Activating virtual environment..."
 source venv/bin/activate
 
 echo "Step 3: Installing dependencies..."
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 
 echo "Step 4: Initializing database..."
-python3 -c "from app import init_db; init_db(); print('Database initialized!')"
+python3 -c "import sys; sys.path.insert(0, 'backend'); from app import init_db; init_db(); print('Database initialized!')"
 
 echo ""
 echo "Step 5: Would you like to add demo data? (y/n)"
 read -r response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    python3 demo_data.py
+    python3 backend/demo_data.py
 fi
 
 echo ""
@@ -41,7 +41,7 @@ echo "     export SENDER_EMAIL=your-email@gmail.com"
 echo "     export SENDER_PASSWORD=your-app-password"
 echo ""
 echo "  2. Run the app:"
-echo "     python3 app.py"
+echo "     python3 backend/app.py"
 echo ""
 echo "  3. Open browser and go to:"
 echo "     http://localhost:5000"

@@ -21,14 +21,14 @@ python -m venv venv
 source venv/bin/activate  # or venv\Scripts\activate on Windows
 
 # 2. Install dependencies
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 
 # 3. Set environment variables
 export SENDER_EMAIL=your-email@gmail.com
 export SENDER_PASSWORD=your-app-password
 
 # 4. Run app
-python app.py
+python3 backend/app.py
 
 # 5. Visit setup page
 # http://localhost:5001/setup
@@ -39,7 +39,7 @@ python app.py
 
 ```bash
 # Option A: Use Sample Data (Automatic)
-sqlite3 academy.db < migrations/002_insert_sample_data.sql
+sqlite3 academy.db < backend/migrations/002_insert_sample_data.sql
 
 # Option B: Manual via Admin Dashboard
 # 1. Login as admin
@@ -57,7 +57,7 @@ sqlite3 academy.db < migrations/002_insert_sample_data.sql
 ```bash
 # 1. Start the app
 source venv/bin/activate
-python app.py
+python3 backend/app.py
 
 # 2. Check system health
 curl http://localhost:5001/login  # Should return 200
@@ -145,7 +145,7 @@ except Exception as e:
     print(f"❌ Error: {e}")
 EOF
 
-# 3. Check TEST_MODE in app.py (line 36)
+# 3. Check TEST_MODE in backend/app.py (line 36)
 # If TEST_MODE = True, emails go to REDIRECT_TARGET instead
 
 # 4. Check spam folder (Gmail filters aggressively)
@@ -206,7 +206,7 @@ lsof -ti:5001 | xargs kill -9  # Mac/Linux
 netstat -ano | findstr :5001   # Windows
 
 # Option B: Use different port
-# Edit app.py line 773:
+# Edit backend/app.py
 # app.run(debug=True, host='0.0.0.0', port=5002)
 ```
 
@@ -248,7 +248,7 @@ ls -la backups/
 cp backups/academy_2026-02-18_10-30-45.db academy.db
 
 # 3. Restart app
-python app.py
+python3 backend/app.py
 ```
 
 ### Export Data to CSV
@@ -414,5 +414,5 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-02-20
-**Version**: 1.2
+**Last Updated**: 2026-02-22
+**Version**: 1.3

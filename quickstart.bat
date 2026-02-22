@@ -24,16 +24,16 @@ echo Step 2: Activating virtual environment...
 call venv\Scripts\activate
 
 echo Step 3: Installing dependencies...
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 
 echo Step 4: Initializing database...
-python -c "from app import init_db; init_db(); print('Database initialized!')"
+python -c "import sys; sys.path.insert(0, 'backend'); from app import init_db; init_db(); print('Database initialized!')"
 
 echo.
 echo Step 5: Would you like to add demo data? (y/n)
 set /p response=""
 if /i "%response%"=="y" (
-    python demo_data.py
+    python backend/demo_data.py
 )
 
 echo.
@@ -47,7 +47,7 @@ echo      set SENDER_EMAIL=your-email@gmail.com
 echo      set SENDER_PASSWORD=your-app-password
 echo.
 echo   2. Run the app:
-echo      python app.py
+echo      python backend/app.py
 echo.
 echo   3. Open browser and go to:
 echo      http://localhost:5000

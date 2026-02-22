@@ -7,7 +7,7 @@ import sqlite3
 import os
 from werkzeug.security import generate_password_hash
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "academy.db")
+DB_PATH = os.path.join(os.path.dirname(__file__), "..", "academy.db")
 
 
 def add_demo_data():

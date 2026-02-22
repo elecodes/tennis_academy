@@ -16,7 +16,7 @@ The Tennis Kids Academy platform is a web-based communication system designed to
 ## 3. Architectural Patterns
 The project is currently transitioning from a monolithic structure to a more modular architecture:
 
-- **Monolith (Legacy)**: [app.py](file:///Users/elena/Developer/tennis_academy/app.py) contains the core logic, database initialization, and many route handlers.
+- **Monolith (Legacy)**: [backend/app.py](file:///Users/elena/Developer/tennis_academy/backend/app.py) contains the core logic, database initialization, and many route handlers.
 - **Blueprints**: New features are implemented using Flask Blueprints (e.g., [routes/timetables.py](file:///Users/elena/Developer/tennis_academy/routes/timetables.py)).
 - **Repository Pattern**: Data access logic is being abstracted into repositories (e.g., [repositories/timetable_repository.py](file:///Users/elena/Developer/tennis_academy/repositories/timetable_repository.py)) to separate business logic from SQL queries.
 - **RBAC (Role-Based Access Control)**: Custom decorators (`@admin_required`, `@coach_required`, `@login_required`) enforce access levels across the system.
@@ -52,6 +52,6 @@ Key tables in the [academy.db](file:///Users/elena/Developer/tennis_academy/acad
 6. **Response**: The server returns rendered HTML to the client.
 
 ## 7. Deployment & Environment
-- **Local Development**: Runs via `python app.py` (Port 5001).
+- **Local Development**: Runs via `python3 backend/app.py` (Port 5001).
 - **Environment Variables**: Managed via `.env` files (SMTP credentials, Secret Keys).
 - **Production**: Optimized for platforms like Render, using a standard WSGI server.

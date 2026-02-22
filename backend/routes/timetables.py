@@ -50,8 +50,8 @@ def get_timetable_page():
         user_id = session.get("user_id")
         user_role = session.get("role", "family")
 
-        # Obtener la ruta a academy.db
-        db_path = os.path.join(os.path.dirname(__file__), "..", "academy.db")
+        # Obtener la ruta a academy.db (now 2 levels up from backend/routes/)
+        db_path = os.path.join(os.path.dirname(__file__), "..", "..", "academy.db")
         repository = TimetableRepository(db_path)
         result = repository.get_weekly_timetable(user_role, user_id, week_start)
 
@@ -110,7 +110,7 @@ def get_weekly_timetable_api():
         user_id = session["user_id"]
         user_role = session.get("role", "family")
 
-        db_path = os.path.join(os.path.dirname(__file__), "..", "academy.db")
+        db_path = os.path.join(os.path.dirname(__file__), "..", "..", "academy.db")
         repository = TimetableRepository(db_path)
         result = repository.get_weekly_timetable(user_role, user_id, week_start_date)
 
@@ -140,7 +140,7 @@ def add_timetable_session():
         return jsonify({"error": "Missing required fields"}), 400
 
     try:
-        db_path = os.path.join(os.path.dirname(__file__), "..", "academy.db")
+        db_path = os.path.join(os.path.dirname(__file__), "..", "..", "academy.db")
         repository = TimetableRepository(db_path)
         repository.add_session(int(group_id), int(day), start, end, court)
         return redirect(url_for("timetables.get_timetable_page"))
@@ -161,7 +161,7 @@ def delete_timetable_session(session_id):
         return jsonify({"error": "Unauthorized"}), 403
 
     try:
-        db_path = os.path.join(os.path.dirname(__file__), "..", "academy.db")
+        db_path = os.path.join(os.path.dirname(__file__), "..", "..", "academy.db")
         repository = TimetableRepository(db_path)
         repository.delete_session(session_id)
         return redirect(url_for("timetables.get_timetable_page"))

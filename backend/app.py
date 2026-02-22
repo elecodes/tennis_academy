@@ -3,26 +3,40 @@ Tennis Kids Academy - Communication System
 A simple, free-tier communication platform for tennis academies.
 """
 
+import os
+import sys
+
+# Ensure backend submodules can be found when running from root or within backend/
+sys.path.insert(0, os.path.dirname(__file__))
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from functools import wraps
 from datetime import datetime
 import sqlite3
-import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv
+
+# Load environment variables from .env if it exists
+load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 from routes.timetables import timetables_bp
 import secrets
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder="../frontend/templates",
+    static_folder="../frontend/static",
+)
 app.secret_key = secrets.token_hex(16)
 
 app.register_blueprint(timetables_bp)
 
 
 # Database path
-DB_PATH = os.path.join(os.path.dirname(__file__), "academy.db")
+DB_PATH = os.path.join(os.path.dirname(__file__), "..", "academy.db")
 
 # Email configuration - Using Gmail SMTP (free)
 # Set TEST_MODE = False to send emails to real family addresses.
@@ -42,7 +56,8 @@ def init_db():
     cursor = conn.cursor()
 
     # Users table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
@@ -53,10 +68,12 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             is_active INTEGER DEFAULT 1
         )
-    """)
+    """
+    )
 
     # Groups table (tennis groups like "Beginners Mon/Wed", "Advanced Tue/Thu")
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS groups (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
@@ -66,10 +83,12 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (coach_id) REFERENCES users (id) ON DELETE SET NULL
         )
-    """)
+    """
+    )
 
     # Group memberships (families enrolled in groups)
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS group_members (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             group_id INTEGER NOT NULL,
@@ -80,10 +99,12 @@ def init_db():
             FOREIGN KEY (family_id) REFERENCES users (id) ON DELETE CASCADE,
             UNIQUE(group_id, family_id, kid_name)
         )
-    """)
+    """
+    )
 
     # Messages table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             sender_id INTEGER NOT NULL,
@@ -100,10 +121,12 @@ def init_db():
             FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
             FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE SET NULL
         )
-    """)
+    """
+    )
 
     # Message recipients (tracking who received what)
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS message_recipients (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             message_id INTEGER NOT NULL,
@@ -113,10 +136,12 @@ def init_db():
             FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
-    """)
+    """
+    )
 
     # Group schedules table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS group_schedules (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             group_id INTEGER NOT NULL,
@@ -128,7 +153,8 @@ def init_db():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
         )
-    """)
+    """
+    )
 
     conn.commit()
     conn.close()
@@ -161,7 +187,7 @@ def send_email(to_email, subject, body):
         server.quit()
         return True
     except Exception as e:
-        print(f"Email error: {e}")
+        print(f"CRITICAL: Email delivery failed to {to_email}. Error: {e}")
         return False
 
 
@@ -260,13 +286,15 @@ def dashboard():
             "total_messages": conn.execute("SELECT COUNT(*) FROM messages").fetchone()[
                 0
             ],
-            "recent_messages": conn.execute("""
+            "recent_messages": conn.execute(
+                """
                 SELECT m.*, u.full_name as sender_name, g.name as group_name
                 FROM messages m
                 JOIN users u ON m.sender_id = u.id
                 LEFT JOIN groups g ON m.group_id = g.id
                 ORDER BY m.sent_at DESC LIMIT 5
-            """).fetchall(),
+            """
+            ).fetchall(),
         }
         template = "admin_dashboard.html"
 
@@ -349,12 +377,14 @@ def dashboard():
 @admin_required
 def admin_users():
     conn = get_db()
-    users = conn.execute("""
+    users = conn.execute(
+        """
         SELECT u.*,
                (SELECT COUNT(*) FROM group_members WHERE family_id = u.id) as enrollments
         FROM users u WHERE u.role != 'admin'
         ORDER BY u.created_at DESC
-    """).fetchall()
+    """
+    ).fetchall()
     conn.close()
     return render_template("admin/users.html", users=users)
 
@@ -401,7 +431,8 @@ def admin_add_user():
 @admin_required
 def admin_groups():
     conn = get_db()
-    groups = conn.execute("""
+    groups = conn.execute(
+        """
         SELECT g.*, u.full_name as coach_name,
                COUNT(DISTINCT gm.family_id) as member_count
         FROM groups g
@@ -409,7 +440,8 @@ def admin_groups():
         LEFT JOIN group_members gm ON g.id = gm.group_id
         GROUP BY g.id
         ORDER BY g.created_at DESC
-    """).fetchall()
+    """
+    ).fetchall()
     coaches = conn.execute(
         "SELECT id, full_name FROM users WHERE role = 'coach' ORDER BY full_name"
     ).fetchall()
@@ -458,13 +490,15 @@ def admin_add_group():
 @admin_required
 def admin_enrollments():
     conn = get_db()
-    enrollments = conn.execute("""
+    enrollments = conn.execute(
+        """
         SELECT gm.*, g.name as group_name, u.full_name as family_name, u.email
         FROM group_members gm
         JOIN groups g ON gm.group_id = g.id
         JOIN users u ON gm.family_id = u.id
         ORDER BY g.name, u.full_name
-    """).fetchall()
+    """
+    ).fetchall()
     groups = conn.execute("SELECT id, name FROM groups ORDER BY name").fetchall()
     families = conn.execute(
         "SELECT id, full_name, email FROM users WHERE role = 'family' ORDER BY full_name"
@@ -515,59 +549,58 @@ def admin_add_enrollment():
 @admin_required
 def admin_send_message():
     conn = get_db()
+    try:
+        if request.method == "POST":
+            message_type = request.form.get("message_type")
+            subject = request.form.get("subject", "").strip()
+            content = request.form.get("content", "").strip()
+            group_id = request.form.get("group_id")
+            is_general = 1 if request.form.get("is_general") else 0
 
-    if request.method == "POST":
-        message_type = request.form.get("message_type")
-        subject = request.form.get("subject", "").strip()
-        content = request.form.get("content", "").strip()
-        group_id = request.form.get("group_id")
-        is_general = 1 if request.form.get("is_general") else 0
+            # Validation
+            if not message_type or not subject or not content:
+                flash("Message type, subject, and content are required.", "danger")
+                groups = conn.execute(
+                    "SELECT id, name FROM groups ORDER BY name"
+                ).fetchall()
+                return render_template("admin/send_message.html", groups=groups)
 
-        # Validation
-        if not message_type or not subject or not content:
-            flash("Message type, subject, and content are required.", "danger")
-            groups = conn.execute(
-                "SELECT id, name FROM groups ORDER BY name"
-            ).fetchall()
-            conn.close()
-            return render_template("admin/send_message.html", groups=groups)
-
-        # Insert message
-        cursor = conn.execute(
-            """
-            INSERT INTO messages (sender_id, group_id, message_type, subject, content, is_general)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """,
-            (
-                session["user_id"],
-                group_id if group_id else None,
-                message_type,
-                subject,
-                content,
-                is_general,
-            ),
-        )
-        message_id = cursor.lastrowid
-
-        # Determine recipients
-        if is_general:
-            recipients = conn.execute(
-                "SELECT id, email FROM users WHERE role = 'family' AND is_active = 1"
-            ).fetchall()
-        elif group_id:
-            recipients = conn.execute(
+            # Insert message
+            cursor = conn.execute(
                 """
-                SELECT DISTINCT u.id, u.email FROM users u
-                JOIN group_members gm ON u.id = gm.family_id
-                WHERE gm.group_id = ? AND u.is_active = 1
+                INSERT INTO messages (sender_id, group_id, message_type, subject, content, is_general)
+                VALUES (?, ?, ?, ?, ?, ?)
             """,
-                (group_id,),
-            ).fetchall()
-        else:
-            recipients = []
+                (
+                    session["user_id"],
+                    group_id if group_id else None,
+                    message_type,
+                    subject,
+                    content,
+                    is_general,
+                ),
+            )
+            message_id = cursor.lastrowid
 
-        # Send emails and track
-        email_body = f"""
+            # Determine recipients
+            if is_general:
+                recipients = conn.execute(
+                    "SELECT id, email FROM users WHERE role = 'family' AND is_active = 1"
+                ).fetchall()
+            elif group_id:
+                recipients = conn.execute(
+                    """
+                    SELECT DISTINCT u.id, u.email FROM users u
+                    JOIN group_members gm ON u.id = gm.family_id
+                    WHERE gm.group_id = ? AND u.is_active = 1
+                """,
+                    (group_id,),
+                ).fetchall()
+            else:
+                recipients = []
+
+            # Send emails and track
+            email_body = f"""
 Tennis Academy Notification
 
 Type: {message_type.replace('_', ' ').title()}
@@ -577,38 +610,43 @@ Subject: {subject}
 
 ---
 This message was sent from the Tennis Academy Communication System.
-        """
+            """
 
-        sent_count = 0
-        for recipient in recipients:
-            if send_email(
-                recipient["email"], f"[Tennis Academy] {subject}", email_body
-            ):
-                conn.execute(
-                    """
-                    INSERT INTO message_recipients (message_id, user_id, email_sent, sent_at)
-                    VALUES (?, ?, 1, CURRENT_TIMESTAMP)
-                """,
-                    (message_id, recipient["id"]),
-                )
-                sent_count += 1
-            else:
-                conn.execute(
-                    """
-                    INSERT INTO message_recipients (message_id, user_id, email_sent)
-                    VALUES (?, ?, 0)
-                """,
-                    (message_id, recipient["id"]),
-                )
+            sent_count = 0
+            for recipient in recipients:
+                if send_email(
+                    recipient["email"], f"[Tennis Academy] {subject}", email_body
+                ):
+                    conn.execute(
+                        """
+                        INSERT INTO message_recipients (message_id, user_id, email_sent, sent_at)
+                        VALUES (?, ?, 1, CURRENT_TIMESTAMP)
+                    """,
+                        (message_id, recipient["id"]),
+                    )
+                    sent_count += 1
+                else:
+                    conn.execute(
+                        """
+                        INSERT INTO message_recipients (message_id, user_id, email_sent)
+                        VALUES (?, ?, 0)
+                    """,
+                        (message_id, recipient["id"]),
+                    )
 
-        conn.commit()
-        flash(f"Message sent to {sent_count} families!", "success")
-        conn.close()
+            conn.commit()
+            flash(f"Broadcast sent to {sent_count} recipients!", "success")
+            return redirect(url_for("dashboard"))
+
+        groups = conn.execute("SELECT id, name FROM groups ORDER BY name").fetchall()
+        return render_template("admin/send_message.html", groups=groups)
+
+    except Exception as e:
+        print(f"CRITICAL ERROR in admin_send_message: {e}")
+        flash(f"An error occurred while sending the broadcast: {e}", "danger")
         return redirect(url_for("dashboard"))
-
-    groups = conn.execute("SELECT id, name FROM groups ORDER BY name").fetchall()
-    conn.close()
-    return render_template("admin/send_message.html", groups=groups)
+    finally:
+        conn.close()
 
 
 @app.route("/admin/test-email", methods=["POST"])
@@ -656,55 +694,54 @@ def coach_send_message():
     conn = get_db()
     coach_id = session["user_id"]
 
-    my_groups = conn.execute(
-        "SELECT id, name, schedule FROM groups WHERE coach_id = ? ORDER BY name",
-        (coach_id,),
-    ).fetchall()
-
-    if request.method == "POST":
-        message_type = request.form.get("message_type")
-        subject = request.form.get("subject", "").strip()
-        content = request.form.get("content", "").strip()
-        group_id = request.form.get("group_id")
-
-        # Validation
-        if not message_type or not subject or not content or not group_id:
-            flash("All fields are required.", "danger")
-            conn.close()
-            return render_template("coach/send_message.html", groups=my_groups)
-
-        # Verify this group belongs to the coach
-        group = conn.execute(
-            "SELECT id, name FROM groups WHERE id = ? AND coach_id = ?",
-            (group_id, coach_id),
-        ).fetchone()
-        if not group:
-            flash("Invalid group selected.", "danger")
-            conn.close()
-            return redirect(url_for("coach_send_message"))
-
-        # Insert message
-        cursor = conn.execute(
-            """
-            INSERT INTO messages (sender_id, group_id, message_type, subject, content, is_general)
-            VALUES (?, ?, ?, ?, ?, 0)
-        """,
-            (coach_id, group_id, message_type, subject, content),
-        )
-        message_id = cursor.lastrowid
-
-        # Get recipients
-        recipients = conn.execute(
-            """
-            SELECT DISTINCT u.id, u.email FROM users u
-            JOIN group_members gm ON u.id = gm.family_id
-            WHERE gm.group_id = ? AND u.is_active = 1
-        """,
-            (group_id,),
+    try:
+        my_groups = conn.execute(
+            "SELECT id, name, schedule FROM groups WHERE coach_id = ? ORDER BY name",
+            (coach_id,),
         ).fetchall()
 
-        # Send emails
-        email_body = f"""
+        if request.method == "POST":
+            message_type = request.form.get("message_type")
+            subject = request.form.get("subject", "").strip()
+            content = request.form.get("content", "").strip()
+            group_id = request.form.get("group_id")
+
+            # Validation
+            if not message_type or not subject or not content or not group_id:
+                flash("All fields are required.", "danger")
+                return render_template("coach/send_message.html", groups=my_groups)
+
+            # Verify this group belongs to the coach
+            group = conn.execute(
+                "SELECT id, name FROM groups WHERE id = ? AND coach_id = ?",
+                (group_id, coach_id),
+            ).fetchone()
+            if not group:
+                flash("Invalid group selected.", "danger")
+                return redirect(url_for("coach_send_message"))
+
+            # Insert message
+            cursor = conn.execute(
+                """
+                INSERT INTO messages (sender_id, group_id, message_type, subject, content, is_general)
+                VALUES (?, ?, ?, ?, ?, 0)
+            """,
+                (coach_id, group_id, message_type, subject, content),
+            )
+            message_id = cursor.lastrowid
+
+            # Get recipients
+            recipients = conn.execute(
+                """
+                SELECT DISTINCT u.id, u.email FROM users u
+                JOIN group_members gm ON u.id = gm.family_id
+                WHERE gm.group_id = ? AND u.is_active = 1
+            """,
+                (group_id,),
+            ).fetchall()
+
+            # Send emails
+            email_body = f"""
 Tennis Academy Notification - From Coach {session['full_name']}
 
 Type: {message_type.replace('_', ' ').title()}
@@ -715,37 +752,42 @@ Subject: {subject}
 
 ---
 This message was sent from the Tennis Academy Communication System.
-        """
+            """
 
-        sent_count = 0
-        for recipient in recipients:
-            if send_email(
-                recipient["email"], f"[Tennis Academy] {subject}", email_body
-            ):
-                conn.execute(
-                    """
-                    INSERT INTO message_recipients (message_id, user_id, email_sent, sent_at)
-                    VALUES (?, ?, 1, CURRENT_TIMESTAMP)
-                """,
-                    (message_id, recipient["id"]),
-                )
-                sent_count += 1
-            else:
-                conn.execute(
-                    """
-                    INSERT INTO message_recipients (message_id, user_id, email_sent)
-                    VALUES (?, ?, 0)
-                """,
-                    (message_id, recipient["id"]),
-                )
+            sent_count = 0
+            for recipient in recipients:
+                if send_email(
+                    recipient["email"], f"[Tennis Academy] {subject}", email_body
+                ):
+                    conn.execute(
+                        """
+                        INSERT INTO message_recipients (message_id, user_id, email_sent, sent_at)
+                        VALUES (?, ?, 1, CURRENT_TIMESTAMP)
+                    """,
+                        (message_id, recipient["id"]),
+                    )
+                    sent_count += 1
+                else:
+                    conn.execute(
+                        """
+                        INSERT INTO message_recipients (message_id, user_id, email_sent)
+                        VALUES (?, ?, 0)
+                    """,
+                        (message_id, recipient["id"]),
+                    )
 
-        conn.commit()
-        flash(f"Message sent to {sent_count} families!", "success")
-        conn.close()
+            conn.commit()
+            flash(f"Message sent to {sent_count} families!", "success")
+            return redirect(url_for("dashboard"))
+
+        return render_template("coach/send_message.html", groups=my_groups)
+
+    except Exception as e:
+        print(f"CRITICAL ERROR in coach_send_message: {e}")
+        flash(f"An error occurred while sending the message: {e}", "danger")
         return redirect(url_for("dashboard"))
-
-    conn.close()
-    return render_template("coach/send_message.html", groups=my_groups)
+    finally:
+        conn.close()
 
 
 @app.route("/coach/my-groups")

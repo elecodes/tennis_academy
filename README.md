@@ -70,7 +70,7 @@ venv\Scripts\activate
 ### 4. Install Dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 ```
 
 ### 5. Configure Email (Gmail)
@@ -100,7 +100,7 @@ set SENDER_PASSWORD=xxxx-xxxx-xxxx-xxxx
 ### 6. Run the Application
 
 ```bash
-python3 app.py
+python3 backend/app.py
 ```
 
 The app will be available at: **http://localhost:5001**
@@ -209,10 +209,10 @@ python3 -c "import smtplib; \
 ```bash
 # Reset database
 rm academy.db
-python3 app.py  # Will recreate DB automatically
+python3 backend/app.py  # Will recreate DB automatically
 
 # Or run migrations
-python3 scripts/init_migrations.py
+python3 backend/migrate_schedules.py
 ```
 
 ### Port Already in Use
@@ -234,13 +234,13 @@ The project follows a strict testing strategy defined in **[TESTING.md](TESTING.
 ### Run Tests
 ```bash
 # All tests
-pytest tests/ -v
+export PYTHONPATH=$PYTHONPATH:. && pytest tests/ -v
 
 # Unit only
-pytest tests/unit/ -v
+export PYTHONPATH=$PYTHONPATH:. && pytest tests/unit/ -v
 
 # Integration + coverage
-pytest tests/integration/ --cov=app --cov-report=html
+export PYTHONPATH=$PYTHONPATH:. && pytest tests/integration/ --cov=backend --cov-report=html
 ```
 
 ### Mocking Requirement
@@ -299,10 +299,10 @@ Family: family1@email.com / password123
 1. **Understand RBAC**: Read [ADR-001](docs/ADR-001-timetable-repository.md)
 2. **Learn operations**: Read [PLAYBOOK.md](docs/PLAYBOOK.md)
 3. **Explore code**:
-   - `app.py` - Main Flask app
-   - `repositories/timetable_repository.py` - RBAC logic
-   - `routes/timetables.py` - API endpoints
-   - `templates/` - HTML templates
+   - `backend/app.py` - Main Flask app
+   - `backend/repositories/timetable_repository.py` - RBAC logic
+   - `backend/routes/timetables.py` - API endpoints
+   - `frontend/templates/` - HTML templates
 
 ## 🤝 Contributing
 
@@ -338,8 +338,8 @@ MIT License - Free to use and modify!
 🔜 Calendar View:   Coming soon
 ```
 
-**Last Updated**: 2026-02-20  
-**Version**: 1.1.0  
+**Last Updated**: 2026-02-22  
+**Version**: 1.3.0  
 **Status**: Production Ready ✅
 
 ---
