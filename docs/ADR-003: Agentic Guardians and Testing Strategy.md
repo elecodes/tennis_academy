@@ -3,6 +3,8 @@
 ## Status
 Proposed
 
+**Date**: 2026-02-21
+
 ## Context
 As the project grows in complexity, ensuring consistent Role-Based Access Control (RBAC), security standards, and testing coverage becomes more challenging for both human developers and AI agents. We need a formalized way to enforce these standards automatically during the development process.
 
