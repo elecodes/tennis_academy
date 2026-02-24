@@ -1,4 +1,4 @@
-# 🎾 SF TENNIS KIDS Club - Operations Playbook
+# 🎾 SF TENNIS KIDS CLUB - Operations Playbook
 
 ## Table of Contents
 1. [Setup Initial](#setup-initial)
@@ -414,5 +414,5 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-02-22
-**Version**: 1.3
+**Last Updated**: 2026-02-24
+**Version**: 1.4

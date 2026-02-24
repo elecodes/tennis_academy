@@ -213,7 +213,7 @@
       {% if messages %}
       {% for category, message in messages %}
       <div
-        class="animate-slide-up flex items-center justify-between p-4 rounded-2xl shadow-sm border mb-4 
+        class="animate-slide-up flash-message flex items-center justify-between p-4 rounded-2xl shadow-sm border mb-4 
                             {% if category == 'danger' %} bg-clay/5 border-clay/10 text-clay {% elif category == 'success' %} bg-accent/5 border-accent/10 text-accent {% else %} bg-navy/5 border-navy/10 text-navy {% endif %}">
         <div class="flex items-center gap-3 font-semibold">
           <span class="material-symbols-outlined">
@@ -349,7 +349,7 @@
     // Auto-remove flash messages
     document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
-        const alerts = document.querySelectorAll('.animate-slide-up');
+        const alerts = document.querySelectorAll('.flash-message');
         alerts.forEach(alert => {
           alert.classList.add('opacity-0');
           alert.style.transform = 'translateY(-20px)';
