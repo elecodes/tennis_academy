@@ -1,6 +1,6 @@
 # Testing Strategy (Flask + RBAC)
 
-Defines **mandatory testing rules** for the **Tennis Academy Communication System**.  
+Defines **mandatory testing rules** for the **SF TENNIS KIDS Club Communication System**.  
 **Source of truth** for humans and AI agents. Used by `TestingGuardian`, `RBACGuardian`, and `PytestFlaskExpert` skills.
 
 Current status: **13/13 unit tests passing** (per README). Integration tests needed.

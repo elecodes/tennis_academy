@@ -1,7 +1,7 @@
 # SKILL: Security Guardian
 
 ## Purpose
-Enforce Flask + OWASP security for **Tennis Academy Communication System** per `SECURITY.md`.  
+Enforce Flask + OWASP security for **SF TENNIS KIDS Club Communication System** per `SECURITY.md`.  
 **Source of truth:** `SECURITY.md` > this skill.
 
 ## When to invoke

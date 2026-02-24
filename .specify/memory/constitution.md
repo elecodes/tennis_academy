@@ -1,4 +1,4 @@
-# 🎾 Tennis Academy Communication System — Project Constitution
+# 🎾 SF TENNIS KIDS Club Communication System — Project Constitution
 
 > Non-negotiable principles governing all development, specification, and implementation decisions.
 

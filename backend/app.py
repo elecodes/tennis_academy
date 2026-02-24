@@ -753,7 +753,7 @@ def admin_send_message():
 
             # Send emails and track
             email_body = f"""
-Tennis Academy Notification
+SF TENNIS KIDS Club Notification
 
 Type: {message_type.replace('_', ' ').title()}
 Subject: {subject}
@@ -761,13 +761,13 @@ Subject: {subject}
 {content}
 
 ---
-This message was sent from the Tennis Academy Communication System.
+This message was sent from the SF TENNIS KIDS Club Communication System.
             """
 
             sent_count = 0
             for recipient in recipients:
                 if send_email(
-                    recipient["email"], f"[Tennis Academy] {subject}", email_body
+                    recipient["email"], f"[SF TENNIS KIDS Club] {subject}", email_body
                 ):
                     conn.execute(
                         """
@@ -810,7 +810,7 @@ def admin_test_email():
         flash("Please provide a test email address.", "warning")
         return redirect(url_for("dashboard"))
 
-    subject = "Tennis Academy - Test Connection"
+    subject = "SF TENNIS KIDS Club - Test Connection"
     body = f"This is a test email sent at {datetime.now()} to verify your SMTP settings are working correctly."
 
     success = False
@@ -911,7 +911,7 @@ def coach_send_message():
 
             # Send emails
             email_body = f"""
-Tennis Academy Notification - From Coach {session['full_name']}
+SF TENNIS KIDS Club Notification - From Coach {session['full_name']}
 
 Type: {message_type.replace('_', ' ').title()}
 Group: {group['name']}
@@ -920,13 +920,13 @@ Subject: {subject}
 {content}
 
 ---
-This message was sent from the Tennis Academy Communication System.
+This message was sent from the SF TENNIS KIDS Club Communication System.
             """
 
             sent_count = 0
             for recipient in recipients:
                 if send_email(
-                    recipient["email"], f"[Tennis Academy] {subject}", email_body
+                    recipient["email"], f"[SF TENNIS KIDS Club] {subject}", email_body
                 ):
                     conn.execute(
                         """

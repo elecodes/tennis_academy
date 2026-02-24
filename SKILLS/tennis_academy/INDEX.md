@@ -1,6 +1,6 @@
 # 🎾 tennis_academy Complete Skill Index
 
-**Official skill registry** for Tennis Academy Communication System (Flask + RBAC + pytest).  
+**Official skill registry** for SF TENNIS KIDS Club Communication System (Flask + RBAC + pytest).  
 **Priority:** Project → High Standards → Universal → Testing → Security
 
 **Usage:** `"Review using RBACGuardian + Coverage100_80_0 + DDDTactical"`

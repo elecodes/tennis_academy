@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Help developers and agents design, write, and enforce tests for the **Tennis Academy Communication System**, following the rules defined in `TESTING.md`.  
+Help developers and agents design, write, and enforce tests for the **SF TENNIS KIDS Club Communication System**, following the rules defined in `TESTING.md`.  
 If there is any conflict, `TESTING.md` is the source of truth.
 
 ## Scope

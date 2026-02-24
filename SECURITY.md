@@ -1,6 +1,6 @@
-# Security: Tennis Kids Academy
+# Security: SF TENNIS KIDS Club
 
-This document outlines the security policies, sensitive data handling, and defensive measures implemented in the Tennis Kids Academy system.
+This document outlines the security policies, sensitive data handling, and defensive measures implemented in the SF TENNIS KIDS Club system.
 
 ## 1. Sensitive Data
 

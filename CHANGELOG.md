@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- **Comprehensive Branding Overhaul**: Renamed "Tennis Kids Academy" to "SF TENNIS KIDS Club" across all templates, dashboards, and documentation.
+- **Comprehensive Branding Overhaul**: Renamed "SF TENNIS KIDS Club" to "SF TENNIS KIDS Club" across all templates, dashboards, and documentation.
 - **Portal Terminology**: Standardized "Active Portal" and "Academy Portal" to "SF TENNIS KIDS Portal".
 
 ### Added
