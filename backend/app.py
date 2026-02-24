@@ -1,6 +1,6 @@
 """
-Tennis Kids Academy - Communication System
-A simple, free-tier communication platform for tennis academies.
+SF TENNIS KIDS Club - Communication System
+A simple, free-tier communication platform for tennis clubs.
 """
 
 import os

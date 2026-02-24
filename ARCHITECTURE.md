@@ -1,9 +1,9 @@
-# System Architecture: Tennis Kids Academy
+# System Architecture: SF TENNIS KIDS Club
 
-This document outlines the architectural design, technology stack, and core components of the Tennis Kids Academy communication system.
+This document outlines the architectural design, technology stack, and core components of the SF TENNIS KIDS Club communication system.
 
 ## 1. High-Level Overview
-The Tennis Kids Academy platform is a web-based communication system designed to streamline interactions between administrators, coaches, and families. It facilitates group management, enrollment tracking, and automated notifications (e.g., rain cancellations, schedule changes).
+The SF TENNIS KIDS Club platform is a web-based communication system designed to streamline interactions between administrators, coaches, and families. It facilitates group management, enrollment tracking, and automated notifications (e.g., rain cancellations, schedule changes).
 
 ## 2. Technology Stack
 - **Framework**: [Flask](https://flask.palletsprojects.com/) (Python-based micro-framework).
@@ -30,7 +30,7 @@ The project is currently transitioning from a monolithic structure to a more mod
 - **Messaging Engine**: Sends multi-channel notifications (Internal message board + Email) with receipt tracking.
 
 ### 4.2. Recent Features
-- **Weekly Timetable**: A structured representation of the academy's schedule, filtered by user role.
+- **Weekly Timetable**: A structured representation of the club's schedule, filtered by user role.
 - **Refined UI**: A premium, mobile-responsive interface across all dashboards.
 
 ## 5. Data Model

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Send Message - Tennis Academy{% endblock %}
+{% block title %}Send Message - SF TENNIS KIDS Club{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-10 pb-24">
@@ -18,7 +18,7 @@
   <div class="card-premium border border-navy/10 shadow-2xl p-0 overflow-hidden bg-white">
     <div class="bg-navy p-10 text-white relative">
       <h3 class="text-3xl font-black font-serif mb-2">Compose Broadcast</h3>
-      <p class="text-white/60 text-lg">Send notifications via email to select groups or the entire academy.</p>
+      <p class="text-white/60 text-lg">Send notifications via email to select groups or the entire club.</p>
       <div class="absolute -right-8 -bottom-8 opacity-5">
         <span class="material-symbols-outlined !text-[12rem]">broadcast_on_home</span>
       </div>
@@ -40,7 +40,7 @@
         <div class="space-y-3">
           <label class="text-xs font-black text-accent uppercase tracking-[0.2em] ml-4">Target Audience</label>
           <select id="group_id" name="group_id" class="form-input text-lg py-4 border-dashed">
-            <option value="">-- All Academy Families --</option>
+            <option value="">-- All Club Families --</option>
             {% for group in groups %}
             <option value="{{ group.id }}">{{ group.name }}</option>
             {% endfor %}

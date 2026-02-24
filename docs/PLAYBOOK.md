@@ -1,4 +1,4 @@
-# 🎾 Tennis Academy - Operations Playbook
+# 🎾 SF TENNIS KIDS Club - Operations Playbook
 
 ## Table of Contents
 1. [Setup Initial](#setup-initial)

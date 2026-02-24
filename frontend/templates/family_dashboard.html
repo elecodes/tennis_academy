@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Family Dashboard - SF Tennis Kids{% endblock %}
+{% block title %}Family Dashboard - SF TENNIS KIDS Club{% endblock %}
 
 {% block content %}
 {% include 'dashboard_header.html' %}
@@ -35,7 +35,7 @@
   <div class="mb-20">
     <div class="flex items-center gap-4 mb-10">
       <span class="w-12 h-1 bg-accent rounded-full"></span>
-      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Academy Services</h2>
+      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Club Services</h2>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <a href="{{ url_for('family_enrollments') }}"
@@ -59,7 +59,7 @@
         </div>
         <div>
           <div class="text-xl font-black text-navy group-hover:text-white transition-colors">Weekly Timetable</div>
-          <div class="text-sm text-obsidian/40 group-hover:text-white/60 transition-colors">Complete academy-wide
+          <div class="text-sm text-obsidian/40 group-hover:text-white/60 transition-colors">Complete club-wide
             schedules.</div>
         </div>
       </a>
@@ -108,7 +108,7 @@
         </div>
 
         <div class="pt-6 border-t border-navy/5 flex justify-between items-center">
-          <span class="text-[10px] font-black text-navy/20 uppercase tracking-[0.2em]">SFSU Verified</span>
+          <span class="text-[10px] font-black text-navy/20 uppercase tracking-[0.2em]">SF TENNIS KIDS Verified</span>
           <span class="w-2 h-2 rounded-full bg-green-500"></span>
         </div>
       </div>
@@ -121,7 +121,7 @@
       </div>
       <h3 class="text-2xl font-black text-navy mb-4 font-serif">Registration Required</h3>
       <p class="text-obsidian/40 font-medium max-w-sm mx-auto leading-relaxed">No active enrollments detected. Please
-        visit our academy or contact the admin team to get your kids on the court!</p>
+        visit our club or contact the club admin team to get your kids on the court!</p>
     </div>
     {% endif %}
   </div>

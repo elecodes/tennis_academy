@@ -1,6 +1,6 @@
-# Tennis Academy Communication System
+# SF TENNIS KIDS Club
 
-A simple, free-tier communication platform for tennis academies to connect administrators, coaches, and families via email notifications.
+A simple, free-tier communication platform for tennis clubs to connect administrators, coaches, and families via email notifications.
 
 ## 🎯 Features
 
