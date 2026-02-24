@@ -3,6 +3,8 @@
 ## Status
 ✅ **ACCEPTED**
 
+**Date**: 2026-02-19
+
 ## Context
 The Tennis Academy needed a way to display weekly schedules for different user roles (admin, coach, family) with proper data isolation. Initially, schedules were unstructured text stored in the `groups.schedule` field, which made it impossible to build a clean grid view or perform CRUD operations on individual sessions.
 

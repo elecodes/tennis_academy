@@ -28,8 +28,7 @@
             <th class="px-8 py-5">User Details</th>
             <th class="px-8 py-5">Role</th>
             <th class="px-8 py-5">Contact</th>
-            <th class="px-8 py-5">Enrollments</th>
-            <th class="px-8 py-5">Joined</th>
+            <th class="px-8 py-5 text-right">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-navy/5">
@@ -64,20 +63,28 @@
             <td class="px-8 py-6">
               <span class="text-sm font-semibold text-obsidian/70">{{ user.phone or 'No phone' }}</span>
             </td>
-            <td class="px-8 py-6 text-center">
-              <span
-                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-navy/5 text-navy font-bold text-sm">
-                {{ user.enrollments }}
-              </span>
-            </td>
-            <td class="px-8 py-6">
-              <span class="text-sm font-bold text-navy/40">{{ user.created_at[:10] }}</span>
+            <td class="px-8 py-6 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <button
+                  class="w-8 h-8 rounded-lg bg-navy/5 text-navy hover:bg-navy hover:text-white transition-all flex items-center justify-center edit-user-btn"
+                  data-id="{{ user.id }}" data-name="{{ user.full_name }}" data-email="{{ user.email }}"
+                  data-role="{{ user.role }}" data-phone="{{ user.phone or '' }}" title="Edit User">
+                  <span class="material-symbols-outlined text-base">edit</span>
+                </button>
+                <form method="POST" action="{{ url_for('admin_delete_user', user_id=user.id) }}" class="inline">
+                  <button type="submit"
+                    class="w-8 h-8 rounded-lg bg-clay/5 text-clay hover:bg-clay hover:text-white transition-all flex items-center justify-center"
+                    title="Delete User">
+                    <span class="material-symbols-outlined text-base">delete</span>
+                  </button>
+                </form>
+              </div>
             </td>
           </tr>
           {% endfor %}
           {% else %}
           <tr>
-            <td colspan="5" class="px-8 py-20 text-center">
+            <td colspan="4" class="px-8 py-20 text-center">
               <div class="flex flex-col items-center gap-4 opacity-20">
                 <span class="material-symbols-outlined text-6xl">person_off</span>
                 <p class="font-black uppercase tracking-[0.3em] text-xs">No users found</p>
@@ -119,6 +126,7 @@
             <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Role *</label>
             <select name="role" class="form-input" required>
               <option value="">Select role...</option>
+              <option value="admin">Admin</option>
               <option value="coach">Coach</option>
               <option value="family">Family</option>
             </select>
@@ -148,4 +156,87 @@
     </div>
   </div>
 </div>
+
+<!-- Edit User Modal -->
+<div class="modal-backdrop" id="editUserModal">
+  <div class="modal-dialog max-w-xl w-full">
+    <div class="modal-content !rounded-[2.5rem] !border-none shadow-2xl overflow-hidden">
+      <div class="bg-navy p-8 text-white relative">
+        <h5 class="text-2xl font-black font-serif">Edit User</h5>
+        <p class="text-white/60 text-sm">Update account details for this member.</p>
+        <button type="button" class="absolute top-8 right-8 text-white/40 hover:text-white transition-colors"
+          data-modal-close="editUserModal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="editUserForm" method="POST" action="{{ url_for('admin_edit_user') }}" class="p-8 space-y-6">
+        <input type="hidden" name="user_id" id="edit_user_id">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Full Name *</label>
+          <input type="text" name="full_name" id="edit_full_name" class="form-input" required>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Email Address *</label>
+          <input type="email" name="email" id="edit_email" class="form-input" required>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Role *</label>
+            <select name="role" id="edit_role" class="form-input" required>
+              <option value="coach">Coach</option>
+              <option value="family">Family</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Phone</label>
+            <input type="tel" name="phone" id="edit_phone" class="form-input">
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">New Password</label>
+          <div class="relative">
+            <input type="password" name="password" class="form-input" placeholder="Leave blank to keep current">
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-navy/20">lock</span>
+          </div>
+          <p class="text-[10px] text-obsidian/40 ml-4 font-bold">Only enter if you wish to reset it.</p>
+        </div>
+
+        <div class="flex items-center gap-4 pt-4">
+          <button type="submit" class="btn-primary flex-1 justify-center">Save Changes</button>
+          <button type="button"
+            class="px-8 py-3 text-sm font-bold text-obsidian/40 hover:text-obsidian transition-colors"
+            data-modal-close="editUserModal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.edit-user-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const id = this.getAttribute('data-id');
+        const name = this.getAttribute('data-name');
+        const email = this.getAttribute('data-email');
+        const role = this.getAttribute('data-role');
+        const phone = this.getAttribute('data-phone');
+
+        const form = document.getElementById('editUserForm');
+        document.getElementById('edit_user_id').value = id;
+
+        document.getElementById('edit_full_name').value = name;
+        document.getElementById('edit_email').value = email;
+        document.getElementById('edit_role').value = role;
+        document.getElementById('edit_phone').value = (phone === 'None' || phone === '') ? '' : phone;
+
+        openModal('editUserModal');
+      });
+    });
+  });
+</script>
 {% endblock %}

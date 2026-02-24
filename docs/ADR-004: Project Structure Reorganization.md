@@ -3,6 +3,8 @@
 ## Status
 Accepted
 
+**Date**: 2026-02-22
+
 ## Context
 As the project grew, having all logic, templates, and static files in the root directory became difficult to maintain. We needed a clearer separation of concerns between backend logic and frontend assets to improve developer experience and prepare for potential scaling.
 

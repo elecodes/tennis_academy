@@ -3,6 +3,8 @@
 ## Status
 Accepted
 
+**Date**: 2026-02-22
+
 ## Context
 Refactoring and environment changes occasionally led to messaging failures that were difficult to diagnose due to lack of error handling and inconsistent environment variable loading. Specifically, coaches were unable to see group members or send messages if underlying SMTP configurations were not properly loaded.
 

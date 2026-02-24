@@ -185,6 +185,24 @@ class TimetableRepository:
         finally:
             conn.close()
 
+    def update_session(self, session_id, day, start, end, court):
+        """Update an existing session"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                UPDATE group_schedules
+                SET day_of_week = ?, start_time = ?, end_time = ?, court = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """,
+                (day, start, end, court, session_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+        finally:
+            conn.close()
+
     def delete_session(self, session_id):
         """Delete a session"""
         conn = sqlite3.connect(self.db_path)

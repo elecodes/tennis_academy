@@ -381,7 +381,7 @@ def admin_users():
         """
         SELECT u.*,
                (SELECT COUNT(*) FROM group_members WHERE family_id = u.id) as enrollments
-        FROM users u WHERE u.role != 'admin'
+        FROM users u
         ORDER BY u.created_at DESC
     """
     ).fetchall()
@@ -399,8 +399,8 @@ def admin_add_user():
     password = request.form.get("password", "")
 
     # Validation
-    if not email or not full_name or not password or role not in ["coach", "family"]:
-        flash("All fields are required and role must be coach or family.", "danger")
+    if not email or not full_name or not password or role not in ["admin", "coach", "family"]:
+        flash("All fields are required and role must be admin, coach or family.", "danger")
         return redirect(url_for("admin_users"))
 
     if len(password) < 6:
@@ -421,6 +421,56 @@ def admin_add_user():
         flash(f"User {full_name} added successfully!", "success")
     except sqlite3.IntegrityError:
         flash("Email already exists.", "danger")
+    return redirect(url_for("admin_users"))
+
+
+@app.route("/admin/users/edit", methods=["POST"])
+@admin_required
+def admin_edit_user():
+    user_id = request.form.get("user_id")
+    email = request.form.get("email", "").strip().lower()
+    full_name = request.form.get("full_name", "").strip()
+    role = request.form.get("role", "family")
+    phone = request.form.get("phone", "").strip()
+
+    if not all([user_id, email, full_name]) or role not in ["coach", "family"]:
+        flash("Email, name and valid role are required.", "danger")
+        return redirect(url_for("admin_users"))
+
+    conn = get_db()
+    try:
+        conn.execute(
+            """
+            UPDATE users
+            SET email = ?, full_name = ?, role = ?, phone = ?
+            WHERE id = ?
+        """,
+            (email, full_name, role, phone, user_id),
+        )
+        conn.commit()
+        flash(f"User {full_name} updated successfully!", "success")
+    except sqlite3.IntegrityError:
+        flash("Email already exists.", "danger")
+    finally:
+        conn.close()
+
+    return redirect(url_for("admin_users"))
+
+
+@app.route("/admin/users/delete/<int:user_id>", methods=["POST"])
+@admin_required
+def admin_delete_user(user_id):
+    if user_id == session.get("user_id"):
+        flash("You cannot delete your own administrative account.", "danger")
+        return redirect(url_for("admin_users"))
+
+    conn = get_db()
+    try:
+        conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        conn.commit()
+        flash("User deleted successfully!", "success")
+    except Exception as e:
+        flash(f"Error deleting user: {e}", "danger")
     finally:
         conn.close()
 
@@ -486,6 +536,60 @@ def admin_add_group():
     return redirect(url_for("admin_groups"))
 
 
+@app.route("/admin/groups/edit", methods=["POST"])
+@admin_required
+def admin_edit_group():
+    group_id = request.form.get("group_id")
+    name = request.form.get("name", "").strip()
+    schedule = request.form.get("schedule", "").strip()
+    coach_id = request.form.get("coach_id")
+    description = request.form.get("description", "").strip()
+
+    if not all([group_id, name, schedule]):
+        flash("Group name and schedule are required.", "danger")
+        return redirect(url_for("admin_groups"))
+
+    if coach_id and coach_id.strip() == "":
+        coach_id = None
+    else:
+        coach_id = int(coach_id) if coach_id else None
+
+    conn = get_db()
+    try:
+        conn.execute(
+            """
+            UPDATE groups
+            SET name = ?, schedule = ?, coach_id = ?, description = ?
+            WHERE id = ?
+        """,
+            (name, schedule, coach_id, description, group_id),
+        )
+        conn.commit()
+        flash(f'Group "{name}" updated successfully!', "success")
+    except sqlite3.IntegrityError:
+        flash("A group with this name already exists.", "danger")
+    finally:
+        conn.close()
+
+    return redirect(url_for("admin_groups"))
+
+
+@app.route("/admin/groups/delete/<int:group_id>", methods=["POST"])
+@admin_required
+def admin_delete_group(group_id):
+    conn = get_db()
+    try:
+        conn.execute("DELETE FROM groups WHERE id = ?", (group_id,))
+        conn.commit()
+        flash("Group deleted successfully!", "success")
+    except Exception as e:
+        flash(f"Error deleting group: {e}", "danger")
+    finally:
+        conn.close()
+
+    return redirect(url_for("admin_groups"))
+
+
 @app.route("/admin/enrollments")
 @admin_required
 def admin_enrollments():
@@ -539,6 +643,54 @@ def admin_add_enrollment():
         flash("This kid is already enrolled in this group.", "danger")
     except ValueError:
         flash("Invalid group or family selected.", "danger")
+    finally:
+        conn.close()
+
+    return redirect(url_for("admin_enrollments"))
+
+
+@app.route("/admin/enrollments/edit", methods=["POST"])
+@admin_required
+def admin_edit_enrollment():
+    enrollment_id = request.form.get("enrollment_id")
+    group_id = request.form.get("group_id")
+    family_id = request.form.get("family_id")
+    kid_name = request.form.get("kid_name", "").strip()
+
+    if not all([enrollment_id, group_id, family_id, kid_name]):
+        flash("All fields are required.", "danger")
+        return redirect(url_for("admin_enrollments"))
+
+    conn = get_db()
+    try:
+        conn.execute(
+            """
+            UPDATE group_members
+            SET group_id = ?, family_id = ?, kid_name = ?
+            WHERE id = ?
+        """,
+            (int(group_id), int(family_id), kid_name, enrollment_id),
+        )
+        conn.commit()
+        flash(f"Enrollment for {kid_name} updated successfully!", "success")
+    except sqlite3.IntegrityError:
+        flash("This kid is already enrolled in this group.", "danger")
+    finally:
+        conn.close()
+
+    return redirect(url_for("admin_enrollments"))
+
+
+@app.route("/admin/enrollments/delete/<int:enrollment_id>", methods=["POST"])
+@admin_required
+def admin_delete_enrollment(enrollment_id):
+    conn = get_db()
+    try:
+        conn.execute("DELETE FROM group_members WHERE id = ?", (enrollment_id,))
+        conn.commit()
+        flash("Enrollment removed successfully!", "success")
+    except Exception as e:
+        flash(f"Error removing enrollment: {e}", "danger")
     finally:
         conn.close()
 
@@ -681,6 +833,23 @@ def admin_test_email():
 
     if success:
         flash(f"Test email successfully sent to {test_recipient}!", "success")
+
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/admin/messages/delete/<int:message_id>", methods=["POST"])
+@admin_required
+def admin_delete_message(message_id):
+    conn = get_db()
+    try:
+        # recipients will be deleted automatically due to ON DELETE CASCADE
+        conn.execute("DELETE FROM messages WHERE id = ?", (message_id,))
+        conn.commit()
+        flash("Communication log entry deleted.", "success")
+    except Exception as e:
+        flash(f"Error deleting message: {e}", "danger")
+    finally:
+        conn.close()
 
     return redirect(url_for("dashboard"))
 
