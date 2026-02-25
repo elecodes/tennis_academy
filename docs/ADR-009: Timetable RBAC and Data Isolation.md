@@ -2,6 +2,7 @@
 
 ## Status
 Accepted
+Date: 2026-02-25
 
 ## Context
 While the platform had basic RBAC decorators (`@admin_required`, etc.), the data retrieval layer in `TimetableRepository` was returning full objects regardless of the requester's role. This led to potential data leakage, specifically:

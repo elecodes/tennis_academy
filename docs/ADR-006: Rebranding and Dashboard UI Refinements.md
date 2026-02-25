@@ -2,6 +2,7 @@
 
 ## Status
 Accepted
+Date: 2026-02-24
 
 ## Context
 The "SF TENNIS KIDS CLUB" (formerly referred to as an academy) required a more consistent and professional brand identity across all digital platforms. Additionally, user feedback indicated that the coach dashboard terminology was confusing and the dashboard header had persistence issues.

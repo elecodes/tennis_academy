@@ -2,6 +2,7 @@
 
 ## Status
 Accepted
+Date: 2026-02-25
 
 ## Context
 As the "SF TENNIS KIDS CLUB" platform grows, we need visibility into application errors and performance bottlenecks in both the Flask backend and the Vanilla JS frontend. Manual log checking is insufficient for proactive error resolution.

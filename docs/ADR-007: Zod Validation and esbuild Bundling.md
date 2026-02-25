@@ -2,6 +2,7 @@
 
 ## Status
 Accepted
+Date: 2026-02-25
 
 ## Context
 The project initially relied on simple `required` HTML attributes and basic server-side validation for form handling. As the complexity of forms grew (e.g., Manage Users, Groups, Enrollments), we needed a more robust, type-safe way to handle client-side validation without introducing a heavy frontend framework like React or Vue. We wanted to keep the "Vanilla JS" philosophy but improve developer experience and data integrity.
