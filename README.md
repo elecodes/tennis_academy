@@ -344,7 +344,7 @@ MIT License - Free to use and modify!
 ```
 
 **Last Updated**: 2026-02-25  
-**Version**: 1.5.0  
+**Version**: 1.6.0  
 **Status**: Production Ready ✅
 
 ---

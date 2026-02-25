@@ -20,8 +20,7 @@ def test_db_file():
     conn = sqlite3.connect(path)
     cursor = conn.cursor()
 
-    cursor.executescript(
-        """
+    cursor.executescript("""
         CREATE TABLE users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
@@ -65,8 +64,7 @@ def test_db_file():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
         );
-    """
-    )
+    """)
 
     # Insert users
     cursor.execute(
@@ -106,6 +104,10 @@ def test_db_file():
     )
     cursor.execute(
         "INSERT INTO group_members (group_id, family_id, kid_name) VALUES (1, 4, 'Juan')"
+    )
+    # Kid from family 5 also in group 1 to test internal visibility
+    cursor.execute(
+        "INSERT INTO group_members (group_id, family_id, kid_name) VALUES (1, 5, 'Ana')"
     )
     cursor.execute(
         "INSERT INTO group_members (group_id, family_id, kid_name) VALUES (2, 5, 'Ana')"
@@ -184,21 +186,16 @@ class TestCoachViewsTimetable:
         assert len(result["groups"]) == 1
         assert result["groups"][0]["name"] == "U-12 Beginner"
 
-    def test_coach_no_family_emails(self, test_db_file):
-        """COACH NO ve emails de familias (en este repo, coaches no ven email de coach, y no hay email de familia)"""
+    def test_coach_cannot_see_other_coaches_emails(self, test_db_file):
+        """COACH no debe ver emails de otros coaches (en este caso, ni el suyo propio en el listado de grupos)"""
         repo = TimetableRepository(test_db_file)
         monday = datetime(2026, 2, 16).date()
 
         result = repo.get_weekly_timetable("coach", 2, monday)
 
         for group in result["groups"]:
-            # En la implementación actual para coach, el email de coach se devuelve si es admin,
-            # pero aquí el repo _enrich_groups pone email in group['coach'] sin filtrar.
-            # Sin embargo, el test espera que NO esté.
-            # Revisando TimetableRepository._enrich_groups, siempre pone email.
-            # Así que el test anterior fallaba porque el repo SI lo ponía.
-            # Corregiré el repo después. Por ahora ajusto el test.
-            pass
+            # Solo Admin debe ver emails
+            assert group["coach"]["email"] is None
 
     def test_coach_sees_kid_names(self, test_db_file):
         """COACH ve nombres de niños"""
@@ -208,10 +205,12 @@ class TestCoachViewsTimetable:
         result = repo.get_weekly_timetable("coach", 2, monday)
 
         group = result["groups"][0]
-        assert len(group["kids"]) == 2
+        # Sofia, Juan, and now Ana (from a different family) are all in this group
+        assert len(group["kids"]) == 3
         kid_names = [k["name"] for k in group["kids"]]
         assert "Sofia" in kid_names
         assert "Juan" in kid_names
+        assert "Ana" in kid_names
 
 
 # ============ TESTS: FAMILY ============
@@ -219,6 +218,16 @@ class TestCoachViewsTimetable:
 
 class TestFamilyViewsTimetable:
     """FAMILY ve solo su grupo"""
+
+    def test_family_cannot_see_coach_emails(self, test_db_file):
+        """FAMILY no debe ver emails de coaches"""
+        repo = TimetableRepository(test_db_file)
+        monday = datetime(2026, 2, 16).date()
+
+        result = repo.get_weekly_timetable("family", 4, monday)
+
+        for group in result["groups"]:
+            assert group["coach"]["email"] is None
 
     def test_family_sees_only_their_group(self, test_db_file):
         """FAMILY ve solo su grupo"""
@@ -231,7 +240,7 @@ class TestFamilyViewsTimetable:
         assert result["groups"][0]["name"] == "U-12 Beginner"
 
     def test_family_sees_only_their_kids(self, test_db_file):
-        """FAMILY ve solo sus niños"""
+        """FAMILY ve solo sus niños, incluso si hay otros en el mismo grupo"""
         repo = TimetableRepository(test_db_file)
         monday = datetime(2026, 2, 16).date()
 
@@ -244,7 +253,7 @@ class TestFamilyViewsTimetable:
         assert "Juan" in kids_names
         assert len(group["kids"]) == 2
 
-        # Verificar que NO ve otros niños
+        # Verificar que NO ve a 'Ana', que está en el mismo grupo pero es de otra familia (id 5)
         assert "Ana" not in kids_names
 
     def test_family_cannot_see_other_families_groups(self, test_db_file):
@@ -317,3 +326,71 @@ class TestEdgeCases:
         assert "start_time" in schedule
         assert "end_time" in schedule
         assert "court" in schedule
+
+    def test_add_update_delete_session(self, test_db_file):
+        """Test CRUD para sesiones individuales"""
+        repo = TimetableRepository(test_db_file)
+
+        # Add
+        success = repo.add_session(1, 4, "15:00", "16:00", "Court 3")
+        assert success is True
+
+        # Verify added
+        monday = datetime(2026, 2, 16).date()
+        result = repo.get_weekly_timetable("admin", 1, monday)
+        group1 = next(g for g in result["groups"] if g["id"] == 1)
+        sessions = [s for s in group1["schedules"] if s["court"] == "Court 3"]
+        assert len(sessions) == 1
+        session_id = sessions[0]["id"]
+
+        # Update
+        update_success = repo.update_session(session_id, 4, "15:30", "16:30", "Court 4")
+        assert update_success is True
+
+        # Verify updated
+        result = repo.get_weekly_timetable("admin", 1, monday)
+        group1 = next(g for g in result["groups"] if g["id"] == 1)
+        sessions = [s for s in group1["schedules"] if s["court"] == "Court 4"]
+        assert len(sessions) == 1
+        assert sessions[0]["start_time"] == "15:30"
+
+        # Delete
+        delete_success = repo.delete_session(session_id)
+        assert delete_success is True
+
+        # Verify deleted
+        result = repo.get_weekly_timetable("admin", 1, monday)
+        group1 = next(g for g in result["groups"] if g["id"] == 1)
+        sessions = [s for s in group1["schedules"] if s["court"] == "Court 4"]
+        assert len(sessions) == 0
+
+    def test_get_all_groups(self, test_db_file):
+        """Test listado de todos los grupos"""
+        repo = TimetableRepository(test_db_file)
+        groups = repo.get_all_groups()
+        assert len(groups) == 2
+        names = [g["name"] for g in groups]
+        assert "U-12 Beginner" in names
+        assert "U-16 Intermediate" in names
+
+    def test_parse_schedule_logic(self, test_db_file):
+        """Test lógica interna de parseo de texto (aunque ya no se use en el flujo principal, está en el repo)"""
+        repo = TimetableRepository(test_db_file)
+
+        # Empty
+        assert repo._parse_schedule("") == []
+
+        # Simple
+        s = repo._parse_schedule("Monday 4:00-5:30 PM")
+        assert len(s) == 1
+        assert s[0]["day"] == 0
+        assert s[0]["start_time"] == "4:00"
+
+        # Multiple days with proper format for this simple parser
+        s = repo._parse_schedule("Monday & Wednesday & 4:00-5:30 PM")
+        assert len(s) == 2
+        assert s[0]["day"] == 0
+        assert s[1]["day"] == 2
+
+        # Edge cases for parser
+        assert repo._parse_schedule("No days here") == []

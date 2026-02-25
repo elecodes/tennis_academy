@@ -413,6 +413,17 @@ When working with AI agents, you can ask them to use specific skills:
 
 For more details, see **[AGENTS.md](AGENTS.md)**.
 
+## 🆘 Troubleshooting
+
+### ❌ ImportError: incompatible architecture (have 'arm64', need 'x86_64')
+**Symptoms**: Pre-commit hooks (e.g., `black`, `flake8`) fail with an architecture mismatch error when committing.
+**Cause**: Git is running in Intel mode (via Rosetta) while Python tools are native ARM64.
+**Fix**: Use the native Apple Git located at `/usr/bin/git`.
+- Permanently fix by updating your shell PATH to prioritize `/usr/bin` over `/usr/local/bin` (where Intel Git often resides).
+- Or alias git: `alias git='/usr/bin/git'` in your `.zshrc`.
+
+-----------------
+
 ## Contact & Support
 
 - **Issue with app**: Create issue on GitHub
@@ -422,5 +433,5 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-02-24
-**Version**: 1.4
+**Last Updated**: 2026-02-25
+**Version**: 1.6
