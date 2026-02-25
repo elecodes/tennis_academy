@@ -30,7 +30,11 @@ export SENDER_PASSWORD=your-app-password
 # 4. Run app
 python3 backend/app.py
 
-# 5. Visit setup page
+# 5. Build Frontend Validations
+npm install
+npm run build:js
+
+# 6. Visit setup page
 # http://localhost:5001/setup
 # Create admin account
 ```
@@ -64,6 +68,9 @@ curl http://localhost:5001/login  # Should return 200
 
 # 3. View logs (check for errors)
 # Look at terminal output for any errors
+
+# 4. (Optional) Rebuild validations if schemas changed
+npm run build:js
 ```
 
 ### Send Weekly Schedule Notification

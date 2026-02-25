@@ -106,7 +106,7 @@
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
-      <form method="POST" action="{{ url_for('admin_add_enrollment') }}" class="p-8 space-y-6">
+      <form id="addEnrollmentForm" method="POST" action="{{ url_for('admin_add_enrollment') }}" class="p-8 space-y-6">
         <div class="space-y-2">
           <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Training Group *</label>
           <select name="group_id" class="form-input" required>
@@ -191,8 +191,50 @@
   </div>
 </div>
 
+<script src="{{ url_for('static', filename='js/dist/validations.js') }}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    const validations = window.Validations;
+
+    function displayErrors(form, result) {
+      form.querySelectorAll('.error-msg').forEach(el => el.remove());
+      form.querySelectorAll('.form-input').forEach(el => el.classList.remove('border-clay'));
+
+      if (!result.success) {
+        result.error.issues.forEach(issue => {
+          const fieldName = issue.path[0];
+          const input = form.querySelector(`[name="${fieldName}"]`);
+          if (input) {
+            input.classList.add('border-clay');
+            const errorDiv = document.createElement('p');
+            errorDiv.className = 'error-msg text-[10px] text-clay font-bold ml-4 mt-1';
+            errorDiv.textContent = issue.message;
+            input.parentNode.appendChild(errorDiv);
+          }
+        });
+        return false;
+      }
+      return true;
+    }
+
+    function handleFormSubmit(formId) {
+      const form = document.getElementById(formId);
+      if (!form) return;
+
+      form.addEventListener('submit', function (e) {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        const result = validations.validateEnrollment(data);
+        if (!displayErrors(form, result)) {
+          e.preventDefault();
+        }
+      });
+    }
+
+    handleFormSubmit('addEnrollmentForm');
+    handleFormSubmit('editEnrollmentForm');
+
     document.querySelectorAll('.edit-enrollment-btn').forEach(btn => {
       btn.addEventListener('click', function () {
         const id = this.getAttribute('data-id');

@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "husky"
+    "prepare": "husky",
+    "build:js": "esbuild frontend/src/validations/index.ts --bundle --outfile=frontend/static/js/dist/validations.js --minify --sourcemap"
   },
   "lint-staged": {
     "*.py": [
@@ -29,7 +30,9 @@
   },
   "homepage": "https://github.com/elecodes/tennis_academy#readme",
   "devDependencies": {
+    "esbuild": "^0.27.3",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.7"
+    "lint-staged": "^16.2.7",
+    "zod": "^4.3.6"
   }
 }
