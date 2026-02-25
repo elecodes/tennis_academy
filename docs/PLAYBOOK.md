@@ -26,6 +26,7 @@ pip install -r backend/requirements.txt
 # 3. Set environment variables
 export SENDER_EMAIL=your-email@gmail.com
 export SENDER_PASSWORD=your-app-password
+export SENTRY_DSN=your-sentry-dsn
 
 # 4. Run app
 python3 backend/app.py

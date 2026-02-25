@@ -34,5 +34,8 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "zod": "^4.3.6"
+  },
+  "dependencies": {
+    "@sentry/browser": "^10.40.0"
   }
 }

@@ -40,6 +40,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 | Email | Python smtplib + Gmail | Free |
 | Frontend | HTML5 + CSS3 + Bootstrap 5 | Free |
 | Validation| **Zod** + esbuild | Free |
+| Monitoring | **Sentry** | Free tier |
 | Deployment | PythonAnywhere / Render / Railway | Free tier available |
 
 ## 📦 Installation
@@ -171,6 +172,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-002](docs/ADR-002:%20Vanilla%20JS%20Modal%20System.md)** - Architecture Decision: Custom Modal System
 - **[ADR-003](docs/ADR-003:%20Agentic%20Guardians%20and%20Testing%20Strategy.md)** - Architecture Decision: Agentic Guardians and Testing Strategy
 - **[ADR-007](docs/ADR-007:%20Zod%20Validation%20and%20esbuild%20Bundling.md)** - Architecture Decision: Zod Validation and esbuild Bundling
+- **[ADR-008](docs/ADR-008:%20Sentry%20Error%20Tracking%20Integration.md)** - Architecture Decision: Sentry Error Tracking Integration
 - **[PLAYBOOK](docs/PLAYBOOK.md)** - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
 - **[TESTING](TESTING.md)** - Detailed testing strategy and pytest conventions
