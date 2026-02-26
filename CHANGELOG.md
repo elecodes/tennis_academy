@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-02-26
+
+### Added
+- **Turso Cloud Migration**: Moved from local SQLite to Turso Cloud (libSQL) for better reliability and distributed access.
+- **Custom HTTP Connector**: Implemented a resilient HTTP-based connector for Turso to bypass SSL and WebSocket handshake issues on macOS.
+- **Google Spreadsheet Sync**: Added automated synchronization of groups and schedules from Google Sheets via Google Apps Script.
+- **Aggregated Schedules**: Group schedules are now aggregated and displayed as combined strings (e.g., "Mon 4:00 PM, Wed 3:30 PM").
+- **Real Coach Accounts**: Provisioned official accounts for Coach Vlad, Michael, and RC.
+
+### Fixed
+- **Template Compatibility**: Resolved `KeyError: slice` errors in Jinja2 templates by implementing a custom `TursoRow` class.
+- **SSL Certificate Verification**: Fixed connectivity issues with Turso by patching SSL context and managing CA bundles.
+- **Sync Reliability**: Improved Google Apps Script to handle multi-sheet workbooks and precise day-of-week formatting.
+
 ## [1.6.0] - 2026-02-25
 
 ### Added

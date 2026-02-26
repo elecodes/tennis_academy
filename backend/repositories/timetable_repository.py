@@ -1,5 +1,12 @@
+import os
+import sys
 import sqlite3
 from datetime import timedelta
+
+# Ensure backend submodules can be found
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from database import get_db
 
 
 class TimetableRepository:
@@ -8,8 +15,16 @@ class TimetableRepository:
     Works with group_members table (not group_schedules).
     """
 
-    def __init__(self, db_path):
+    def __init__(self, db_path=None):
         self.db_path = db_path
+
+    def _get_conn(self):
+        """Helper to get database connection, honoring db_path if set."""
+        if self.db_path:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            return conn
+        return get_db()
 
     def get_weekly_timetable(self, role, user_id, week_start_date):
         """
@@ -29,7 +44,7 @@ class TimetableRepository:
 
         week_end = week_start_date + timedelta(days=6)
 
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_conn()
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
@@ -180,7 +195,7 @@ class TimetableRepository:
 
     def add_session(self, group_id, day, start, end, court="Court 1"):
         """Add a new session to a group"""
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_conn()
         cursor = conn.cursor()
         try:
             cursor.execute(
@@ -197,7 +212,7 @@ class TimetableRepository:
 
     def update_session(self, session_id, day, start, end, court):
         """Update an existing session"""
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_conn()
         cursor = conn.cursor()
         try:
             cursor.execute(
@@ -215,7 +230,7 @@ class TimetableRepository:
 
     def delete_session(self, session_id):
         """Delete a session"""
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_conn()
         cursor = conn.cursor()
         try:
             cursor.execute("DELETE FROM group_schedules WHERE id = ?", (session_id,))
@@ -226,7 +241,7 @@ class TimetableRepository:
 
     def get_all_groups(self):
         """Get list of all groups (for Admin dropdowns)"""
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_conn()
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         try:

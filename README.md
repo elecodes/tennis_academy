@@ -27,7 +27,8 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - ✅ Group-based messaging (coaches message only their groups)
 - ✅ General announcements (admin can message all families)
 - ✅ Weekly timetable view with RBAC
-- ✅ SQLite database (no external DB needed)
+- ✅ **Turso Cloud Database** (Edge SQLite for real-time sync)
+- ✅ **Google Spreadsheet Integration** (Sync schedules automatically)
 - ✅ Simple web interface for all roles
 - ✅ 100% free (Python, Flask, Gmail SMTP)
 
@@ -36,7 +37,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 | Component | Technology | Cost |
 |-----------|------------|------|
 | Backend | Python 3.8+ + Flask | Free |
-| Database | SQLite | Free |
+| Database | Turso Cloud (libSQL) | Free |
 | Email | Python smtplib + Gmail | Free |
 | Frontend | HTML5 + CSS3 + Bootstrap 5 | Free |
 | Validation| **Zod** + esbuild | Free |
@@ -91,12 +92,16 @@ On Mac/Linux:
 ```bash
 export SENDER_EMAIL=your-email@gmail.com
 export SENDER_PASSWORD=xxxx-xxxx-xxxx-xxxx
+export TURSO_URL=libsql://your-db.turso.io
+export TURSO_TOKEN=your-token
 ```
 
 On Windows:
 ```cmd
 set SENDER_EMAIL=your-email@gmail.com
 set SENDER_PASSWORD=xxxx-xxxx-xxxx-xxxx
+set TURSO_URL=libsql://your-db.turso.io
+set TURSO_TOKEN=your-token
 ```
 
 ### 6. Run the Application
@@ -168,11 +173,13 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 
 ## 📚 Documentation
 
-- **[ADR-001](docs/ADR-001:%20Weekly%20Timetable%20Repository%20Pattern)** - Architecture Decision: Timetable Repository Pattern
-- **[ADR-002](docs/ADR-002:%20Vanilla%20JS%20Modal%20System.md)** - Architecture Decision: Custom Modal System
-- **[ADR-003](docs/ADR-003:%20Agentic%20Guardians%20and%20Testing%20Strategy.md)** - Architecture Decision: Agentic Guardians and Testing Strategy
-- **[ADR-007](docs/ADR-007:%20Zod%20Validation%20and%20esbuild%20Bundling.md)** - Architecture Decision: Zod Validation and esbuild Bundling
-- **[ADR-008](docs/ADR-008:%20Sentry%20Error%20Tracking%20Integration.md)** - Architecture Decision: Sentry Error Tracking Integration
+- **[ADR-001](docs/ADR-001:%20Weekly%20Timetable%20Repository%20Pattern.md)** - Timetable Repository Pattern
+- **[ADR-002](docs/ADR-002:%20Vanilla%20JS%20Modal%20System.md)** - Custom Modal System
+- **[ADR-003](docs/ADR-003:%20Agentic%20Guardians%20and%20Testing%20Strategy.md)** - Agentic Guardians
+- **[ADR-007](docs/ADR-007:%20Zod%20Validation%20and%20esbuild%20Bundling.md)** - Zod Validation
+- **[ADR-008](docs/ADR-008:%20Sentry%20Error%20Tracking%20Integration.md)** - Sentry Integration
+- **[ADR-009](docs/ADR-009:%20Timetable%20RBAC%20and%20Data%20Isolation.md)** - Timetable RBAC
+- **[ADR-010](docs/ADR-010:%20Migrating%20to%20Turso%20Cloud%20and%20Custom%20HTTP%20Connector.md)** - Turso Cloud Migration
 - **[PLAYBOOK](docs/PLAYBOOK.md)** - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
 - **[TESTING](TESTING.md)** - Detailed testing strategy and pytest conventions
@@ -333,18 +340,20 @@ MIT License - Free to use and modify!
 ✅ Core Features:  Complete
 ✅ RBAC:           Complete
 ✅ Email:          Complete
-✅ Timetables:     Complete (with RBAC)
+✅ Timetable Sync:   Complete (Google Sheets)
+✅ Cloud Migration:  Complete (Turso Cloud)
 ✅ Premium UI:     Complete (centered layout)
 ✅ Modal System:   Complete (vanilla JS)
 ✅ Validation:     Complete (Zod + esbuild)
+✅ Monitoring:     Complete (Sentry)
 ✅ Tests:          Unit tests passing (13/13)
 🔜 Integration Tests: Coming soon
 🔜 PDF Export:      Coming soon
 🔜 Calendar View:   Coming soon
 ```
 
-**Last Updated**: 2026-02-25  
-**Version**: 1.6.0  
+**Last Updated**: 2026-02-26  
+**Version**: 1.7.0  
 **Status**: Production Ready ✅
 
 ---

@@ -5,8 +5,9 @@
 2. [Daily Operations](#daily-operations)
 3. [Design System](#design-system)
 4. [Troubleshooting](#troubleshooting)
-5. [Backup & Recovery](#backup--recovery)
-6. [Common Tasks](#common-tasks)
+5. [Cloud Migration & Sync](#cloud-migration--sync)
+6. [Backup & Recovery](#backup--recovery)
+7. [Common Tasks](#common-tasks)
 
 ---
 
@@ -218,9 +219,55 @@ netstat -ano | findstr :5001   # Windows
 # app.run(debug=True, host='0.0.0.0', port=5002)
 ```
 
+### Issue: Turso SSL Certificate Error
+**Symptoms**: `[SSL: CERTIFICATE_VERIFY_FAILED]` when connecting to Turso.
+**Solution**:
+1. Ensure `certifi` is installed: `pip install certifi`.
+2. The application automatically patches SSL context in `backend/database.py`.
+3. If still failing, manually set:
+   ```bash
+   export SSL_CERT_FILE=$(python3 -m certifi)
+   export REQUESTS_CA_BUNDLE=$(python3 -m certifi)
+   ```
+
+### Issue: Turso 505 / Handshake Error
+**Symptoms**: `WSServerHandshakeError: 505` or `invalid response status`.
+**Solution**:
+1. This usually indicates an issue with the `libsql-client` WebSocket protocol.
+2. The application uses a **Custom HTTP Connector** in `backend/database.py` to bypass this.
+3. Ensure `TURSO_URL` starts with `https://` (or the connector will convert it).
+
 ---
 
-## Backup & Recovery
+## Cloud Migration & Sync
+
+### Migrating Local Data to Turso
+If you have data in `academy.db` and want to move it to the cloud:
+1. Set `TURSO_URL` and `TURSO_TOKEN`.
+2. Run the migration script:
+   ```bash
+   python3 scripts/migrate_to_cloud.py
+   ```
+
+### Google Spreadsheet Synchronization
+The application can sync groups and schedules directly from a Google Sheet.
+
+#### 1. Setup Google Apps Script
+1. Open your Google Sheet.
+2. Go to **Extensions** → **Apps Script**.
+3. Copy the content of `google_apps_script.js` from the repository into the editor.
+4. Update the `CONFIG` object at the top with your `TURSO_URL` and `TURSO_TOKEN`.
+
+#### 2. Spreadsheet Format
+- Each sheet name should be a day (e.g., "Monday", "Tue", "Wednesday").
+- Columns should include: `Time`, `Coach`, `Group`, `Tennis Kid Name`.
+- The script aggregates multiple kids into groups and multiple sessions into a combined schedule string.
+
+#### 3. Running Sync
+- Manually run the `syncDataToTurso` function in the Apps Script editor.
+- Or set up a **Trigger** (clock icon) to run every hour.
+
+---
 
 ### Daily Backup Script
 
