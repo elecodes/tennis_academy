@@ -3,6 +3,8 @@
 ## Status
 Accepted
 
+**Date: 2026-02-26**
+
 ## Context
 The application originally used a local SQLite database (`academy.db`). To enable real-time synchronization from external sources like Google Spreadsheets and to support distributed access, a cloud-hosted database was required. Turso Cloud (libSQL) was selected for its SQLite compatibility and performance.
 
