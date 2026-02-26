@@ -1,6 +1,6 @@
 """
-Tennis Kids Academy - Communication System
-A simple, free-tier communication platform for tennis academies.
+SF TENNIS KIDS Club - Communication System
+A simple, free-tier communication platform for tennis clubs.
 """
 
 import os
@@ -12,7 +12,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from functools import wraps
 from datetime import datetime
+from database import get_db
 import sqlite3
+
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -24,6 +26,19 @@ load_dotenv()
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 from routes.timetables import timetables_bp
 import secrets
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+
+sentry_sdk.init(
+    dsn=os.environ.get("SENTRY_DSN"),
+    integrations=[FlaskIntegration()],
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to capture 100%
+    # of transactions for profiling.
+    profiles_sample_rate=1.0,
+)
 
 app = Flask(
     __name__,
@@ -51,13 +66,12 @@ REDIRECT_EMAILS_TO = REDIRECT_TARGET if TEST_MODE else None
 
 
 def init_db():
-    """Initialize the database with tables."""
-    conn = sqlite3.connect(DB_PATH)
+    """Initialize the database with tables (Local or Cloud)."""
+    conn = get_db()
     cursor = conn.cursor()
 
     # Users table
-    cursor.execute(
-        """
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
@@ -68,12 +82,10 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             is_active INTEGER DEFAULT 1
         )
-    """
-    )
+    """)
 
     # Groups table (tennis groups like "Beginners Mon/Wed", "Advanced Tue/Thu")
-    cursor.execute(
-        """
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS groups (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
@@ -83,12 +95,10 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (coach_id) REFERENCES users (id) ON DELETE SET NULL
         )
-    """
-    )
+    """)
 
     # Group memberships (families enrolled in groups)
-    cursor.execute(
-        """
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS group_members (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             group_id INTEGER NOT NULL,
@@ -99,12 +109,10 @@ def init_db():
             FOREIGN KEY (family_id) REFERENCES users (id) ON DELETE CASCADE,
             UNIQUE(group_id, family_id, kid_name)
         )
-    """
-    )
+    """)
 
     # Messages table
-    cursor.execute(
-        """
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             sender_id INTEGER NOT NULL,
@@ -121,12 +129,10 @@ def init_db():
             FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
             FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE SET NULL
         )
-    """
-    )
+    """)
 
     # Message recipients (tracking who received what)
-    cursor.execute(
-        """
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS message_recipients (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             message_id INTEGER NOT NULL,
@@ -136,12 +142,10 @@ def init_db():
             FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
-    """
-    )
+    """)
 
     # Group schedules table
-    cursor.execute(
-        """
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS group_schedules (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             group_id INTEGER NOT NULL,
@@ -153,18 +157,10 @@ def init_db():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
         )
-    """
-    )
+    """)
 
     conn.commit()
     conn.close()
-
-
-def get_db():
-    """Get database connection."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
 
 
 def send_email(to_email, subject, body):
@@ -280,21 +276,19 @@ def dashboard():
         # Admin sees everything
         stats = {
             "total_users": conn.execute(
-                'SELECT COUNT(*) FROM users WHERE role != "admin"'
+                "SELECT COUNT(*) FROM users WHERE role != 'admin'"
             ).fetchone()[0],
             "total_groups": conn.execute("SELECT COUNT(*) FROM groups").fetchone()[0],
             "total_messages": conn.execute("SELECT COUNT(*) FROM messages").fetchone()[
                 0
             ],
-            "recent_messages": conn.execute(
-                """
+            "recent_messages": conn.execute("""
                 SELECT m.*, u.full_name as sender_name, g.name as group_name
                 FROM messages m
                 JOIN users u ON m.sender_id = u.id
                 LEFT JOIN groups g ON m.group_id = g.id
                 ORDER BY m.sent_at DESC LIMIT 5
-            """
-            ).fetchall(),
+            """).fetchall(),
         }
         template = "admin_dashboard.html"
 
@@ -377,14 +371,12 @@ def dashboard():
 @admin_required
 def admin_users():
     conn = get_db()
-    users = conn.execute(
-        """
+    users = conn.execute("""
         SELECT u.*,
                (SELECT COUNT(*) FROM group_members WHERE family_id = u.id) as enrollments
-        FROM users u WHERE u.role != 'admin'
+        FROM users u
         ORDER BY u.created_at DESC
-    """
-    ).fetchall()
+    """).fetchall()
     conn.close()
     return render_template("admin/users.html", users=users)
 
@@ -399,8 +391,15 @@ def admin_add_user():
     password = request.form.get("password", "")
 
     # Validation
-    if not email or not full_name or not password or role not in ["coach", "family"]:
-        flash("All fields are required and role must be coach or family.", "danger")
+    if (
+        not email
+        or not full_name
+        or not password
+        or role not in ["admin", "coach", "family"]
+    ):
+        flash(
+            "All fields are required and role must be admin, coach or family.", "danger"
+        )
         return redirect(url_for("admin_users"))
 
     if len(password) < 6:
@@ -421,6 +420,56 @@ def admin_add_user():
         flash(f"User {full_name} added successfully!", "success")
     except sqlite3.IntegrityError:
         flash("Email already exists.", "danger")
+    return redirect(url_for("admin_users"))
+
+
+@app.route("/admin/users/edit", methods=["POST"])
+@admin_required
+def admin_edit_user():
+    user_id = request.form.get("user_id")
+    email = request.form.get("email", "").strip().lower()
+    full_name = request.form.get("full_name", "").strip()
+    role = request.form.get("role", "family")
+    phone = request.form.get("phone", "").strip()
+
+    if not all([user_id, email, full_name]) or role not in ["coach", "family"]:
+        flash("Email, name and valid role are required.", "danger")
+        return redirect(url_for("admin_users"))
+
+    conn = get_db()
+    try:
+        conn.execute(
+            """
+            UPDATE users
+            SET email = ?, full_name = ?, role = ?, phone = ?
+            WHERE id = ?
+        """,
+            (email, full_name, role, phone, user_id),
+        )
+        conn.commit()
+        flash(f"User {full_name} updated successfully!", "success")
+    except sqlite3.IntegrityError:
+        flash("Email already exists.", "danger")
+    finally:
+        conn.close()
+
+    return redirect(url_for("admin_users"))
+
+
+@app.route("/admin/users/delete/<int:user_id>", methods=["POST"])
+@admin_required
+def admin_delete_user(user_id):
+    if user_id == session.get("user_id"):
+        flash("You cannot delete your own administrative account.", "danger")
+        return redirect(url_for("admin_users"))
+
+    conn = get_db()
+    try:
+        conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        conn.commit()
+        flash("User deleted successfully!", "success")
+    except Exception as e:
+        flash(f"Error deleting user: {e}", "danger")
     finally:
         conn.close()
 
@@ -431,17 +480,26 @@ def admin_add_user():
 @admin_required
 def admin_groups():
     conn = get_db()
-    groups = conn.execute(
-        """
-        SELECT g.*, u.full_name as coach_name,
+    groups = conn.execute("""
+        SELECT g.id, g.name, g.coach_id, g.description, g.created_at,
+               COALESCE(
+                   (SELECT GROUP_CONCAT(
+                       CASE day_of_week
+                           WHEN 0 THEN 'Mon' WHEN 1 THEN 'Tue' WHEN 2 THEN 'Wed'
+                           WHEN 3 THEN 'Thu' WHEN 4 THEN 'Fri' WHEN 5 THEN 'Sat' WHEN 6 THEN 'Sun'
+                       END || ' ' || start_time,
+                       ', '
+                   ) FROM group_schedules WHERE group_id = g.id),
+                   g.schedule
+               ) as schedule,
+               u.full_name as coach_name,
                COUNT(DISTINCT gm.family_id) as member_count
         FROM groups g
         LEFT JOIN users u ON g.coach_id = u.id
         LEFT JOIN group_members gm ON g.id = gm.group_id
         GROUP BY g.id
         ORDER BY g.created_at DESC
-    """
-    ).fetchall()
+    """).fetchall()
     coaches = conn.execute(
         "SELECT id, full_name FROM users WHERE role = 'coach' ORDER BY full_name"
     ).fetchall()
@@ -486,19 +544,71 @@ def admin_add_group():
     return redirect(url_for("admin_groups"))
 
 
+@app.route("/admin/groups/edit", methods=["POST"])
+@admin_required
+def admin_edit_group():
+    group_id = request.form.get("group_id")
+    name = request.form.get("name", "").strip()
+    schedule = request.form.get("schedule", "").strip()
+    coach_id = request.form.get("coach_id")
+    description = request.form.get("description", "").strip()
+
+    if not all([group_id, name, schedule]):
+        flash("Group name and schedule are required.", "danger")
+        return redirect(url_for("admin_groups"))
+
+    if coach_id and coach_id.strip() == "":
+        coach_id = None
+    else:
+        coach_id = int(coach_id) if coach_id else None
+
+    conn = get_db()
+    try:
+        conn.execute(
+            """
+            UPDATE groups
+            SET name = ?, schedule = ?, coach_id = ?, description = ?
+            WHERE id = ?
+        """,
+            (name, schedule, coach_id, description, group_id),
+        )
+        conn.commit()
+        flash(f'Group "{name}" updated successfully!', "success")
+    except sqlite3.IntegrityError:
+        flash("A group with this name already exists.", "danger")
+    finally:
+        conn.close()
+
+    return redirect(url_for("admin_groups"))
+
+
+@app.route("/admin/groups/delete/<int:group_id>", methods=["POST"])
+@admin_required
+def admin_delete_group(group_id):
+    conn = get_db()
+    try:
+        conn.execute("DELETE FROM groups WHERE id = ?", (group_id,))
+        conn.commit()
+        flash("Group deleted successfully!", "success")
+    except Exception as e:
+        flash(f"Error deleting group: {e}", "danger")
+    finally:
+        conn.close()
+
+    return redirect(url_for("admin_groups"))
+
+
 @app.route("/admin/enrollments")
 @admin_required
 def admin_enrollments():
     conn = get_db()
-    enrollments = conn.execute(
-        """
+    enrollments = conn.execute("""
         SELECT gm.*, g.name as group_name, u.full_name as family_name, u.email
         FROM group_members gm
         JOIN groups g ON gm.group_id = g.id
         JOIN users u ON gm.family_id = u.id
         ORDER BY g.name, u.full_name
-    """
-    ).fetchall()
+    """).fetchall()
     groups = conn.execute("SELECT id, name FROM groups ORDER BY name").fetchall()
     families = conn.execute(
         "SELECT id, full_name, email FROM users WHERE role = 'family' ORDER BY full_name"
@@ -539,6 +649,54 @@ def admin_add_enrollment():
         flash("This kid is already enrolled in this group.", "danger")
     except ValueError:
         flash("Invalid group or family selected.", "danger")
+    finally:
+        conn.close()
+
+    return redirect(url_for("admin_enrollments"))
+
+
+@app.route("/admin/enrollments/edit", methods=["POST"])
+@admin_required
+def admin_edit_enrollment():
+    enrollment_id = request.form.get("enrollment_id")
+    group_id = request.form.get("group_id")
+    family_id = request.form.get("family_id")
+    kid_name = request.form.get("kid_name", "").strip()
+
+    if not all([enrollment_id, group_id, family_id, kid_name]):
+        flash("All fields are required.", "danger")
+        return redirect(url_for("admin_enrollments"))
+
+    conn = get_db()
+    try:
+        conn.execute(
+            """
+            UPDATE group_members
+            SET group_id = ?, family_id = ?, kid_name = ?
+            WHERE id = ?
+        """,
+            (int(group_id), int(family_id), kid_name, enrollment_id),
+        )
+        conn.commit()
+        flash(f"Enrollment for {kid_name} updated successfully!", "success")
+    except sqlite3.IntegrityError:
+        flash("This kid is already enrolled in this group.", "danger")
+    finally:
+        conn.close()
+
+    return redirect(url_for("admin_enrollments"))
+
+
+@app.route("/admin/enrollments/delete/<int:enrollment_id>", methods=["POST"])
+@admin_required
+def admin_delete_enrollment(enrollment_id):
+    conn = get_db()
+    try:
+        conn.execute("DELETE FROM group_members WHERE id = ?", (enrollment_id,))
+        conn.commit()
+        flash("Enrollment removed successfully!", "success")
+    except Exception as e:
+        flash(f"Error removing enrollment: {e}", "danger")
     finally:
         conn.close()
 
@@ -601,7 +759,7 @@ def admin_send_message():
 
             # Send emails and track
             email_body = f"""
-Tennis Academy Notification
+SF TENNIS KIDS Club Notification
 
 Type: {message_type.replace('_', ' ').title()}
 Subject: {subject}
@@ -609,13 +767,13 @@ Subject: {subject}
 {content}
 
 ---
-This message was sent from the Tennis Academy Communication System.
+This message was sent from the SF TENNIS KIDS Club Communication System.
             """
 
             sent_count = 0
             for recipient in recipients:
                 if send_email(
-                    recipient["email"], f"[Tennis Academy] {subject}", email_body
+                    recipient["email"], f"[SF TENNIS KIDS Club] {subject}", email_body
                 ):
                     conn.execute(
                         """
@@ -658,7 +816,7 @@ def admin_test_email():
         flash("Please provide a test email address.", "warning")
         return redirect(url_for("dashboard"))
 
-    subject = "Tennis Academy - Test Connection"
+    subject = "SF TENNIS KIDS Club - Test Connection"
     body = f"This is a test email sent at {datetime.now()} to verify your SMTP settings are working correctly."
 
     success = False
@@ -681,6 +839,23 @@ def admin_test_email():
 
     if success:
         flash(f"Test email successfully sent to {test_recipient}!", "success")
+
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/admin/messages/delete/<int:message_id>", methods=["POST"])
+@admin_required
+def admin_delete_message(message_id):
+    conn = get_db()
+    try:
+        # recipients will be deleted automatically due to ON DELETE CASCADE
+        conn.execute("DELETE FROM messages WHERE id = ?", (message_id,))
+        conn.commit()
+        flash("Communication log entry deleted.", "success")
+    except Exception as e:
+        flash(f"Error deleting message: {e}", "danger")
+    finally:
+        conn.close()
 
     return redirect(url_for("dashboard"))
 
@@ -742,7 +917,7 @@ def coach_send_message():
 
             # Send emails
             email_body = f"""
-Tennis Academy Notification - From Coach {session['full_name']}
+SF TENNIS KIDS Club Notification - From Coach {session['full_name']}
 
 Type: {message_type.replace('_', ' ').title()}
 Group: {group['name']}
@@ -751,13 +926,13 @@ Subject: {subject}
 {content}
 
 ---
-This message was sent from the Tennis Academy Communication System.
+This message was sent from the SF TENNIS KIDS Club Communication System.
             """
 
             sent_count = 0
             for recipient in recipients:
                 if send_email(
-                    recipient["email"], f"[Tennis Academy] {subject}", email_body
+                    recipient["email"], f"[SF TENNIS KIDS Club] {subject}", email_body
                 ):
                     conn.execute(
                         """

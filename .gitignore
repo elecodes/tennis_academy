@@ -4,3 +4,4 @@ academy.db
 server_test.log
 test_credentials.md
 .env
+node_modules/

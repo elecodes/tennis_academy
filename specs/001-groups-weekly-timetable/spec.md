@@ -208,7 +208,7 @@ updated_at (TIMESTAMP)
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  🎾 Tennis Academy - Weekly Schedules            │
+│  🎾 SF TENNIS KIDS Club - Weekly Schedules            │
 ├─────────────────────────────────────────────────┤
 │                                                   │
 │  [← Week]  MON 16 - SUN 22 FEB  [Week →]        │

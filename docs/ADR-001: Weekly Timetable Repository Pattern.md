@@ -6,7 +6,7 @@
 **Date**: 2026-02-19
 
 ## Context
-The Tennis Academy needed a way to display weekly schedules for different user roles (admin, coach, family) with proper data isolation. Initially, schedules were unstructured text stored in the `groups.schedule` field, which made it impossible to build a clean grid view or perform CRUD operations on individual sessions.
+The SF TENNIS KIDS Club needed a way to display weekly schedules for different user roles (admin, coach, family) with proper data isolation. Initially, schedules were unstructured text stored in the `groups.schedule` field, which made it impossible to build a clean grid view or perform CRUD operations on individual sessions.
 
 ## Decision
 Implement a **Repository Pattern** with role-based filtering to:
@@ -37,7 +37,7 @@ Response (JSON or HTML)
 # Can see ALL groups
 SELECT * FROM groups
 
-# Can see ALL kids in ANY group (no privacy within academy for admin)
+# Can see ALL kids in ANY group (no privacy within the club for admin)
 SELECT * FROM group_members
 
 # Can see ALL schedules

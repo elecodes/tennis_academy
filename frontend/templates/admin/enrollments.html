@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Manage Enrollments - Tennis Academy{% endblock %}
+{% block title %}Manage Enrollments - SF TENNIS KIDS Club{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-10 pb-24">
@@ -29,8 +29,7 @@
             <th class="px-8 py-5">Student</th>
             <th class="px-8 py-5">Family</th>
             <th class="px-8 py-5">Group</th>
-            <th class="px-8 py-5">Communication</th>
-            <th class="px-8 py-5">Date</th>
+            <th class="px-8 py-5 text-right">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-navy/5">
@@ -47,7 +46,10 @@
               </div>
             </td>
             <td class="px-8 py-6">
-              <span class="text-sm font-semibold text-obsidian/70">{{ enrollment.family_name }}</span>
+              <div class="flex flex-col">
+                <span class="text-sm font-semibold text-obsidian/70">{{ enrollment.family_name }}</span>
+                <span class="text-xs text-accent underline decoration-accent/20">{{ enrollment.email }}</span>
+              </div>
             </td>
             <td class="px-8 py-6">
               <span
@@ -55,17 +57,30 @@
                 {{ enrollment.group_name }}
               </span>
             </td>
-            <td class="px-8 py-6 text-sm">
-              <code class="text-accent underline decoration-accent/20">{{ enrollment.email }}</code>
-            </td>
             <td class="px-8 py-6 text-right">
-              <span class="text-sm font-bold text-navy/40">{{ enrollment.enrolled_at[:10] }}</span>
+              <div class="flex items-center justify-end gap-2">
+                <button
+                  class="w-8 h-8 rounded-lg bg-navy/5 text-navy hover:bg-navy hover:text-white transition-all flex items-center justify-center edit-enrollment-btn"
+                  data-id="{{ enrollment.id }}" data-group-id="{{ enrollment.group_id }}"
+                  data-user-id="{{ enrollment.user_id }}" data-kid-name="{{ enrollment.kid_name }}"
+                  title="Edit Enrollment">
+                  <span class="material-symbols-outlined text-base">edit</span>
+                </button>
+                <form method="POST" action="{{ url_for('admin_delete_enrollment', enrollment_id=enrollment.id) }}"
+                  class="inline">
+                  <button type="submit"
+                    class="w-8 h-8 rounded-lg bg-clay/5 text-clay hover:bg-clay hover:text-white transition-all flex items-center justify-center"
+                    title="Delete Enrollment">
+                    <span class="material-symbols-outlined text-base">delete</span>
+                  </button>
+                </form>
+              </div>
             </td>
           </tr>
           {% endfor %}
           {% else %}
           <tr>
-            <td colspan="5" class="px-8 py-20 text-center">
+            <td colspan="4" class="px-8 py-20 text-center">
               <div class="flex flex-col items-center gap-4 opacity-20">
                 <span class="material-symbols-outlined text-6xl">person_remove</span>
                 <p class="font-black uppercase tracking-[0.3em] text-xs">No students enrolled</p>
@@ -91,7 +106,7 @@
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
-      <form method="POST" action="{{ url_for('admin_add_enrollment') }}" class="p-8 space-y-6">
+      <form id="addEnrollmentForm" method="POST" action="{{ url_for('admin_add_enrollment') }}" class="p-8 space-y-6">
         <div class="space-y-2">
           <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Training Group *</label>
           <select name="group_id" class="form-input" required>
@@ -127,4 +142,116 @@
     </div>
   </div>
 </div>
+
+<!-- Edit Enrollment Modal -->
+<div class="modal-backdrop" id="editEnrollmentModal">
+  <div class="modal-dialog max-w-xl w-full">
+    <div class="modal-content !rounded-[2.5rem] !border-none shadow-2xl overflow-hidden">
+      <div class="bg-navy p-8 text-white relative">
+        <h5 class="text-2xl font-black font-serif">Edit Enrollment</h5>
+        <p class="text-white/60 text-sm">Update student or group assignment.</p>
+        <button type="button" class="absolute top-8 right-8 text-white/40 hover:text-white transition-colors"
+          data-modal-close="editEnrollmentModal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="editEnrollmentForm" method="POST" action="{{ url_for('admin_edit_enrollment') }}" class="p-8 space-y-6">
+        <input type="hidden" name="enrollment_id" id="edit_enrollment_id">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Training Group *</label>
+          <select name="group_id" id="edit_enrollment_group_id" class="form-input" required>
+            {% for group in groups %}
+            <option value="{{ group.id }}">{{ group.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Family Record *</label>
+          <select name="family_id" id="edit_enrollment_family_id" class="form-input" required>
+            {% for family in families %}
+            <option value="{{ family.id }}">{{ family.full_name }} ({{ family.email }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Student Name *</label>
+          <input type="text" name="kid_name" id="edit_enrollment_kid_name" class="form-input" required>
+        </div>
+
+        <div class="flex items-center gap-4 pt-4">
+          <button type="submit" class="btn-primary flex-1 justify-center">Save Changes</button>
+          <button type="button"
+            class="px-8 py-3 text-sm font-bold text-obsidian/40 hover:text-obsidian transition-colors"
+            data-modal-close="editEnrollmentModal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/dist/validations.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const validations = window.Validations;
+
+    function displayErrors(form, result) {
+      form.querySelectorAll('.error-msg').forEach(el => el.remove());
+      form.querySelectorAll('.form-input').forEach(el => el.classList.remove('border-clay'));
+
+      if (!result.success) {
+        result.error.issues.forEach(issue => {
+          const fieldName = issue.path[0];
+          const input = form.querySelector(`[name="${fieldName}"]`);
+          if (input) {
+            input.classList.add('border-clay');
+            const errorDiv = document.createElement('p');
+            errorDiv.className = 'error-msg text-[10px] text-clay font-bold ml-4 mt-1';
+            errorDiv.textContent = issue.message;
+            input.parentNode.appendChild(errorDiv);
+          }
+        });
+        return false;
+      }
+      return true;
+    }
+
+    function handleFormSubmit(formId) {
+      const form = document.getElementById(formId);
+      if (!form) return;
+
+      form.addEventListener('submit', function (e) {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        const result = validations.validateEnrollment(data);
+        if (!displayErrors(form, result)) {
+          e.preventDefault();
+        }
+      });
+    }
+
+    handleFormSubmit('addEnrollmentForm');
+    handleFormSubmit('editEnrollmentForm');
+
+    document.querySelectorAll('.edit-enrollment-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const id = this.getAttribute('data-id');
+        const groupId = this.getAttribute('data-group-id');
+        const userId = this.getAttribute('data-user-id');
+        const kidName = this.getAttribute('data-kid-name');
+
+        const form = document.getElementById('editEnrollmentForm');
+        document.getElementById('edit_enrollment_id').value = id;
+
+        document.getElementById('edit_enrollment_group_id').value = groupId;
+        document.getElementById('edit_enrollment_family_id').value = userId;
+        document.getElementById('edit_enrollment_kid_name').value = kidName;
+
+        openModal('editEnrollmentModal');
+      });
+    });
+  });
+</script>
 {% endblock %}

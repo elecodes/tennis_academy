@@ -10,10 +10,10 @@ from flask import (
     session,
     redirect,
     url_for,
+    flash,
 )
 from datetime import datetime, timedelta
 from repositories.timetable_repository import TimetableRepository
-import os
 
 timetables_bp = Blueprint("timetables", __name__)
 
@@ -50,9 +50,7 @@ def get_timetable_page():
         user_id = session.get("user_id")
         user_role = session.get("role", "family")
 
-        # Obtener la ruta a academy.db (now 2 levels up from backend/routes/)
-        db_path = os.path.join(os.path.dirname(__file__), "..", "..", "academy.db")
-        repository = TimetableRepository(db_path)
+        repository = TimetableRepository()
         result = repository.get_weekly_timetable(user_role, user_id, week_start)
 
         # Get all groups for the "Add Session" modal if Admin
@@ -110,8 +108,7 @@ def get_weekly_timetable_api():
         user_id = session["user_id"]
         user_role = session.get("role", "family")
 
-        db_path = os.path.join(os.path.dirname(__file__), "..", "..", "academy.db")
-        repository = TimetableRepository(db_path)
+        repository = TimetableRepository()
         result = repository.get_weekly_timetable(user_role, user_id, week_start_date)
 
         return jsonify(result), 200
@@ -140,14 +137,41 @@ def add_timetable_session():
         return jsonify({"error": "Missing required fields"}), 400
 
     try:
-        db_path = os.path.join(os.path.dirname(__file__), "..", "..", "academy.db")
-        repository = TimetableRepository(db_path)
+        repository = TimetableRepository()
         repository.add_session(int(group_id), int(day), start, end, court)
         return redirect(url_for("timetables.get_timetable_page"))
     except Exception as e:
         print(f"Error adding session: {str(e)}")
         return (
             render_template("error.html", error=f"Error adding session: {str(e)}"),
+            500,
+        )
+
+
+@timetables_bp.route("/admin/timetable/session/edit", methods=["POST"])
+def edit_timetable_session():
+    """POST /admin/timetable/session/edit - Admin edits a session"""
+    if "user_id" not in session or session.get("role") != "admin":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data = request.form
+    session_id = data.get("session_id")
+    day = data.get("day")
+    start = data.get("start_time")
+    end = data.get("end_time")
+    court = data.get("court", "Court 1")
+
+    if not all([session_id, day, start, end]):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    try:
+        repository = TimetableRepository()
+        repository.update_session(int(session_id), int(day), start, end, court)
+        return redirect(url_for("timetables.get_timetable_page"))
+    except Exception as e:
+        print(f"Error editing session: {str(e)}")
+        return (
+            render_template("error.html", error=f"Error editing session: {str(e)}"),
             500,
         )
 
@@ -161,13 +185,17 @@ def delete_timetable_session(session_id):
         return jsonify({"error": "Unauthorized"}), 403
 
     try:
-        db_path = os.path.join(os.path.dirname(__file__), "..", "..", "academy.db")
-        repository = TimetableRepository(db_path)
-        repository.delete_session(session_id)
+        repository = TimetableRepository()
+        if repository.delete_session(session_id):
+            flash("Session deleted successfully.", "success")
+        else:
+            flash("Session not found or already deleted.", "warning")
         return redirect(url_for("timetables.get_timetable_page"))
     except Exception as e:
-        print(f"Error deleting session: {str(e)}")
-        return (
-            render_template("error.html", error=f"Error deleting session: {str(e)}"),
-            500,
-        )
+        import traceback
+
+        error_msg = f"Error deleting session: {str(e)}"
+        print(f"CRITICAL: {error_msg}")
+        print(traceback.format_exc())
+        flash(error_msg, "danger")
+        return redirect(url_for("timetables.get_timetable_page"))

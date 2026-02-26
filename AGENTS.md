@@ -1,6 +1,6 @@
-# 🎾 AGENTS.md - Tennis Academy Communication System
+# 🎾 AGENTS.md - SF TENNIS KIDS Club Communication System
 
-**Defines agent behavior** for the Flask + RBAC + pytest Tennis Academy repo.  
+**Defines agent behavior** for the Flask + RBAC + pytest SF TENNIS KIDS Club repo.  
 **Complements:** `constitution.md` (principles), `skills/tennis_academy/INDEX.md` (skills).  
 **Priority:** This file > skills > constitution.md.
 

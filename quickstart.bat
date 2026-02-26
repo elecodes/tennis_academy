@@ -1,6 +1,6 @@
 @echo off
 echo ==========================================
-echo Tennis Academy - Quick Start Script
+echo SF TENNIS KIDS Club - Quick Start Script
 echo ==========================================
 echo.
 

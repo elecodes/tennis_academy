@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Coach Dashboard - SF Tennis Kids{% endblock %}
+{% block title %}Coach Dashboard - SF TENNIS KIDS Club{% endblock %}
 
 {% block content %}
 {% include 'dashboard_header.html' %}
@@ -14,7 +14,7 @@
         <span class="material-symbols-outlined text-3xl">groups</span>
       </div>
       <div>
-        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">Assigned Cohorts</div>
+        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">My Groups</div>
         <div class="text-4xl font-black text-navy">{{ stats.my_groups|length }}</div>
       </div>
     </div>
@@ -25,7 +25,7 @@
         <span class="material-symbols-outlined text-3xl">family_restroom</span>
       </div>
       <div>
-        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">Managed Families</div>
+        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">My Families</div>
         <div class="text-4xl font-black text-navy">
           {{ stats.total_families }}
         </div>
@@ -37,7 +37,7 @@
   <div class="mb-20">
     <div class="flex items-center gap-4 mb-10">
       <span class="w-12 h-1 bg-accent rounded-full"></span>
-      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Instructional Command</h2>
+      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Coach Actions</h2>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <a href="{{ url_for('coach_send_message') }}"
@@ -47,7 +47,7 @@
           <span class="material-symbols-outlined text-3xl">broadcast_on_home</span>
         </div>
         <div>
-          <div class="text-xl font-black text-navy group-hover:text-white transition-colors">Broadcast Alert</div>
+          <div class="text-xl font-black text-navy group-hover:text-white transition-colors">Send Message</div>
           <div class="text-sm text-obsidian/40 group-hover:text-white/60 transition-colors">Issue weather or delay
             notifications.</div>
         </div>
@@ -60,7 +60,7 @@
           <span class="material-symbols-outlined text-3xl">badge</span>
         </div>
         <div>
-          <div class="text-xl font-black text-navy group-hover:text-white transition-colors">Cohort Roster</div>
+          <div class="text-xl font-black text-navy group-hover:text-white transition-colors">View Roster</div>
           <div class="text-sm text-obsidian/40 group-hover:text-white/60 transition-colors">Review member details and
             metrics.</div>
         </div>
@@ -72,7 +72,7 @@
   <div class="mb-20">
     <div class="flex items-center gap-4 mb-10">
       <span class="w-12 h-1 bg-accent rounded-full"></span>
-      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Assigned Roster</h2>
+      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">My Active Groups</h2>
     </div>
 
     {% if stats.my_groups %}
@@ -102,7 +102,7 @@
         </p>
         {% endif %}
         <div class="flex justify-between items-center pt-6 border-t border-navy/5">
-          <div class="text-[10px] text-obsidian/20 font-black uppercase tracking-widest">SFSU Athletics Division</div>
+          <div class="text-[10px] text-obsidian/20 font-black uppercase tracking-widest">SF TENNIS KIDS Club</div>
           <div class="text-[9px] font-mono text-navy/30">GID: {{ group.id }}</div>
         </div>
       </div>
@@ -115,7 +115,7 @@
       </div>
       <h3 class="text-2xl font-black text-navy mb-4 font-serif">No Assignments Detected</h3>
       <p class="text-obsidian/40 font-medium max-w-sm mx-auto leading-relaxed">Your instructional calendar currently has
-        no assigned cohorts. Please coordinate with the Head Pro or Academy Admin.</p>
+        no assigned cohorts. Please coordinate with the Head Pro or Club Admin.</p>
     </div>
     {% endif %}
   </div>
@@ -124,14 +124,14 @@
   {% if stats.recent_messages %}
   <div class="card-premium overflow-hidden p-0 border border-navy/10 shadow-2xl">
     <div class="p-8 border-b border-navy/5 bg-navy/5 flex justify-between items-center">
-      <h3 class="text-2xl font-black text-navy font-serif">Communication Outbox</h3>
+      <h3 class="text-2xl font-black text-navy font-serif">Messages Sent</h3>
       <span class="text-[10px] font-black text-accent uppercase tracking-widest">Last 5 Transmissions</span>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-left premium-table">
         <thead class="bg-navy/[0.02]">
           <tr class="text-[10px] font-black text-navy/40 uppercase tracking-[0.2em]">
-            <th class="px-8 py-4">Transmission Subject</th>
+            <th class="px-8 py-4">Subject</th>
             <th class="px-8 py-4">Target Group</th>
             <th class="px-8 py-4">Classification</th>
             <th class="px-8 py-4 text-right">Timestamp</th>
@@ -161,7 +161,7 @@
               {% else %}
               <div class="flex items-center gap-2">
                 <div class="w-2 h-2 rounded-full bg-navy/20"></div>
-                <span class="text-navy/60 font-black text-[10px] uppercase tracking-widest">Standard Alert</span>
+                <span class="text-navy/60 font-black text-[10px] uppercase tracking-widest">Announcement</span>
               </div>
               {% endif %}
             </td>

@@ -1,5 +1,12 @@
+import os
+import sys
 import sqlite3
 from datetime import timedelta
+
+# Ensure backend submodules can be found
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from database import get_db
 
 
 class TimetableRepository:
@@ -8,8 +15,16 @@ class TimetableRepository:
     Works with group_members table (not group_schedules).
     """
 
-    def __init__(self, db_path):
+    def __init__(self, db_path=None):
         self.db_path = db_path
+
+    def _get_conn(self):
+        """Helper to get database connection, honoring db_path if set."""
+        if self.db_path:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            return conn
+        return get_db()
 
     def get_weekly_timetable(self, role, user_id, week_start_date):
         """
@@ -29,7 +44,7 @@ class TimetableRepository:
 
         week_end = week_start_date + timedelta(days=6)
 
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_conn()
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
@@ -48,7 +63,9 @@ class TimetableRepository:
                 raise ValueError(f"Invalid role: {role}")
 
             return {
-                "groups": groups,
+                "groups": self._enrich_groups(
+                    cursor, groups, week_start_date, week_end, role, user_id
+                ),
                 "week_start": week_start_date.strftime("%A, %B %d, %Y"),
                 "week_end": week_end.strftime("%A, %B %d, %Y"),
             }
@@ -72,9 +89,7 @@ class TimetableRepository:
             ORDER BY g.name
         """
         cursor.execute(query)
-        groups_data = cursor.fetchall()
-
-        return self._enrich_groups(cursor, groups_data, week_start, week_end)
+        return cursor.fetchall()
 
     def _get_coach_groups(self, cursor, user_id, week_start, week_end):
         """Coach sees ONLY their assigned groups"""
@@ -93,9 +108,7 @@ class TimetableRepository:
             ORDER BY g.name
         """
         cursor.execute(query, (user_id,))
-        groups_data = cursor.fetchall()
-
-        return self._enrich_groups(cursor, groups_data, week_start, week_end)
+        return cursor.fetchall()
 
     def _get_family_groups(self, cursor, user_id, week_start, week_end):
         """Family sees ONLY their enrolled groups (via group_members)"""
@@ -118,39 +131,21 @@ class TimetableRepository:
             ORDER BY g.name
         """
         cursor.execute(query, (user_id,))
-        groups_data = cursor.fetchall()
+        return cursor.fetchall()
 
-        return self._enrich_groups(cursor, groups_data, week_start, week_end)
-
-    def _enrich_groups(self, cursor, groups_data, week_start, week_end):
-        """Add kids and schedules to each group"""
-        groups = []
+    def _enrich_groups(self, cursor, groups_data, week_start, week_end, role, user_id):
+        """Add kids and schedules to each group with RBAC enforcement"""
+        enriched_groups = []
 
         for g in groups_data:
-            group_id = g["id"]
+            # RBAC: Only show coach email to Admins
+            coach_email = g["coach_email"] if role == "admin" else None
 
-            # Get kids in this group
-            kids_query = """
-                SELECT DISTINCT
-                    gm.kid_name as name,
-                    'Unknown' as age
-                FROM group_members gm
-                WHERE gm.group_id = ?
-            """
-            cursor.execute(kids_query, (group_id,))
-            kids = [dict(row) for row in cursor.fetchall()]
+            # Get kids and schedules via shared helpers
+            kids = self._get_group_kids(cursor, g["id"], role, user_id)
+            schedules = self._get_group_schedules(cursor, g["id"])
 
-            # Get structured schedules from the new table
-            schedules_query = """
-                SELECT id, day_of_week as day, start_time, end_time, court
-                FROM group_schedules
-                WHERE group_id = ?
-                ORDER BY day_of_week, start_time
-            """
-            cursor.execute(schedules_query, (group_id,))
-            schedules = [dict(row) for row in cursor.fetchall()]
-
-            groups.append(
+            enriched_groups.append(
                 {
                     "id": g["id"],
                     "name": g["name"],
@@ -159,18 +154,48 @@ class TimetableRepository:
                     "coach": {
                         "id": g["coach_id"],
                         "name": g["coach_name"] or "TBD",
-                        "email": g["coach_email"],
+                        "email": coach_email,
                     },
                     "kids": kids,
                     "schedules": schedules,
                 }
             )
 
-        return groups
+        return enriched_groups
+
+    def _get_group_kids(self, cursor, group_id, role, user_id):
+        """Helper to fetch kids for a group with RBAC enforcement"""
+        if role == "family":
+            query = """
+                SELECT gm.kid_name as name, 'Unknown' as age
+                FROM group_members gm
+                WHERE gm.group_id = ? AND gm.family_id = ?
+            """
+            cursor.execute(query, (group_id, user_id))
+        else:
+            # Admin and Coach see all kids in the group
+            query = """
+                SELECT DISTINCT gm.kid_name as name, 'Unknown' as age
+                FROM group_members gm
+                WHERE gm.group_id = ?
+            """
+            cursor.execute(query, (group_id,))
+        return [dict(row) for row in cursor.fetchall()]
+
+    def _get_group_schedules(self, cursor, group_id):
+        """Helper to fetch structured schedules from the database"""
+        query = """
+            SELECT id, day_of_week as day, start_time, end_time, court
+            FROM group_schedules
+            WHERE group_id = ?
+            ORDER BY day_of_week, start_time
+        """
+        cursor.execute(query, (group_id,))
+        return [dict(row) for row in cursor.fetchall()]
 
     def add_session(self, group_id, day, start, end, court="Court 1"):
         """Add a new session to a group"""
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_conn()
         cursor = conn.cursor()
         try:
             cursor.execute(
@@ -185,9 +210,27 @@ class TimetableRepository:
         finally:
             conn.close()
 
+    def update_session(self, session_id, day, start, end, court):
+        """Update an existing session"""
+        conn = self._get_conn()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                UPDATE group_schedules
+                SET day_of_week = ?, start_time = ?, end_time = ?, court = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """,
+                (day, start, end, court, session_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+        finally:
+            conn.close()
+
     def delete_session(self, session_id):
         """Delete a session"""
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_conn()
         cursor = conn.cursor()
         try:
             cursor.execute("DELETE FROM group_schedules WHERE id = ?", (session_id,))
@@ -198,7 +241,7 @@ class TimetableRepository:
 
     def get_all_groups(self):
         """Get list of all groups (for Admin dropdowns)"""
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_conn()
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         try:

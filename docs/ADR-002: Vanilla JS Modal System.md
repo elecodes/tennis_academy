@@ -6,7 +6,7 @@
 **Date**: 2026-02-20
 
 ## Context
-The application initially relied on Bootstrap 5 for modal functionality. However, inconsistencies in the Bootstrap JS integration led to "Add" buttons (users, groups, enrollments) failing to trigger modals reliably across different environments. Additionally, we wanted a more premium, custom look that aligned with the new "SF Tennis" design system.
+The application initially relied on Bootstrap 5 for modal functionality. However, inconsistencies in the Bootstrap JS integration led to "Add" buttons (users, groups, enrollments) failing to trigger modals reliably across different environments. Additionally, we wanted a more premium, custom look that aligned with the new "SF TENNIS KIDS" design system.
 
 ## Decision
 Implement a lightweight, custom **Vanilla JavaScript Modal System** integrated into `base.html`.

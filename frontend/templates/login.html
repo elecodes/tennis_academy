@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Login - SF Tennis Kids{% endblock %}
+{% block title %}Login - SF TENNIS KIDS Club{% endblock %}
 
 {% block content %}
 <div class="min-h-[80vh] flex items-center justify-center px-6 py-12">
@@ -11,7 +11,7 @@
         class="w-20 d-20 bg-navy text-white rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-navy/20">
         <span class="material-symbols-outlined text-4xl">sports_tennis</span>
       </div>
-      <h1 class="text-4xl font-black text-navy font-serif tracking-tight mb-2">Academy Portal</h1>
+      <h1 class="text-4xl font-black text-navy font-serif tracking-tight mb-2">SF TENNIS KIDS Portal</h1>
       <p class="text-sm font-medium text-obsidian/40 uppercase tracking-[0.2em]">San Francisco State University</p>
     </div>
 
@@ -32,7 +32,7 @@
         {% endwith %}
       </div>
 
-      <form method="POST" action="{{ url_for('login') }}" class="space-y-6">
+      <form id="loginForm" method="POST" action="{{ url_for('login') }}" class="space-y-6">
         <div class="space-y-2">
           <label for="email" class="text-[10px] font-black text-accent uppercase tracking-widest pl-1">Authorized
             Email</label>
@@ -97,9 +97,54 @@
 
     <!-- Footer Links -->
     <p class="text-center mt-8 text-[10px] font-bold text-obsidian/30 uppercase tracking-widest">
-      &copy; 2026 San Francisco Tennis Kids Academy <br />
+      &copy; 2026 SF TENNIS KIDS Club <br />
       Part of Higher Learning Athletics
     </p>
   </div>
 </div>
+
+<script src="{{ url_for('static', filename='js/dist/validations.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const validations = window.Validations;
+    const form = document.getElementById('loginForm');
+    if (!form) return;
+
+    function displayErrors(result) {
+      form.querySelectorAll('.error-msg').forEach(el => el.remove());
+      form.querySelectorAll('.form-input').forEach(el => el.classList.remove('border-clay'));
+
+      if (!result.success) {
+        result.error.issues.forEach(issue => {
+          const fieldName = issue.path[0];
+          const input = form.querySelector(`[name="${fieldName}"]`);
+          if (input) {
+            input.classList.add('border-clay');
+            const errorDiv = document.createElement('p');
+            errorDiv.className = 'error-msg text-[10px] text-clay font-bold ml-4 mt-1';
+            errorDiv.textContent = issue.message;
+            const relativeWrapper = input.closest('.relative');
+            if (relativeWrapper) {
+              relativeWrapper.parentNode.appendChild(errorDiv);
+            } else {
+              input.parentNode.appendChild(errorDiv);
+            }
+          }
+        });
+        return false;
+      }
+      return true;
+    }
+
+    form.addEventListener('submit', function (e) {
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      const result = validations.validateLogin(data);
+      if (!displayErrors(result)) {
+        e.preventDefault();
+      }
+    });
+  });
+</script>
 {% endblock %}

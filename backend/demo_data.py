@@ -1,5 +1,5 @@
 """
-Demo Data Script for Tennis Academy
+Demo Data Script for SF TENNIS KIDS Club
 Run this to populate the database with sample data for testing.
 """
 
