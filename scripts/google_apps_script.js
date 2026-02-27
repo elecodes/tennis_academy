@@ -77,8 +77,8 @@ function syncRowToTurso(sheet, rowNum) {
 
   // 1. Ensure Family User exists
   const sqlUser = {
-    query: "INSERT INTO users (email, full_name, role, password) VALUES (?, ?, 'family', 'temp_pass') ON CONFLICT(email) DO NOTHING",
-    args: [entry.parentEmail, entry.kidName + " Family"]
+    query: "INSERT INTO users (email, full_name, role, password) SELECT ?, ?, 'family', 'temp_pass' WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = ?)",
+    args: [entry.parentEmail, entry.kidName + " Family", entry.parentEmail]
   };
 
   // 2. Upsert Group (Update schedule/coach if name matches)

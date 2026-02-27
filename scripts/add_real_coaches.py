@@ -23,12 +23,16 @@ def add_coaches():
         password = generate_password_hash("tennis2026")
         try:
             # We use full_name exactly as in spreadsheet for matching
-            query = (
-                "INSERT INTO users (email, password, full_name, role, is_active) "
-                "VALUES (?, ?, ?, 'coach', 1) "
-                "ON CONFLICT(email) DO UPDATE SET full_name = excluded.full_name"
-            )
-            cursor.execute(query, (coach["email"], password, coach["name"]))
+            cursor.execute("SELECT id FROM users WHERE email=?", (coach["email"],))
+            if cursor.fetchone():
+                query = "UPDATE users SET full_name = ? WHERE email = ?"
+                cursor.execute(query, (coach["name"], coach["email"]))
+            else:
+                query = (
+                    "INSERT INTO users (email, password, full_name, role, is_active) "
+                    "VALUES (?, ?, ?, 'coach', 1)"
+                )
+                cursor.execute(query, (coach["email"], password, coach["name"]))
             print(f" - Added/Updated Coach: {coach['name']} ({coach['email']})")
         except Exception as e:
             print(f" ERROR adding {coach['name']}: {e}")
