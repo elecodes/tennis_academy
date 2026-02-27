@@ -167,7 +167,7 @@ EOF
 **Solution**:
 ```bash
 # 1. Verify user exists
-sqlite3 academy.db "SELECT email, role FROM users WHERE email='admin@tennis.com';"
+sqlite3 academy.db "SELECT email, role FROM users WHERE email='gelenmp@gmail.com';"
 
 # 2. Reset password
 python3 << 'EOF'
@@ -177,9 +177,9 @@ from werkzeug.security import generate_password_hash
 conn = sqlite3.connect('academy.db')
 cursor = conn.cursor()
 
-new_password = generate_password_hash('newpassword123')
+new_password = generate_password_hash('tennis2026')
 cursor.execute('UPDATE users SET password=? WHERE email=?', 
-               (new_password, 'admin@tennis.com'))
+               (new_password, 'gelenmp@gmail.com'))
 
 conn.commit()
 conn.close()

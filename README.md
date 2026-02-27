@@ -184,6 +184,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - [ADR-010](docs/ADR-010:%20Migrating%20to%20Turso%20Cloud%20and%20Custom%20HTTP%20Connector.md) - Turso Cloud Migration
 - **[ADR-011](docs/ADR-011:%20Implementing%20Security%20Headers%20with%20Talisman.md)** - Security Headers
 - **[ADR-012](docs/ADR-012:%20Implementing%20GitHub%20Actions%20for%20CI.md)** - GitHub Actions CI/CD
+- **[ADR-013](docs/ADR-013:%20Turso%20Database%20Sync%20Fix.md)** - Turso Cloud Synchronization Fix
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
 - **[TESTING](TESTING.md)** - Detailed testing strategy and pytest conventions
@@ -270,9 +271,9 @@ export PYTHONPATH=$PYTHONPATH:. && pytest tests/integration/ --cov=backend --cov
 - ⚠️ **Use `tmp_db` fixture** to avoid writing to `academy.db`.
 ### Test Credentials
 ```
-Admin:  admin@tennis.com / admin123
-Coach:  coach1@tennis.com / password123
-Family: family1@email.com / password123
+Admin:  gelenmp@gmail.com / tennis2026
+Coach:  rc@tennis.com / tennis2026
+Family: family1@email.com / tennis2026
 ```
 
 ## 🚀 Deployment
