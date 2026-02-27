@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Messaging**: Resolved issue where selecting "All Club Families" resulted in zero recipients for admin broadcasts.
+- **User Management**: Removed `UNIQUE` constraints on user emails to support family accounts sharing emails; updated login logic accordingly.
+- **Database Integrity**: Fixed an `IntegrityError` preventing group creations and enrollments by repairing stale foreign key references from old migrations (affecting `groups`, `group_members`, `messages`, `group_schedules`).
+- **Validation Sync**: Aligned client-side Zod validation (`groupSchema.ts`) with HTML forms and database schema, unblocking group creation silently failing in UI.
+- **Google Sheet Sync**: Refactored `google_apps_script.js` and `add_real_coaches.py` to use `SELECT ... WHERE NOT EXISTS` instead of `ON CONFLICT` following the email uniqueness change, restoring coach and schedule synchronizations.
 
 ## [1.8.0] - 2026-02-27
 

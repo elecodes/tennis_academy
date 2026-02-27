@@ -513,4 +513,4 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 ---
 
 **Last Updated**: 2026-02-27
-**Version**: 1.8.0
+**Version**: 1.9.0
