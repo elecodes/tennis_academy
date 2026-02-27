@@ -2,7 +2,7 @@ Use these credentials to log in:
 Administrator Account:
 
 Email: admin@tennis.com
-Password: admin123
+Password: tennis2026
 Coach Demo Account:
 
 Email: coach1@tennis.com
