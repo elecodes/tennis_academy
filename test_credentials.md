@@ -1,7 +1,7 @@
 Use these credentials to log in:
 Administrator Account:
 
-Email: admin@tennis.com
+Email: gelenmp@gmail.com
 Password: tennis2026
 Coach Demo Account:
 
