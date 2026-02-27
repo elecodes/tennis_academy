@@ -1,7 +1,7 @@
 # ADR-012: Implementing GitHub Actions for CI/CD
 
 ## Status
-Accepted
+Accepted - 2026-02-27
 
 ## Context
 As the `tennis_academy` project grows in complexity with multiple contributors and a rigorous testing strategy, we need to ensure that code quality is maintained automatically. Previously, linting and testing were manual processes, which are prone to being skipped or forgotten.
