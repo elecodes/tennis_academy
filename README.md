@@ -42,6 +42,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 | Frontend | HTML5 + CSS3 + Bootstrap 5 | Free |
 | Validation| **Zod** + esbuild | Free |
 | Monitoring | **Sentry** | Free tier |
+| Security | **flask-talisman** (Security Headers) | Free |
 | Deployment | PythonAnywhere / Render / Railway | Free tier available |
 
 ## 📦 Installation
@@ -179,8 +180,9 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-007](docs/ADR-007:%20Zod%20Validation%20and%20esbuild%20Bundling.md)** - Zod Validation
 - **[ADR-008](docs/ADR-008:%20Sentry%20Error%20Tracking%20Integration.md)** - Sentry Integration
 - **[ADR-009](docs/ADR-009:%20Timetable%20RBAC%20and%20Data%20Isolation.md)** - Timetable RBAC
-- **[ADR-010](docs/ADR-010:%20Migrating%20to%20Turso%20Cloud%20and%20Custom%20HTTP%20Connector.md)** - Turso Cloud Migration
-- **[PLAYBOOK](docs/PLAYBOOK.md)** - Operations manual, Troubleshooting, Design Standards
+- [ADR-010](docs/ADR-010:%20Migrating%20to%20Turso%20Cloud%20and%20Custom%20HTTP%20Connector.md) - Turso Cloud Migration
+- [ADR-011](docs/ADR-011:%20Implementing%20Security%20Headers%20with%20Talisman.md) - Security Headers
+- [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
 - **[TESTING](TESTING.md)** - Detailed testing strategy and pytest conventions
 - **[API Reference](docs/API.md)** - API endpoints (coming soon)
@@ -193,6 +195,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 3. ✅ Session-based authentication
 4. ✅ No PII leakage (role-based column filtering)
 5. ✅ Email validation on all forms
+6. ✅ Security Headers (X-Frame-Options, CSP, etc.) via Talisman
 
 ### For Production
 1. Change `app.secret_key` to a random value
@@ -352,8 +355,8 @@ MIT License - Free to use and modify!
 🔜 Calendar View:   Coming soon
 ```
 
-**Last Updated**: 2026-02-26  
-**Version**: 1.7.0  
+**Last Updated**: 2026-02-27  
+**Version**: 1.8.0  
 **Status**: Production Ready ✅
 
 ---

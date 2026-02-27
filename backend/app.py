@@ -28,6 +28,7 @@ from routes.timetables import timetables_bp
 import secrets
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
+from flask_talisman import Talisman
 
 sentry_sdk.init(
     dsn=os.environ.get("SENTRY_DSN"),
@@ -46,6 +47,41 @@ app = Flask(
     static_folder="../frontend/static",
 )
 app.secret_key = secrets.token_hex(16)
+
+# Security Headers (Talisman)
+csp = {
+    "default-src": "'self'",
+    "script-src": [
+        "'self'",
+        "'unsafe-inline'",  # Required for Tailwind CDN and some templates
+        "cdn.tailwindcss.com",
+        "browser.sentry-cdn.com",
+    ],
+    "style-src": [
+        "'self'",
+        "'unsafe-inline'",  # Required for Tailwind CDN and internal styles
+        "fonts.googleapis.com",
+    ],
+    "font-src": [
+        "'self'",
+        "fonts.gstatic.com",
+    ],
+    "img-src": [
+        "'self'",
+        "data:",
+    ],
+    "connect-src": [
+        "'self'",
+        "*.ingest.sentry.io",
+    ],
+}
+
+Talisman(
+    app,
+    content_security_policy=csp,
+    force_https=False,  # Set to True in production with SSL
+    frame_options="DENY",
+)
 
 app.register_blueprint(timetables_bp)
 

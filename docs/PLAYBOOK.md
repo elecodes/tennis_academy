@@ -237,6 +237,13 @@ netstat -ano | findstr :5001   # Windows
 2. The application uses a **Custom HTTP Connector** in `backend/database.py` to bypass this.
 3. Ensure `TURSO_URL` starts with `https://` (or the connector will convert it).
 
+### Issue: CSP Blocking Resources
+**Symptoms**: Images, fonts, or scripts fail to load; Sentry errors about "Content Security Policy".
+**Solution**:
+1. Check browser console for "Refused to load..." errors.
+2. Update the `CSP` dictionary in `backend/app.py` to whitelist the required domain.
+3. Common domains already whitelisted: `fonts.googleapis.com`, `cdn.tailwindcss.com`, `*.sentry.io`.
+
 ---
 
 ## Cloud Migration & Sync
@@ -480,5 +487,5 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-02-25
-**Version**: 1.6
+**Last Updated**: 2026-02-27
+**Version**: 1.8.0
