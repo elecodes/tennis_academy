@@ -10,10 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **GitHub Actions CI/CD**: Automated linting (`flake8`), formatting (`black`), testing (`pytest`), and build validation (`esbuild`) on push and pull requests.
 - **ADR-012**: Documented the decision and implementation of GitHub Actions.
+- **Improvement**: Added detailed error reporting for failed email deliveries in admin and coach messaging routes.
 
 ### Changed
 - **Documentation Update**: Updated README and PLAYBOOK to reflect new CI/CD workflows and automated testing.
 - **Code Refined**: Reformatted migration scripts to comply with `black` standards.
+
+### Fixed
+- **Messaging**: Resolved issue where selecting "All Club Families" resulted in zero recipients for admin broadcasts.
 
 ## [1.8.0] - 2026-02-27
 

@@ -777,11 +777,12 @@ def admin_send_message():
             message_id = cursor.lastrowid
 
             # Determine recipients
-            if is_general:
+            if is_general or not group_id:
                 recipients = conn.execute(
                     "SELECT id, email FROM users WHERE role = 'family' AND is_active = 1"
                 ).fetchall()
-            elif group_id:
+                is_general = 1  # Force general if group_id is missing
+            else:
                 recipients = conn.execute(
                     """
                     SELECT DISTINCT u.id, u.email FROM users u
@@ -790,8 +791,15 @@ def admin_send_message():
                 """,
                     (group_id,),
                 ).fetchall()
-            else:
-                recipients = []
+
+            if not recipients:
+                flash(
+                    "No active recipients found for the selected audience.", "warning"
+                )
+                groups = conn.execute(
+                    "SELECT id, name FROM groups ORDER BY name"
+                ).fetchall()
+                return render_template("admin/send_message.html", groups=groups)
 
             # Send emails and track
             email_body = f"""
@@ -807,6 +815,7 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
             """
 
             sent_count = 0
+            failed_emails = []
             for recipient in recipients:
                 if send_email(
                     recipient["email"], f"[SF TENNIS KIDS Club] {subject}", email_body
@@ -827,9 +836,21 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
                     """,
                         (message_id, recipient["id"]),
                     )
+                    failed_emails.append(recipient["email"])
 
             conn.commit()
-            flash(f"Broadcast sent to {sent_count} recipients!", "success")
+
+            if sent_count > 0:
+                msg = f"Broadcast sent to {sent_count} recipients!"
+                if failed_emails:
+                    msg += f" Failed to reach: {', '.join(failed_emails)}"
+                flash(msg, "success" if not failed_emails else "warning")
+            else:
+                flash(
+                    "Failed to send broadcast to any recipients. Check SMTP settings.",
+                    "danger",
+                )
+
             return redirect(url_for("dashboard"))
 
         groups = conn.execute("SELECT id, name FROM groups ORDER BY name").fetchall()
@@ -966,6 +987,7 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
             """
 
             sent_count = 0
+            failed_emails = []
             for recipient in recipients:
                 if send_email(
                     recipient["email"], f"[SF TENNIS KIDS Club] {subject}", email_body
@@ -986,9 +1008,21 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
                     """,
                         (message_id, recipient["id"]),
                     )
+                    failed_emails.append(recipient["email"])
 
             conn.commit()
-            flash(f"Message sent to {sent_count} families!", "success")
+
+            if sent_count > 0:
+                msg = f"Message sent to {sent_count} families!"
+                if failed_emails:
+                    msg += f" Failed to reach: {', '.join(failed_emails)}"
+                flash(msg, "success" if not failed_emails else "warning")
+            else:
+                flash(
+                    "Failed to send message to any families. Check SMTP settings.",
+                    "danger",
+                )
+
             return redirect(url_for("dashboard"))
 
         return render_template("coach/send_message.html", groups=my_groups)
