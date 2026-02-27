@@ -443,6 +443,13 @@ def admin_add_user():
         return redirect(url_for("admin_users"))
 
     conn = get_db()
+    # Proactive check for existing email
+    existing_user = conn.execute(
+        "SELECT id FROM users WHERE email = ?", (email,)
+    ).fetchone()
+    if existing_user:
+        flash("Email already exists.", "danger")
+        return redirect(url_for("admin_users"))
     try:
         hashed_password = generate_password_hash(password)
         conn.execute(

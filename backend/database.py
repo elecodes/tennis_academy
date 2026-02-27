@@ -95,6 +95,8 @@ class TursoCursor:
             res = res_data["results"][0]
             if res["type"] == "error":
                 error_msg = res["error"]["message"]
+                if "UNIQUE constraint failed" in error_msg:
+                    raise sqlite3.IntegrityError(f"Turso SQL Error: {error_msg}")
                 raise Exception(f"Turso SQL Error: {error_msg}")
 
             exe_res = res["response"]["result"]
