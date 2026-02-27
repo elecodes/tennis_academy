@@ -5,16 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.8.0] - 2026-02-27
+## [1.9.0] - 2026-02-27
 
 ### Added
-- **Security Headers (Talisman)**: Integrated `flask-talisman` for comprehensive security header management (equivalent to Helmet for Express).
-- **Content Security Policy (CSP)**: Implemented a strict CSP whitelisting Google Fonts, Tailwind CDN, and Sentry while enforcing `self` origin for all other resources.
-- **Anti-Clickjacking**: Enforced `X-Frame-Options: DENY` across all routes.
-- **MIME Sniffing Protection**: Enforced `X-Content-Type-Options: nosniff`.
+- **GitHub Actions CI/CD**: Automated linting (`flake8`), formatting (`black`), testing (`pytest`), and build validation (`esbuild`) on push and pull requests.
+- **ADR-012**: Documented the decision and implementation of GitHub Actions.
 
 ### Changed
-- **Documentation Update**: Added ADR-011 and updated README/PLAYBOOK to reflect security enhancements.
+- **Documentation Update**: Updated README and PLAYBOOK to reflect new CI/CD workflows and automated testing.
+- **Code Refined**: Reformatted migration scripts to comply with `black` standards.
+
+## [1.8.0] - 2026-02-27
 
 ## [1.7.0] - 2026-02-26
 

@@ -246,6 +246,31 @@ netstat -ano | findstr :5001   # Windows
 
 ---
 
+## 🤖 CI/CD & Automation
+
+### GitHub Actions (CI)
+The project uses GitHub Actions to ensure code quality on every push.
+
+**Workflows include:**
+1. **Python CI**: Checks `flake8` linting, `black` formatting, and runs `pytest`.
+2. **Frontend CI**: Checks the `esbuild` build process.
+
+### Troubleshooting CI Failures
+
+#### ❌ Formatting Check Failed (`black`)
+- **Fix**: Run `black .` locally, commit, and push.
+
+#### ❌ Linting Check Failed (`flake8`)
+- **Fix**: Run `flake8 .` locally, address reported issues, commit, and push.
+
+#### ❌ Tests Failed (`pytest`)
+- **Fix**: Run `pytest tests/` locally, debug the failing tests, fix them, commit, and push.
+
+#### ❌ Build Failed (`npm run build:js`)
+- **Fix**: Ensure `zod` and `esbuild` are working correctly locally by running `npm run build:js`.
+
+---
+
 ## Cloud Migration & Sync
 
 ### Migrating Local Data to Turso

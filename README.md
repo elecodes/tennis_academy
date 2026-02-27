@@ -43,6 +43,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 | Validation| **Zod** + esbuild | Free |
 | Monitoring | **Sentry** | Free tier |
 | Security | **flask-talisman** (Security Headers) | Free |
+| CI/CD | GitHub Actions | Free |
 | Deployment | PythonAnywhere / Render / Railway | Free tier available |
 
 ## 📦 Installation
@@ -181,7 +182,8 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-008](docs/ADR-008:%20Sentry%20Error%20Tracking%20Integration.md)** - Sentry Integration
 - **[ADR-009](docs/ADR-009:%20Timetable%20RBAC%20and%20Data%20Isolation.md)** - Timetable RBAC
 - [ADR-010](docs/ADR-010:%20Migrating%20to%20Turso%20Cloud%20and%20Custom%20HTTP%20Connector.md) - Turso Cloud Migration
-- [ADR-011](docs/ADR-011:%20Implementing%20Security%20Headers%20with%20Talisman.md) - Security Headers
+- **[ADR-011](docs/ADR-011:%20Implementing%20Security%20Headers%20with%20Talisman.md)** - Security Headers
+- **[ADR-012](docs/ADR-012:%20Implementing%20GitHub%20Actions%20for%20CI.md)** - GitHub Actions CI/CD
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
 - **[TESTING](TESTING.md)** - Detailed testing strategy and pytest conventions
@@ -239,7 +241,13 @@ See **[PLAYBOOK.md](docs/PLAYBOOK.md)** for more troubleshooting.
 
 ## 📈 Testing
 
-The project follows a strict testing strategy defined in **[TESTING.md](TESTING.md)**.
+The project follows a strict testing strategy defined in **[TESTING.md](TESTING.md)** and is automatically enforced via **GitHub Actions**.
+
+### CI/CD Pipeline
+- **Linting**: Automated character checks via `flake8`.
+- **Formatting**: Automated consistency checks via `black`.
+- **Testing**: Automated test execution via `pytest`.
+- **Building**: Automated build validation via `esbuild`.
 
 ### Coverage Targets
 - **CORE (Domain/RBAC)**: 100%
@@ -349,7 +357,8 @@ MIT License - Free to use and modify!
 ✅ Modal System:   Complete (vanilla JS)
 ✅ Validation:     Complete (Zod + esbuild)
 ✅ Monitoring:     Complete (Sentry)
-✅ Tests:          Unit tests passing (13/13)
+✅ CI/CD:          Complete (GitHub Actions)
+✅ Tests:          Unit tests passing (18/18)
 🔜 Integration Tests: Coming soon
 🔜 PDF Export:      Coming soon
 🔜 Calendar View:   Coming soon
