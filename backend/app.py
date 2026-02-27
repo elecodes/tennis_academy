@@ -110,7 +110,7 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
+            email TEXT NOT NULL,
             password TEXT NOT NULL,
             full_name TEXT NOT NULL,
             role TEXT NOT NULL CHECK(role IN ('admin', 'coach', 'family')),
@@ -276,17 +276,24 @@ def login():
             return render_template("login.html")
 
         conn = get_db()
-        user = conn.execute(
+        # Fetch all matching active users (could be multiple with same email now)
+        users = conn.execute(
             "SELECT * FROM users WHERE email = ? AND is_active = 1", (email,)
-        ).fetchone()
+        ).fetchall()
         conn.close()
 
-        if user and check_password_hash(user["password"], password):
-            session["user_id"] = user["id"]
-            session["email"] = user["email"]
-            session["role"] = user["role"]
-            session["full_name"] = user["full_name"]
-            flash(f'Welcome, {user["full_name"]}!', "success")
+        found_user = None
+        for user in users:
+            if check_password_hash(user["password"], password):
+                found_user = user
+                break
+
+        if found_user:
+            session["user_id"] = found_user["id"]
+            session["email"] = found_user["email"]
+            session["role"] = found_user["role"]
+            session["full_name"] = found_user["full_name"]
+            flash(f'Welcome, {found_user["full_name"]}!', "success")
             return redirect(url_for("dashboard"))
         else:
             flash("Invalid email or password.", "danger")
@@ -443,13 +450,6 @@ def admin_add_user():
         return redirect(url_for("admin_users"))
 
     conn = get_db()
-    # Proactive check for existing email
-    existing_user = conn.execute(
-        "SELECT id FROM users WHERE email = ?", (email,)
-    ).fetchone()
-    if existing_user:
-        flash("Email already exists.", "danger")
-        return redirect(url_for("admin_users"))
     try:
         hashed_password = generate_password_hash(password)
         conn.execute(
