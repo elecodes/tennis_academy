@@ -14,6 +14,7 @@ from functools import wraps
 from datetime import datetime
 from database import get_db
 import sqlite3
+from sync_webhook import sync_kid_update, sync_group_update
 
 import smtplib
 from email.mime.text import MIMEText
@@ -481,6 +482,11 @@ def admin_edit_user():
 
     conn = get_db()
     try:
+        # Get old info for webhook
+        old_user = conn.execute(
+            "SELECT full_name, email FROM users WHERE id = ?", (user_id,)
+        ).fetchone()
+
         conn.execute(
             """
             UPDATE users
@@ -490,6 +496,23 @@ def admin_edit_user():
             (email, full_name, role, phone, user_id),
         )
         conn.commit()
+
+        if old_user and role == "family":
+            # Just push the user update, Google Sheets will find the kidName and update the email if present
+            # We don't have the kidName here, just the family full_name and email
+            # This is tricky because the spreadsheet is kid-centric.
+            # If the family email changes, we need to update all kids for this family.
+            kids = conn.execute(
+                "SELECT kid_name, g.name FROM group_members gm JOIN groups g ON gm.group_id = g.id WHERE family_id = ?",
+                (user_id,),
+            ).fetchall()
+            for kid in kids:
+                sync_kid_update(
+                    original_kid_name=kid["kid_name"],
+                    parent_email=old_user["email"],
+                    new_parent_email=email,
+                )
+
         flash(f"User {full_name} updated successfully!", "success")
     except sqlite3.IntegrityError:
         flash("Email already exists.", "danger")
@@ -607,6 +630,11 @@ def admin_edit_group():
 
     conn = get_db()
     try:
+        # Get old info for webhook
+        old_group = conn.execute(
+            "SELECT name FROM groups WHERE id = ?", (group_id,)
+        ).fetchone()
+
         conn.execute(
             """
             UPDATE groups
@@ -616,6 +644,24 @@ def admin_edit_group():
             (name, schedule, coach_id, description, group_id),
         )
         conn.commit()
+
+        if old_group:
+            # We don't have coach name necessarily, we could query for it if needed,
+            # but letting webhook update what it can and ignore what it can't.
+            coach_name = None
+            if coach_id:
+                coach = conn.execute(
+                    "SELECT full_name FROM users WHERE id = ?", (coach_id,)
+                ).fetchone()
+                if coach:
+                    coach_name = coach["full_name"]
+
+            sync_group_update(
+                original_group_name=old_group["name"],
+                new_group_name=name,
+                new_coach_name=coach_name,
+            )
+
         flash(f'Group "{name}" updated successfully!', "success")
     except sqlite3.IntegrityError:
         flash("A group with this name already exists.", "danger")
@@ -712,6 +758,18 @@ def admin_edit_enrollment():
 
     conn = get_db()
     try:
+        # Get old info for webhook
+        old_enrollment = conn.execute(
+            """
+            SELECT kid_name, g.name as group_name, u.email as parent_email
+            FROM group_members gm
+            JOIN groups g ON gm.group_id = g.id
+            JOIN users u ON gm.family_id = u.id
+            WHERE gm.id = ?
+            """,
+            (enrollment_id,),
+        ).fetchone()
+
         conn.execute(
             """
             UPDATE group_members
@@ -721,6 +779,28 @@ def admin_edit_enrollment():
             (int(group_id), int(family_id), kid_name, enrollment_id),
         )
         conn.commit()
+
+        if old_enrollment:
+            # We also need the new group name and parent email if those changed
+            new_info = conn.execute(
+                """
+                SELECT g.name as group_name, u.email as parent_email
+                FROM groups g, users u
+                WHERE g.id = ? AND u.id = ?
+                """,
+                (int(group_id), int(family_id)),
+            ).fetchone()
+
+            if new_info:
+                sync_kid_update(
+                    original_kid_name=old_enrollment["kid_name"],
+                    new_kid_name=kid_name,
+                    parent_email=old_enrollment["parent_email"],
+                    original_group_name=old_enrollment["group_name"],
+                    new_parent_email=new_info["parent_email"],
+                    new_group_name=new_info["group_name"],
+                )
+
         flash(f"Enrollment for {kid_name} updated successfully!", "success")
     except sqlite3.IntegrityError:
         flash("This kid is already enrolled in this group.", "danger")

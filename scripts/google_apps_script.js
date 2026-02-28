@@ -18,7 +18,7 @@ const DAYS_MAP = {
   "sunday": 6, "sun": 6 
 };
 
-function onEdit(e) {
+function onSpreadsheetEdit(e) {
   if (!e || !e.source) return;
   const sheet = e.source.getActiveSheet();
   const row = e.range.getRow();
@@ -164,5 +164,148 @@ function executeBatch(statements) {
     }
   } catch (e) {
     Logger.log("ERROR: Fetch failed: " + e.toString());
+  }
+}
+
+// --- WEBHOOK RECEIVER ---
+
+function doPost(e) {
+  Logger.log("Received POST request");
+  
+  try {
+    const payload = JSON.parse(e.postData.contents);
+    Logger.log("Payload: " + JSON.stringify(payload));
+    
+    if (payload.action === "update_kid") {
+      return handleUpdateKid(payload);
+    } else if (payload.action === "update_group") {
+       return handleUpdateGroup(payload);
+    } else {
+      return createJsonResponse({ status: "error", message: "Unknown action" }, 400);
+    }
+  } catch (error) {
+    Logger.log("Error parsing JSON: " + error.toString());
+    return createJsonResponse({ status: "error", message: "Invalid JSON payload" }, 400);
+  }
+}
+
+function createJsonResponse(data, statusCode = 200) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function handleUpdateKid(payload) {
+  const { originalKidName, parentEmail, originalGroupName, newKidName, newParentEmail, newGroupName } = payload;
+  
+  if (!originalKidName) {
+    return createJsonResponse({ status: "error", message: "originalKidName is required" }, 400);
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+  let updatedRows = 0;
+  
+  // We need to find the student. They could be in multiple days if they have multiple schedules.
+  // We'll update them everywhere they appear.
+  sheets.forEach(sheet => {
+    const sheetName = sheet.getName().toLowerCase();
+    if (Object.keys(DAYS_MAP).some(day => sheetName.includes(day)) || sheetName.includes("data")) {
+      const data = sheet.getDataRange().getValues();
+      
+      for (let i = 1; i < data.length; i++) { // Skip header
+        const rowKidName = String(data[i][3]).trim();
+        const rowEmail = String(data[i][8]).trim();
+        const rowGroupName = String(data[i][2]).trim();
+        
+        // Match on Name + (Email OR Group) to be safe, or just Name if we assume names are unique enough for now
+        // Let's match strictly on Name and Email if provided, or Name and Group
+        let match = false;
+        if (originalKidName.toLowerCase() === rowKidName.toLowerCase()) {
+          if (parentEmail && rowEmail.toLowerCase() === parentEmail.toLowerCase()) match = true;
+          else if (originalGroupName && rowGroupName.toLowerCase() === originalGroupName.toLowerCase()) match = true;
+          else if (!parentEmail && !originalGroupName) match = true; // Fallback if only name provided
+        }
+
+        if (match) {
+           // Update cells (Sheet rows/cols are 1-indexed)
+           if (newKidName) sheet.getRange(i + 1, 4).setValue(newKidName); // Column D
+           if (newParentEmail) sheet.getRange(i + 1, 9).setValue(newParentEmail); // Column I
+           if (newGroupName) sheet.getRange(i + 1, 3).setValue(newGroupName); // Column C
+           
+           SpreadsheetApp.flush(); // Make sure values are written before sync
+           
+           // Sync this row back to Turso so Turso reflects the NEW values
+           syncRowToTurso(sheet, i + 1);
+           updatedRows++;
+        }
+      }
+    }
+  });
+
+  if (updatedRows > 0) {
+    return createJsonResponse({ status: "success", message: `Updated and synced ${updatedRows} rows` });
+  } else {
+    return createJsonResponse({ status: "not_found", message: "Kid not found in spreadsheet" }, 404);
+  }
+}
+
+function handleUpdateGroup(payload) {
+  const { originalGroupName, newGroupName, newCoachName, newScheduleTime, dayOfWeek } = payload;
+  
+  if (!originalGroupName) {
+    return createJsonResponse({ status: "error", message: "originalGroupName is required" }, 400);
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let updatedRows = 0;
+  let targetSheet = null;
+
+  // If a specific day is provided and we are updating the schedule, find that sheet
+  if (dayOfWeek) {
+      const dayNameLower = dayOfWeek.toLowerCase();
+      const sheets = ss.getSheets();
+      targetSheet = sheets.find(s => s.getName().toLowerCase().includes(dayNameLower));
+  }
+
+  if (targetSheet) {
+      // We are moving the group to a new time/day? Or just updating the time on the existing day.
+      // For simplicity right now, let's just update the rows where group name matches.
+      const data = targetSheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+         if (String(data[i][2]).trim().toLowerCase() === originalGroupName.toLowerCase()) {
+             if (newGroupName) targetSheet.getRange(i + 1, 3).setValue(newGroupName);
+             if (newCoachName) targetSheet.getRange(i + 1, 2).setValue(newCoachName);
+             if (newScheduleTime) targetSheet.getRange(i + 1, 1).setValue(newScheduleTime);
+             
+             SpreadsheetApp.flush();
+             syncRowToTurso(targetSheet, i + 1);
+             updatedRows++;
+         }
+      }
+  } else {
+      // Check all sheets
+      const sheets = ss.getSheets();
+      sheets.forEach(sheet => {
+         const sheetName = sheet.getName().toLowerCase();
+         if (Object.keys(DAYS_MAP).some(day => sheetName.includes(day)) || sheetName.includes("data")) {
+            const data = sheet.getDataRange().getValues();
+            for (let i = 1; i < data.length; i++) {
+               if (String(data[i][2]).trim().toLowerCase() === originalGroupName.toLowerCase()) {
+                   if (newGroupName) sheet.getRange(i + 1, 3).setValue(newGroupName);
+                   if (newCoachName) sheet.getRange(i + 1, 2).setValue(newCoachName);
+                   
+                   SpreadsheetApp.flush();
+                   syncRowToTurso(sheet, i + 1);
+                   updatedRows++;
+               }
+            }
+         }
+      });
+  }
+
+  if (updatedRows > 0) {
+    return createJsonResponse({ status: "success", message: `Updated and synced ${updatedRows} rows` });
+  } else {
+    return createJsonResponse({ status: "not_found", message: "Group not found in spreadsheet" }, 404);
   }
 }
