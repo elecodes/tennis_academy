@@ -512,5 +512,5 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-02-28
-**Version**: 1.10.0
+**Last Updated**: 2026-03-03
+**Version**: 1.11.0

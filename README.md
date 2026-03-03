@@ -365,8 +365,8 @@ MIT License - Free to use and modify!
 🔜 Calendar View:   Coming soon
 ```
 
-**Last Updated**: 2026-02-28  
-**Version**: 1.10.0  
+**Last Updated**: 2026-03-03  
+**Version**: 1.11.0  
 **Status**: Production Ready ✅
 
 ---
