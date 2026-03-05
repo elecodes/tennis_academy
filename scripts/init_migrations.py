@@ -53,11 +53,13 @@ def run_migrations():
                 raise
 
         # Mostrar resumen de tablas
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT name FROM sqlite_master
             WHERE type='table' AND name NOT LIKE 'sqlite_%'
             ORDER BY name
-        """)
+        """
+        )
         tables = cursor.fetchall()
 
         print("\n" + "=" * 50)

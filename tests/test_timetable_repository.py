@@ -20,7 +20,8 @@ def test_db_file():
     conn = sqlite3.connect(path)
     cursor = conn.cursor()
 
-    cursor.executescript("""
+    cursor.executescript(
+        """
         CREATE TABLE users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
@@ -64,7 +65,8 @@ def test_db_file():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
         );
-    """)
+    """
+    )
 
     # Insert users
     cursor.execute(

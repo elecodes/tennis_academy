@@ -108,7 +108,8 @@ def init_db():
     cursor = conn.cursor()
 
     # Users table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT NOT NULL,
@@ -119,10 +120,12 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             is_active INTEGER DEFAULT 1
         )
-    """)
+    """
+    )
 
     # Groups table (tennis groups like "Beginners Mon/Wed", "Advanced Tue/Thu")
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS groups (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
@@ -132,10 +135,12 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (coach_id) REFERENCES users (id) ON DELETE SET NULL
         )
-    """)
+    """
+    )
 
     # Group memberships (families enrolled in groups)
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS group_members (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             group_id INTEGER NOT NULL,
@@ -146,10 +151,12 @@ def init_db():
             FOREIGN KEY (family_id) REFERENCES users (id) ON DELETE CASCADE,
             UNIQUE(group_id, family_id, kid_name)
         )
-    """)
+    """
+    )
 
     # Messages table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             sender_id INTEGER NOT NULL,
@@ -166,10 +173,12 @@ def init_db():
             FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
             FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE SET NULL
         )
-    """)
+    """
+    )
 
     # Message recipients (tracking who received what)
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS message_recipients (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             message_id INTEGER NOT NULL,
@@ -179,10 +188,12 @@ def init_db():
             FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
-    """)
+    """
+    )
 
     # Group schedules table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS group_schedules (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             group_id INTEGER NOT NULL,
@@ -194,7 +205,8 @@ def init_db():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
         )
-    """)
+    """
+    )
 
     conn.commit()
     conn.close()
@@ -326,13 +338,15 @@ def dashboard():
             "total_messages": conn.execute("SELECT COUNT(*) FROM messages").fetchone()[
                 0
             ],
-            "recent_messages": conn.execute("""
+            "recent_messages": conn.execute(
+                """
                 SELECT m.*, u.full_name as sender_name, g.name as group_name
                 FROM messages m
                 JOIN users u ON m.sender_id = u.id
                 LEFT JOIN groups g ON m.group_id = g.id
                 ORDER BY m.sent_at DESC LIMIT 5
-            """).fetchall(),
+            """
+            ).fetchall(),
         }
         template = "admin_dashboard.html"
 
@@ -415,12 +429,14 @@ def dashboard():
 @admin_required
 def admin_users():
     conn = get_db()
-    users = conn.execute("""
+    users = conn.execute(
+        """
         SELECT u.*,
                (SELECT COUNT(*) FROM group_members WHERE family_id = u.id) as enrollments
         FROM users u
         ORDER BY u.created_at DESC
-    """).fetchall()
+    """
+    ).fetchall()
     conn.close()
     return render_template("admin/users.html", users=users)
 
@@ -546,7 +562,8 @@ def admin_delete_user(user_id):
 @admin_required
 def admin_groups():
     conn = get_db()
-    groups = conn.execute("""
+    groups = conn.execute(
+        """
         SELECT g.id, g.name, g.coach_id, g.description, g.created_at,
                COALESCE(
                    (SELECT GROUP_CONCAT(
@@ -565,7 +582,8 @@ def admin_groups():
         LEFT JOIN group_members gm ON g.id = gm.group_id
         GROUP BY g.id
         ORDER BY g.created_at DESC
-    """).fetchall()
+    """
+    ).fetchall()
     coaches = conn.execute(
         "SELECT id, full_name FROM users WHERE role = 'coach' ORDER BY full_name"
     ).fetchall()
@@ -691,13 +709,15 @@ def admin_delete_group(group_id):
 @admin_required
 def admin_enrollments():
     conn = get_db()
-    enrollments = conn.execute("""
+    enrollments = conn.execute(
+        """
         SELECT gm.*, g.name as group_name, u.full_name as family_name, u.email
         FROM group_members gm
         JOIN groups g ON gm.group_id = g.id
         JOIN users u ON gm.family_id = u.id
         ORDER BY g.name, u.full_name
-    """).fetchall()
+    """
+    ).fetchall()
     groups = conn.execute("SELECT id, name FROM groups ORDER BY name").fetchall()
     families = conn.execute(
         "SELECT id, full_name, email FROM users WHERE role = 'family' ORDER BY full_name"
