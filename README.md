@@ -185,6 +185,8 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-011](docs/ADR-011:%20Implementing%20Security%20Headers%20with%20Talisman.md)** - Security Headers
 - **[ADR-012](docs/ADR-012:%20Implementing%20GitHub%20Actions%20for%20CI.md)** - GitHub Actions CI/CD
 - **[ADR-013](docs/ADR-013:%20Turso%20Database%20Sync%20Fix.md)** - Turso Cloud Synchronization Fix
+- **[ADR-014](docs/ADR-014:%20One-Way%20Schedule%20Sync%20Architecture.md)** - One-Way Schedule Sync
+- **[ADR-015](docs/ADR-015:%20GitHub%20Actions%20Fixes%20and%20Dependency%20Management.md)** - CI Pipeline Fixes
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
 - **[TESTING](TESTING.md)** - Detailed testing strategy and pytest conventions
@@ -365,8 +367,8 @@ MIT License - Free to use and modify!
 🔜 Calendar View:   Coming soon
 ```
 
-**Last Updated**: 2026-03-03  
-**Version**: 1.11.0  
+**Last Updated**: 2026-03-05  
+**Version**: 1.11.1  
 **Status**: Production Ready ✅
 
 ---
