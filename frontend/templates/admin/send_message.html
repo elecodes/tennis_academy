@@ -57,11 +57,16 @@
         </div>
       </div>
 
-      <div class="space-y-3">
+      <div class="space-y-3 relative">
         <label class="text-xs font-black text-accent uppercase tracking-[0.2em] ml-4">Email Content *</label>
-        <textarea name="content" class="form-input h-64 text-lg py-6 resize-none"
+        <textarea id="content" name="content" class="form-input h-64 text-lg py-6 resize-none"
           placeholder="Write your message here... Detailed information helps families plan accordingly."
           required></textarea>
+        <!-- Magic Draft Button -->
+        <button type="button" id="magic_draft_btn"
+          class="absolute bottom-4 right-4 bg-gradient-to-r from-accent to-navy text-white px-4 py-2 rounded-full font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-sm z-10">
+          <span class="material-symbols-outlined text-[1.2rem]">magic_button</span> Magic Draft
+        </button>
       </div>
 
       <div class="flex flex-col md:flex-row items-center justify-between gap-8 pt-6 border-t border-navy/5">
@@ -89,4 +94,57 @@
     </form>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const magicBtn = document.getElementById('magic_draft_btn');
+    const contentTextarea = document.getElementById('content');
+    const subjectInput = document.querySelector('input[name="subject"]');
+    const messageTypeSelect = document.getElementById('message_type');
+
+    if (magicBtn && contentTextarea && subjectInput && messageTypeSelect) {
+      magicBtn.addEventListener('click', async () => {
+        const notes = contentTextarea.value.trim();
+        const messageType = messageTypeSelect.value;
+
+        if (!notes) {
+          alert('Please enter some rough notes in the content area first.');
+          return;
+        }
+
+        const originalText = magicBtn.innerHTML;
+        magicBtn.innerHTML = '<span class="material-symbols-outlined text-[1.2rem] animate-spin">refresh</span> Drafting...';
+        magicBtn.disabled = true;
+
+        try {
+          const response = await fetch('/admin/api/draft-message', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              notes: notes,
+              message_type: messageType || 'general_update'
+            })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            subjectInput.value = data.subject || subjectInput.value;
+            contentTextarea.value = data.content || contentTextarea.value;
+          } else {
+            alert('Error: ' + (data.error || 'Failed to generate draft'));
+          }
+        } catch (error) {
+          console.error('Error drafting message:', error);
+          alert('An error occurred while drafting the message.');
+        } finally {
+          magicBtn.innerHTML = originalText;
+          magicBtn.disabled = false;
+        }
+      });
+    }
+  });
+</script>
 {% endblock %}
