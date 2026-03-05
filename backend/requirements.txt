@@ -8,3 +8,6 @@ black==24.1.1
 sentry-sdk[flask]
 flask-talisman==1.1.0
 requests
+genkit
+genkit-plugin-google-genai
+pydantic

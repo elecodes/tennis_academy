@@ -25,6 +25,19 @@ from dotenv import load_dotenv
 # Load environment variables from .env if it exists
 load_dotenv()
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message='Field name "schema" in .* shadows an attribute in parent "BaseModel"',
+)
+
+from pydantic import BaseModel, Field
+from genkit.ai import Genkit
+from genkit.plugins.google_genai import GoogleAI
+from asgiref.sync import async_to_sync
+
 from routes.timetables import timetables_bp
 import secrets
 import sentry_sdk
@@ -48,6 +61,25 @@ app = Flask(
     static_folder="../frontend/static",
 )
 app.secret_key = secrets.token_hex(16)
+
+# Initialize Genkit
+ai = Genkit(
+    plugins=[GoogleAI()],
+    model="googleai/gemini-2.5-flash",
+)
+
+
+class DraftInput(BaseModel):
+    message_type: str = Field(
+        description="Type of the message (e.g., coach_delay, etc)"
+    )
+    notes: str = Field(description="Rough notes from the user")
+
+
+class DraftOutput(BaseModel):
+    subject: str = Field(description="Professional email subject line")
+    content: str = Field(description="Professional email body content")
+
 
 # Security Headers (Talisman)
 csp = {
@@ -844,6 +876,49 @@ def admin_delete_enrollment(enrollment_id):
         conn.close()
 
     return redirect(url_for("admin_enrollments"))
+
+
+@app.route("/admin/api/draft-message", methods=["POST"])
+@admin_required
+def admin_draft_message():
+    try:
+        data = request.get_json()
+        if not data:
+            return {"error": "Invalid JSON"}, 400
+
+        message_type = data.get("message_type", "general_update")
+        notes = data.get("notes", "")
+
+        if not notes:
+            return {"error": "Notes are required"}, 400
+
+        prompt = f"""Act as a professional administrator for SF TENNIS KIDS Club.
+You are writing an email of type: {message_type}.
+Take these rough notes and write a professional, polite, and clear email.
+Notes: {notes}
+Ensure the tone is warm but professional."""
+
+        # Generate structured draft using the JSON schema
+        result = async_to_sync(ai.generate)(
+            prompt=prompt,
+            output={"schema": DraftOutput.model_json_schema(), "format": "json"},
+        )
+
+        if not result.text:
+            return {"error": "Failed to generate draft text"}, 500
+
+        try:
+            parsed_output = DraftOutput.model_validate_json(result.text)
+            return {"subject": parsed_output.subject, "content": parsed_output.content}
+        except Exception as parse_e:
+            app.logger.error(f"Error parsing draft: {parse_e}")
+            # Fallback if raw JSON has markdown block
+            clean_text = result.text.replace("```json", "").replace("```", "").strip()
+            parsed_output = DraftOutput.model_validate_json(clean_text)
+            return {"subject": parsed_output.subject, "content": parsed_output.content}
+    except Exception as e:
+        app.logger.error(f"Error drafting message: {e}")
+        return {"error": "An internal error occurred"}, 500
 
 
 @app.route("/admin/send-message", methods=["GET", "POST"])
