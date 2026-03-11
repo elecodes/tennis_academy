@@ -15,6 +15,8 @@ from datetime import datetime
 from database import get_db
 import sqlite3
 from sync_webhook import sync_kid_update, sync_group_update
+import requests
+from migrate_schedules import parse_schedule
 
 import smtplib
 from email.mime.text import MIMEText
@@ -33,10 +35,7 @@ warnings.filterwarnings(
     message='Field name "schema" in .* shadows an attribute in parent "BaseModel"',
 )
 
-from pydantic import BaseModel, Field
-from genkit.ai import Genkit
-from genkit.plugins.google_genai import GoogleAI
-from asgiref.sync import async_to_sync
+from services.ai.magic_draft import generate_email_draft
 
 from routes.timetables import timetables_bp
 import secrets
@@ -61,24 +60,6 @@ app = Flask(
     static_folder="../frontend/static",
 )
 app.secret_key = secrets.token_hex(16)
-
-# Initialize Genkit
-ai = Genkit(
-    plugins=[GoogleAI()],
-    model="googleai/gemini-2.5-flash",
-)
-
-
-class DraftInput(BaseModel):
-    message_type: str = Field(
-        description="Type of the message (e.g., coach_delay, etc)"
-    )
-    notes: str = Field(description="Rough notes from the user")
-
-
-class DraftOutput(BaseModel):
-    subject: str = Field(description="Professional email subject line")
-    content: str = Field(description="Professional email body content")
 
 
 # Security Headers (Talisman)
@@ -712,9 +693,82 @@ def admin_edit_group():
                 new_coach_name=coach_name,
             )
 
-        flash(f'Group "{name}" updated successfully!', "success")
+        msg = (
+            f'Group "{name}" updated successfully! Note: Timetable sessions are NOT automatically updated. '
+            f'Use "Repair Timetable" if needed.'
+        )
+        flash(msg, "success")
     except sqlite3.IntegrityError:
         flash("A group with this name already exists.", "danger")
+    finally:
+        conn.close()
+
+    return redirect(url_for("admin_groups"))
+
+
+@app.route("/admin/sync-spreadsheet", methods=["POST"])
+@admin_required
+def admin_sync_spreadsheet():
+    """Trigger a full sync from Google Sheets via the Apps Script."""
+    webhook_url = os.environ.get("GOOGLE_SHEETS_WEBHOOK_URL")
+    if not webhook_url:
+        flash("Google Sheets webhook URL not configured.", "danger")
+        return redirect(url_for("admin_groups"))
+
+    try:
+        response = requests.post(
+            webhook_url,
+            json={"action": "sync_all"},
+            timeout=120,  # Full sync can take a while
+        )
+        if response.status_code == 200:
+            res_data = response.json()
+            flash(
+                f"Sync triggered successfully! {res_data.get('rows_processed', 0)} rows processed.",
+                "success",
+            )
+        else:
+            flash(f"Sync failed: {response.text}", "danger")
+    except Exception as e:
+        flash(f"Error triggering sync: {e}", "danger")
+
+    return redirect(url_for("admin_groups"))
+
+
+@app.route("/admin/repair-timetable", methods=["POST"])
+@admin_required
+def admin_repair_timetable():
+    """Repopulate group_schedules from the text-based schedules in groups table."""
+    conn = get_db()
+    try:
+        # Get all groups
+        groups = conn.execute("SELECT id, name, schedule FROM groups").fetchall()
+
+        repaired = 0
+        for group in groups:
+            schedules = parse_schedule(group["schedule"])
+            if not schedules:
+                continue
+
+            # Clear existing structured schedules for this group
+            conn.execute(
+                "DELETE FROM group_schedules WHERE group_id = ?", (group["id"],)
+            )
+
+            for s in schedules:
+                conn.execute(
+                    """
+                    INSERT INTO group_schedules (group_id, day_of_week, start_time, end_time, court)
+                    VALUES (?, ?, ?, ?, ?)
+                """,
+                    (group["id"], s["day"], s["start"], s["end"], s["court"]),
+                )
+            repaired += 1
+
+        conn.commit()
+        flash(f"Timetable repaired for {repaired} groups.", "success")
+    except Exception as e:
+        flash(f"Error repairing timetable: {e}", "danger")
     finally:
         conn.close()
 
@@ -892,30 +946,9 @@ def admin_draft_message():
         if not notes:
             return {"error": "Notes are required"}, 400
 
-        prompt = f"""Act as a professional administrator for SF TENNIS KIDS Club.
-You are writing an email of type: {message_type}.
-Take these rough notes and write a professional, polite, and clear email.
-Notes: {notes}
-Ensure the tone is warm but professional."""
-
-        # Generate structured draft using the JSON schema
-        result = async_to_sync(ai.generate)(
-            prompt=prompt,
-            output={"schema": DraftOutput.model_json_schema(), "format": "json"},
-        )
-
-        if not result.text:
-            return {"error": "Failed to generate draft text"}, 500
-
-        try:
-            parsed_output = DraftOutput.model_validate_json(result.text)
-            return {"subject": parsed_output.subject, "content": parsed_output.content}
-        except Exception as parse_e:
-            app.logger.error(f"Error parsing draft: {parse_e}")
-            # Fallback if raw JSON has markdown block
-            clean_text = result.text.replace("```json", "").replace("```", "").strip()
-            parsed_output = DraftOutput.model_validate_json(clean_text)
-            return {"subject": parsed_output.subject, "content": parsed_output.content}
+        # Call the refactored AI service
+        result = generate_email_draft(message_type, notes)
+        return result
     except Exception as e:
         app.logger.error(f"Error drafting message: {e}")
         return {"error": "An internal error occurred"}, 500

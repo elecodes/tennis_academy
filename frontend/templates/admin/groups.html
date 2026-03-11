@@ -9,9 +9,22 @@
       <span class="w-12 h-1 bg-accent rounded-full"></span>
       <h1 class="text-4xl font-black text-navy font-serif tracking-tight">Manage Groups</h1>
     </div>
-    <button class="btn-primary" data-modal-target="addGroupModal">
-      <span class="material-symbols-outlined">layers</span> Create Group
-    </button>
+    <div class="flex items-center gap-3">
+      <form action="{{ url_for('admin_sync_spreadsheet') }}" method="POST">
+        <button type="submit" class="btn-outline flex items-center gap-2">
+          <span class="material-symbols-outlined">sync</span> Sync Sheets
+        </button>
+      </form>
+      <form action="{{ url_for('admin_repair_timetable') }}" method="POST">
+        <button type="submit" class="btn-outline flex items-center gap-2"
+          title="Rebuild structured sessions from text schedules">
+          <span class="material-symbols-outlined">build</span> Repair Timetable
+        </button>
+      </form>
+      <button class="btn-primary" data-modal-target="addGroupModal">
+        <span class="material-symbols-outlined">layers</span> Create Group
+      </button>
+    </div>
   </div>
 
   <!-- Groups Grid -->

@@ -35,6 +35,11 @@ function syncAllData() {
   // Ensure tables exist
   executeTursoSQL("CREATE TABLE IF NOT EXISTS group_schedules (id INTEGER PRIMARY KEY AUTOINCREMENT, group_id INTEGER NOT NULL, day_of_week INTEGER NOT NULL, start_time TEXT NOT NULL, end_time TEXT NOT NULL, court TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE);");
 
+  // Optional: Clear all schedules before full sync if you want to be super clean,
+  // but syncRowToTurso handles per-group/day cleanup anyway.
+  // executeTursoSQL("DELETE FROM group_schedules;");
+
+  let totalUpdated = 0;
   sheets.forEach(sheet => {
     const sheetName = sheet.getName().toLowerCase();
     // Only sync sheets that seem to represent days or data
@@ -43,10 +48,12 @@ function syncAllData() {
       const lastRow = sheet.getLastRow();
       for (let i = 2; i <= lastRow; i++) {
         syncRowToTurso(sheet, i);
+        totalUpdated++;
       }
     }
   });
-  Logger.log("Full sync complete!");
+  Logger.log("Full sync complete! Processed " + totalUpdated + " rows.");
+  return totalUpdated;
 }
 
 function syncRowToTurso(sheet, rowNum) {
@@ -73,7 +80,7 @@ function syncRowToTurso(sheet, rowNum) {
   const fullDay = getFullDayName(dayOfWeek);
   
   // Create a nice display schedule: "Monday 4:00 PM"
-  const displaySchedule = fullDay + " " + displayTime;
+  const displaySchedule = fullDay + " " + entry.time;
 
   // 1. Ensure Family User exists
   const sqlUser = {
@@ -99,6 +106,8 @@ function syncRowToTurso(sheet, rowNum) {
 
   // 4. Update Schedule
   // First clear existing schedules for this specific day/group
+  // NOTE: This part is tricky if multiple rows have same group/day. 
+  // We keep it for now as it ensures one row "wins".
   const sqlCleanup = {
     query: "DELETE FROM group_schedules WHERE group_id IN (SELECT id FROM groups WHERE name = ?) AND day_of_week = ?",
     args: [entry.groupName, dayOfWeek]
@@ -106,10 +115,10 @@ function syncRowToTurso(sheet, rowNum) {
 
   const sqlSession = {
     query: "INSERT INTO group_schedules (group_id, day_of_week, start_time, end_time, court) SELECT id, ?, ?, ?, 'Court 1' FROM groups WHERE name = ?",
-    args: [dayOfWeek, entry.time, entry.time, entry.groupName] // Note: end_time same as start if not range
+    args: [dayOfWeek, entry.time, entry.time, entry.groupName]
   };
 
-  executeBatch([sqlUser, sqlGroup, sqlEnroll, sqlCleanup, sqlSession]);
+  return executeBatch([sqlUser, sqlGroup, sqlEnroll, sqlCleanup, sqlSession]);
 }
 
 function getDayFromSheet(sheetName) {
@@ -157,13 +166,25 @@ function executeBatch(statements) {
   try {
     const response = UrlFetchApp.fetch(apiUrl, options);
     const code = response.getResponseCode();
+    const content = response.getContentText();
+    
     if (code !== 200) {
-      Logger.log("ERROR: Turso API error (" + code + "): " + response.getContentText());
-    } else {
-      // Logger.log("Success: Batch executed.");
+      Logger.log("ERROR: Turso API error (" + code + "): " + content);
+      return { status: "error", code: code, message: content };
     }
+
+    const data = JSON.parse(content);
+    if (data.results) {
+      data.results.forEach((res, idx) => {
+        if (res.type === "error") {
+          Logger.log("ERROR in statement " + idx + " (" + statements[idx].query + "): " + res.error.message);
+        }
+      });
+    }
+    return { status: "success", data: data };
   } catch (e) {
     Logger.log("ERROR: Fetch failed: " + e.toString());
+    return { status: "error", message: e.toString() };
   }
 }
 
@@ -180,6 +201,9 @@ function doPost(e) {
       return handleUpdateKid(payload);
     } else if (payload.action === "update_group") {
        return handleUpdateGroup(payload);
+    } else if (payload.action === "sync_all") {
+       const count = syncAllData();
+       return createJsonResponse({ status: "success", message: "Full sync triggered", rows_processed: count });
     } else {
       return createJsonResponse({ status: "error", message: "Unknown action" }, 400);
     }
@@ -205,8 +229,6 @@ function handleUpdateKid(payload) {
   const sheets = ss.getSheets();
   let updatedRows = 0;
   
-  // We need to find the student. They could be in multiple days if they have multiple schedules.
-  // We'll update them everywhere they appear.
   sheets.forEach(sheet => {
     const sheetName = sheet.getName().toLowerCase();
     if (Object.keys(DAYS_MAP).some(day => sheetName.includes(day)) || sheetName.includes("data")) {
@@ -217,24 +239,19 @@ function handleUpdateKid(payload) {
         const rowEmail = String(data[i][8]).trim();
         const rowGroupName = String(data[i][2]).trim();
         
-        // Match on Name + (Email OR Group) to be safe, or just Name if we assume names are unique enough for now
-        // Let's match strictly on Name and Email if provided, or Name and Group
         let match = false;
         if (originalKidName.toLowerCase() === rowKidName.toLowerCase()) {
           if (parentEmail && rowEmail.toLowerCase() === parentEmail.toLowerCase()) match = true;
           else if (originalGroupName && rowGroupName.toLowerCase() === originalGroupName.toLowerCase()) match = true;
-          else if (!parentEmail && !originalGroupName) match = true; // Fallback if only name provided
+          else if (!parentEmail && !originalGroupName) match = true;
         }
 
         if (match) {
-           // Update cells (Sheet rows/cols are 1-indexed)
-           if (newKidName) sheet.getRange(i + 1, 4).setValue(newKidName); // Column D
-           if (newParentEmail) sheet.getRange(i + 1, 9).setValue(newParentEmail); // Column I
-           if (newGroupName) sheet.getRange(i + 1, 3).setValue(newGroupName); // Column C
+           if (newKidName) sheet.getRange(i + 1, 4).setValue(newKidName);
+           if (newParentEmail) sheet.getRange(i + 1, 9).setValue(newParentEmail);
+           if (newGroupName) sheet.getRange(i + 1, 3).setValue(newGroupName);
            
-           SpreadsheetApp.flush(); // Make sure values are written before sync
-           
-           // Sync this row back to Turso so Turso reflects the NEW values
+           SpreadsheetApp.flush();
            syncRowToTurso(sheet, i + 1);
            updatedRows++;
         }
@@ -260,7 +277,6 @@ function handleUpdateGroup(payload) {
   let updatedRows = 0;
   let targetSheet = null;
 
-  // If a specific day is provided and we are updating the schedule, find that sheet
   if (dayOfWeek) {
       const dayNameLower = dayOfWeek.toLowerCase();
       const sheets = ss.getSheets();
@@ -268,8 +284,6 @@ function handleUpdateGroup(payload) {
   }
 
   if (targetSheet) {
-      // We are moving the group to a new time/day? Or just updating the time on the existing day.
-      // For simplicity right now, let's just update the rows where group name matches.
       const data = targetSheet.getDataRange().getValues();
       for (let i = 1; i < data.length; i++) {
          if (String(data[i][2]).trim().toLowerCase() === originalGroupName.toLowerCase()) {
@@ -283,7 +297,6 @@ function handleUpdateGroup(payload) {
          }
       }
   } else {
-      // Check all sheets
       const sheets = ss.getSheets();
       sheets.forEach(sheet => {
          const sheetName = sheet.getName().toLowerCase();
@@ -309,3 +322,4 @@ function handleUpdateGroup(payload) {
     return createJsonResponse({ status: "not_found", message: "Group not found in spreadsheet" }, 404);
   }
 }
+
