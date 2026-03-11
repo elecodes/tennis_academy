@@ -299,6 +299,21 @@ The application can sync groups and schedules directly from a Google Sheet.
 - Manually run the `syncDataToTurso` function in the Apps Script editor.
 - Or set up a **Trigger** (clock icon) to run every hour.
 
+#### 4. Manual Sync (from Dashboard)
+If you have configured the `GOOGLE_SHEETS_WEBHOOK_URL` in your `.env`, you can trigger a full sync directly from the Admin Dashboard:
+1. Go to **Admin Panel** → **Groups**.
+2. Click **Sync Sheets**.
+3. The app will call the Apps Script webhook and pull all current data from the spreadsheet.
+4. Check the "Last Updated" timestamp to verify completion.
+
+#### 5. Repairing the Weekly Timetable
+If you manually edit a group's schedule text in the admin dashboard, the structured session records (used for the weekly grid) might get out of sync.
+To fix this:
+1. Go to **Admin Panel** → **Groups**.
+2. Click **Repair Timetable**.
+3. The app will read the text-based schedules of all groups, parse them, and rebuild the structured weekly grid records.
+4. **When to use**: If a group's schedule text looks correct but the sessions are missing or wrong in the weekly view.
+
 ---
 
 ### Daily Backup Script
