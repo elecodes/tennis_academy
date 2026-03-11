@@ -40,6 +40,7 @@ def sync_kid_update(
 
 def sync_group_update(
     original_group_name,
+    original_coach_name=None,
     new_group_name=None,
     new_coach_name=None,
     new_schedule_time=None,
@@ -52,6 +53,7 @@ def sync_group_update(
     payload = {
         "action": "update_group",
         "originalGroupName": original_group_name,
+        "originalCoachName": original_coach_name,
         "newGroupName": new_group_name,
         "newCoachName": new_coach_name,
         "newScheduleTime": new_schedule_time,

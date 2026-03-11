@@ -663,7 +663,13 @@ def admin_edit_group():
     try:
         # Get old info for webhook
         old_group = conn.execute(
-            "SELECT name FROM groups WHERE id = ?", (group_id,)
+            """
+            SELECT g.name, u.full_name as coach_name
+            FROM groups g
+            LEFT JOIN users u ON g.coach_id = u.id
+            WHERE g.id = ?
+            """,
+            (group_id,),
         ).fetchone()
 
         conn.execute(
@@ -677,20 +683,20 @@ def admin_edit_group():
         conn.commit()
 
         if old_group:
-            # We don't have coach name necessarily, we could query for it if needed,
-            # but letting webhook update what it can and ignore what it can't.
-            coach_name = None
+            # Current coach name for the webhook (newly selected)
+            new_coach_name = None
             if coach_id:
                 coach = conn.execute(
                     "SELECT full_name FROM users WHERE id = ?", (coach_id,)
                 ).fetchone()
                 if coach:
-                    coach_name = coach["full_name"]
+                    new_coach_name = coach["full_name"]
 
             sync_group_update(
                 original_group_name=old_group["name"],
+                original_coach_name=old_group["coach_name"],
                 new_group_name=name,
-                new_coach_name=coach_name,
+                new_coach_name=new_coach_name,
             )
 
         msg = (

@@ -5,3 +5,5 @@ server_test.log
 test_credentials.md
 .env
 node_modules/
+service-account-key.json
+*.json.key

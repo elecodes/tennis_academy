@@ -158,7 +158,7 @@ The app will be available at: **http://localhost:5001**
 users(id, email, password, full_name, role, phone, created_at, is_active)
 
 -- Groups (tennis groups)
-groups(id, name, schedule, coach_id, description, created_at)
+groups(id, name, schedule, coach_id, description, created_at, UNIQUE(name, coach_id))
 
 -- Group memberships (enrollments)
 group_members(id, group_id, family_id, kid_name, enrolled_at)
@@ -187,6 +187,9 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-013](docs/ADR-013:%20Turso%20Database%20Sync%20Fix.md)** - Turso Cloud Synchronization Fix
 - **[ADR-014](docs/ADR-014:%20One-Way%20Schedule%20Sync%20Architecture.md)** - One-Way Schedule Sync
 - **[ADR-015](docs/ADR-015:%20GitHub%20Actions%20Fixes%20and%20Dependency%20Management.md)** - CI Pipeline Fixes
+- **[ADR-016](docs/ADR-016:%20Non-Unique%20Group%20Naming%20and%20Coach-Based%20Identity.md)** - Non-Unique Group Names
+- **[ADR-017](docs/ADR-017:%20Supporting%20Non-Unique%20Group%20Naming%20and%20Robust%20Timetable%20Synchronization.md)** - Supporting Non-Unique Group Names and Robust Timetable Synchronization
+- **[MCP Configuration](docs/mcp-configuration.md)** - Google Sheets Agent Integration
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
 - **[TESTING](TESTING.md)** - Detailed testing strategy and pytest conventions
@@ -368,7 +371,7 @@ MIT License - Free to use and modify!
 ```
 
 **Last Updated**: 2026-03-11  
-**Version**: 1.12.0  
+**Version**: 1.12.1  
 **Status**: Production Ready ✅
 
 ---

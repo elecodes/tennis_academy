@@ -314,6 +314,18 @@ To fix this:
 3. The app will read the text-based schedules of all groups, parse them, and rebuild the structured weekly grid records.
 4. **When to use**: If a group's schedule text looks correct but the sessions are missing or wrong in the weekly view.
 
+#### 6. Support for Duplicate Group Names
+As of version 1.12.1, the system supports multiple groups with the same name (e.g., "Private"), provided they have different coaches.
+- **Identity**: A group is uniquely identified by `(name, coach)`.
+- **Display**: The Admin Dashboard and Timetable clearly show the coach name next to the group name to avoid confusion.
+- **Google Sheets**: Ensure that if you create multiple groups with the same name in the spreadsheet, they have distinct coach entries in the "Coach" column.
+
+#### 6. Support for Duplicate Group Names
+As of version 1.12.1, the system supports multiple groups with the same name (e.g., "Private"), provided they have different coaches.
+- **Identity**: A group is uniquely identified by `(name, coach)`.
+- **Display**: The Admin Dashboard and Timetable clearly show the coach name next to the group name to avoid confusion.
+- **Google Sheets**: Ensure that if you create multiple groups with the same name in the spreadsheet, they have distinct coach entries in the "Coach" column.
+
 ---
 
 ### Daily Backup Script
@@ -527,5 +539,5 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-03-05
-**Version**: 1.11.1
+**Last Updated**: 2026-03-11
+**Version**: 1.12.1

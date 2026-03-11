@@ -35,19 +35,17 @@ function syncAllData() {
   // Ensure tables exist
   executeTursoSQL("CREATE TABLE IF NOT EXISTS group_schedules (id INTEGER PRIMARY KEY AUTOINCREMENT, group_id INTEGER NOT NULL, day_of_week INTEGER NOT NULL, start_time TEXT NOT NULL, end_time TEXT NOT NULL, court TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE);");
 
-  // Optional: Clear all schedules before full sync if you want to be super clean,
-  // but syncRowToTurso handles per-group/day cleanup anyway.
-  // executeTursoSQL("DELETE FROM group_schedules;");
+  // CRITICAL: Clear all schedules before full sync to allow multiple sessions per day/group
+  executeTursoSQL("DELETE FROM group_schedules;");
 
   let totalUpdated = 0;
   sheets.forEach(sheet => {
     const sheetName = sheet.getName().toLowerCase();
-    // Only sync sheets that seem to represent days or data
     if (Object.keys(DAYS_MAP).some(day => sheetName.includes(day)) || sheetName.includes("data")) {
       Logger.log("Syncing sheet: " + sheet.getName());
       const lastRow = sheet.getLastRow();
       for (let i = 2; i <= lastRow; i++) {
-        syncRowToTurso(sheet, i);
+        syncRowToTurso(sheet, i, true); // true = skip per-row cleanup
         totalUpdated++;
       }
     }
@@ -56,8 +54,7 @@ function syncAllData() {
   return totalUpdated;
 }
 
-function syncRowToTurso(sheet, rowNum) {
-  // Use getDisplayValue for the first column (Time) to avoid Date object issues
+function syncRowToTurso(sheet, rowNum, isBatch = false) {
   const displayTime = sheet.getRange(rowNum, 1).getDisplayValue(); 
   const data = sheet.getRange(rowNum, 1, 1, 10).getValues()[0];
   
@@ -69,17 +66,13 @@ function syncRowToTurso(sheet, rowNum) {
     parentEmail: String(data[8]).trim()
   };
 
-  // Skip empty rows
   if (!entry.groupName || entry.groupName === "" || entry.groupName === "Group") {
-    // If it's literally named "Group", check if there's other info
     if (!entry.kidName) return;
   }
 
   const sheetName = sheet.getName();
   const dayOfWeek = getDayFromSheet(sheetName);
   const fullDay = getFullDayName(dayOfWeek);
-  
-  // Create a nice display schedule: "Monday 4:00 PM"
   const displaySchedule = fullDay + " " + entry.time;
 
   // 1. Ensure Family User exists
@@ -88,37 +81,58 @@ function syncRowToTurso(sheet, rowNum) {
     args: [entry.parentEmail, entry.kidName + " Family", entry.parentEmail]
   };
 
-  // 2. Upsert Group (Update schedule/coach if name matches)
+  // 2. Fetch coach_id
+  const coachResult = executeBatch([{
+    query: "SELECT id FROM users WHERE full_name = ? AND role = 'coach' LIMIT 1",
+    args: [entry.coachName]
+  }]);
+  
+  let coachId = null;
+  if (coachResult.status === "success" && coachResult.data.results[0].response.result.rows.length > 0) {
+    coachId = coachResult.data.results[0].response.result.rows[0][0].value;
+  }
+
+  // 3. Upsert Group (Distinguished by name AND coach_id)
   const sqlGroup = {
     query: `INSERT INTO groups (name, schedule, coach_id) 
-            VALUES (?, ?, (SELECT id FROM users WHERE full_name = ? AND role = 'coach' LIMIT 1)) 
-            ON CONFLICT(name) DO UPDATE SET 
-            schedule = excluded.schedule, 
-            coach_id = excluded.coach_id`,
-    args: [entry.groupName, displaySchedule, entry.coachName]
+            VALUES (?, ?, ?) 
+            ON CONFLICT(name, coach_id) DO UPDATE SET 
+            schedule = excluded.schedule`,
+    args: [entry.groupName, displaySchedule, coachId]
   };
 
-  // 3. Enroll Student
+  // 4. Enroll Student
   const sqlEnroll = {
-    query: "INSERT INTO group_members (group_id, family_id, kid_name) SELECT g.id, u.id, ? FROM groups g, users u WHERE g.name = ? AND u.email = ? ON CONFLICT DO NOTHING",
-    args: [entry.kidName, entry.groupName, entry.parentEmail]
+    query: `INSERT INTO group_members (group_id, family_id, kid_name) 
+            SELECT g.id, u.id, ? 
+            FROM groups g, users u 
+            WHERE g.name = ? AND (g.coach_id = ? OR (g.coach_id IS NULL AND ? IS NULL)) 
+            AND u.email = ? 
+            ON CONFLICT DO NOTHING`,
+    args: [entry.kidName, entry.groupName, coachId, coachId, entry.parentEmail]
   };
 
-  // 4. Update Schedule
-  // First clear existing schedules for this specific day/group
-  // NOTE: This part is tricky if multiple rows have same group/day. 
-  // We keep it for now as it ensures one row "wins".
-  const sqlCleanup = {
-    query: "DELETE FROM group_schedules WHERE group_id IN (SELECT id FROM groups WHERE name = ?) AND day_of_week = ?",
-    args: [entry.groupName, dayOfWeek]
-  };
+  // 5. Update Schedule
+  const batch = [sqlUser, sqlGroup, sqlEnroll];
 
-  const sqlSession = {
-    query: "INSERT INTO group_schedules (group_id, day_of_week, start_time, end_time, court) SELECT id, ?, ?, ?, 'Court 1' FROM groups WHERE name = ?",
-    args: [dayOfWeek, entry.time, entry.time, entry.groupName]
-  };
+  if (!isBatch) {
+    // If not a full sync, we clear sessions for this specific time/group to update them
+    // This is still imperfect for onEdit but safer than wiping the whole day
+    batch.push({
+      query: "DELETE FROM group_schedules WHERE group_id IN (SELECT id FROM groups WHERE name = ? AND (coach_id = ? OR (coach_id IS NULL AND ? IS NULL))) AND day_of_week = ? AND start_time = ?",
+      args: [entry.groupName, coachId, coachId, dayOfWeek, entry.time]
+    });
+  }
 
-  return executeBatch([sqlUser, sqlGroup, sqlEnroll, sqlCleanup, sqlSession]);
+  batch.push({
+    query: `INSERT INTO group_schedules (group_id, day_of_week, start_time, end_time, court) 
+            SELECT id, ?, ?, ?, 'Court 1' 
+            FROM groups 
+            WHERE name = ? AND (coach_id = ? OR (coach_id IS NULL AND ? IS NULL))`,
+    args: [dayOfWeek, entry.time, entry.time, entry.groupName, coachId, coachId]
+  });
+
+  return executeBatch(batch);
 }
 
 function getDayFromSheet(sheetName) {
@@ -267,7 +281,7 @@ function handleUpdateKid(payload) {
 }
 
 function handleUpdateGroup(payload) {
-  const { originalGroupName, newGroupName, newCoachName, newScheduleTime, dayOfWeek } = payload;
+  const { originalGroupName, originalCoachName, newGroupName, newCoachName, newScheduleTime, dayOfWeek } = payload;
   
   if (!originalGroupName) {
     return createJsonResponse({ status: "error", message: "originalGroupName is required" }, 400);
@@ -275,46 +289,41 @@ function handleUpdateGroup(payload) {
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let updatedRows = 0;
-  let targetSheet = null;
+  
+  // Helper to check if a row matches the original group + optional coach
+  const isMatch = (dataRow) => {
+    const rowGroupName = String(dataRow[2]).trim().toLowerCase();
+    const rowCoachName = String(dataRow[1]).trim().toLowerCase();
+    
+    if (rowGroupName !== originalGroupName.toLowerCase()) return false;
+    
+    // If originalCoachName is provided, it must match
+    if (originalCoachName && rowCoachName !== originalCoachName.toLowerCase()) return false;
+    
+    return true;
+  };
 
-  if (dayOfWeek) {
-      const dayNameLower = dayOfWeek.toLowerCase();
-      const sheets = ss.getSheets();
-      targetSheet = sheets.find(s => s.getName().toLowerCase().includes(dayNameLower));
-  }
-
-  if (targetSheet) {
-      const data = targetSheet.getDataRange().getValues();
+  const sheets = ss.getSheets();
+  sheets.forEach(sheet => {
+    const sheetName = sheet.getName().toLowerCase();
+    // Use dayOfWeek filter if provided, otherwise check all relevant sheets
+    if (dayOfWeek && !sheetName.includes(dayOfWeek.toLowerCase())) return;
+    
+    if (Object.keys(DAYS_MAP).some(day => sheetName.includes(day)) || sheetName.includes("data")) {
+      const data = sheet.getDataRange().getValues();
       for (let i = 1; i < data.length; i++) {
-         if (String(data[i][2]).trim().toLowerCase() === originalGroupName.toLowerCase()) {
-             if (newGroupName) targetSheet.getRange(i + 1, 3).setValue(newGroupName);
-             if (newCoachName) targetSheet.getRange(i + 1, 2).setValue(newCoachName);
-             if (newScheduleTime) targetSheet.getRange(i + 1, 1).setValue(newScheduleTime);
+         if (isMatch(data[i])) {
+             if (newGroupName) sheet.getRange(i + 1, 3).setValue(newGroupName);
+             if (newCoachName) sheet.getRange(i + 1, 2).setValue(newCoachName);
+             if (newScheduleTime) sheet.getRange(i + 1, 1).setValue(newScheduleTime);
              
              SpreadsheetApp.flush();
-             syncRowToTurso(targetSheet, i + 1);
+             syncRowToTurso(sheet, i + 1);
              updatedRows++;
          }
       }
-  } else {
-      const sheets = ss.getSheets();
-      sheets.forEach(sheet => {
-         const sheetName = sheet.getName().toLowerCase();
-         if (Object.keys(DAYS_MAP).some(day => sheetName.includes(day)) || sheetName.includes("data")) {
-            const data = sheet.getDataRange().getValues();
-            for (let i = 1; i < data.length; i++) {
-               if (String(data[i][2]).trim().toLowerCase() === originalGroupName.toLowerCase()) {
-                   if (newGroupName) sheet.getRange(i + 1, 3).setValue(newGroupName);
-                   if (newCoachName) sheet.getRange(i + 1, 2).setValue(newCoachName);
-                   
-                   SpreadsheetApp.flush();
-                   syncRowToTurso(sheet, i + 1);
-                   updatedRows++;
-               }
-            }
-         }
-      });
-  }
+    }
+  });
 
   if (updatedRows > 0) {
     return createJsonResponse({ status: "success", message: `Updated and synced ${updatedRows} rows` });
