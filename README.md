@@ -189,6 +189,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-015](docs/ADR-015:%20GitHub%20Actions%20Fixes%20and%20Dependency%20Management.md)** - CI Pipeline Fixes
 - **[ADR-016](docs/ADR-016:%20Non-Unique%20Group%20Naming%20and%20Coach-Based%20Identity.md)** - Non-Unique Group Names
 - **[ADR-017](docs/ADR-017:%20Supporting%20Non-Unique%20Group%20Naming%20and%20Robust%20Timetable%20Synchronization.md)** - Supporting Non-Unique Group Names and Robust Timetable Synchronization
+- **[ADR-018](docs/ADR-018:%20Google%20Sheets%20MCP%20Integration%20and%20Environment%20Configuration.md)** - Google Sheets MCP Integration
 - **[MCP Configuration](docs/mcp-configuration.md)** - Google Sheets Agent Integration
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
@@ -370,8 +371,8 @@ MIT License - Free to use and modify!
 🔜 Calendar View:   Coming soon
 ```
 
-**Last Updated**: 2026-03-11  
-**Version**: 1.12.1  
+**Last Updated**: 2026-03-12  
+**Version**: 1.12.2  
 **Status**: Production Ready ✅
 
 ---

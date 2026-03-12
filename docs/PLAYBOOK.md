@@ -326,6 +326,15 @@ As of version 1.12.1, the system supports multiple groups with the same name (e.
 - **Display**: The Admin Dashboard and Timetable clearly show the coach name next to the group name to avoid confusion.
 - **Google Sheets**: Ensure that if you create multiple groups with the same name in the spreadsheet, they have distinct coach entries in the "Coach" column.
 
+#### 7. Google Sheets MCP Integration (AI Agents)
+For AI agents (like Antigravity) to interact with schedules:
+1.  **Configuration**: Defined in `mcp_config.json`.
+2.  **Credentials**: Uses `GOOGLE_APPLICATION_CREDENTIALS` pointing to the service account JSON.
+3.  **Troubleshooting**:
+    -   If the server isn't appearing, verify the `args` in `mcp_config.json` use `uvx mcp-google-sheets@latest`.
+    -   Ensure the `DRIVE_FOLDER_ID` is a clean ID, not a URL.
+    -   **Bypass**: If the agent can't find the tool, use `uv run --with google-api-python-client --with google-auth script.py` for direct access.
+
 ---
 
 ### Daily Backup Script
