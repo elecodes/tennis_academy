@@ -1356,7 +1356,7 @@ def family_enrollments():
 # ==================== SETUP ROUTE ====================
 
 
-@app.route("/setup")
+@app.route("/setup", methods=["GET", "POST"])
 def setup():
     """Create admin user if no users exist."""
     conn = get_db()

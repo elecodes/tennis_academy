@@ -190,6 +190,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-016](docs/ADR-016:%20Non-Unique%20Group%20Naming%20and%20Coach-Based%20Identity.md)** - Non-Unique Group Names
 - **[ADR-017](docs/ADR-017:%20Supporting%20Non-Unique%20Group%20Naming%20and%20Robust%20Timetable%20Synchronization.md)** - Supporting Non-Unique Group Names and Robust Timetable Synchronization
 - **[ADR-018](docs/ADR-018:%20Google%20Sheets%20MCP%20Integration%20and%20Environment%20Configuration.md)** - Google Sheets MCP Integration
+- **[ADR-019](docs/ADR-019:%20Fix%20Admin%20Setup%20and%20Sandbox%20Credentials.md)** - Fix Admin Setup and Sandbox Credentials
 - **[MCP Configuration](docs/mcp-configuration.md)** - Google Sheets Agent Integration
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
@@ -277,9 +278,9 @@ export PYTHONPATH=$PYTHONPATH:. && pytest tests/integration/ --cov=backend --cov
 - ⚠️ **Use `tmp_db` fixture** to avoid writing to `academy.db`.
 ### Test Credentials
 ```
-Admin:  gelenmp@gmail.com / tennis2026
-Coach:  rc@tennis.com / tennis2026
-Family: family1@email.com / tennis2026
+Admin:  admin@tennis.com / admin123
+Coach:  coach1@tennis.com / password123
+Family: family1@email.com / password123
 ```
 
 ## 🚀 Deployment
@@ -371,8 +372,8 @@ MIT License - Free to use and modify!
 🔜 Calendar View:   Coming soon
 ```
 
-**Last Updated**: 2026-03-12  
-**Version**: 1.12.2  
+**Last Updated**: 2026-03-14  
+**Version**: 1.12.3  
 **Status**: Production Ready ✅
 
 ---
