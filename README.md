@@ -191,6 +191,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-017](docs/ADR-017:%20Supporting%20Non-Unique%20Group%20Naming%20and%20Robust%20Timetable%20Synchronization.md)** - Supporting Non-Unique Group Names and Robust Timetable Synchronization
 - **[ADR-018](docs/ADR-018:%20Google%20Sheets%20MCP%20Integration%20and%20Environment%20Configuration.md)** - Google Sheets MCP Integration
 - **[ADR-019](docs/ADR-019:%20Fix%20Admin%20Setup%20and%20Sandbox%20Credentials.md)** - Fix Admin Setup and Sandbox Credentials
+- **[ADR-020](docs/ADR-020:%20Structured%20Schedule%20Migration%20&%20Enhanced%20Sync%20Robustness.md)** - Structured Schedule Migration & Enhanced Sync Robustness
 - **[MCP Configuration](docs/mcp-configuration.md)** - Google Sheets Agent Integration
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
@@ -373,7 +374,7 @@ MIT License - Free to use and modify!
 ```
 
 **Last Updated**: 2026-03-14  
-**Version**: 1.12.3  
+**Version**: 1.12.4  
 **Status**: Production Ready ✅
 
 ---

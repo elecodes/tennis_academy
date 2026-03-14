@@ -320,13 +320,16 @@ As of version 1.12.1, the system supports multiple groups with the same name (e.
 - **Display**: The Admin Dashboard and Timetable clearly show the coach name next to the group name to avoid confusion.
 - **Google Sheets**: Ensure that if you create multiple groups with the same name in the spreadsheet, they have distinct coach entries in the "Coach" column.
 
-#### 6. Support for Duplicate Group Names
-As of version 1.12.1, the system supports multiple groups with the same name (e.g., "Private"), provided they have different coaches.
-- **Identity**: A group is uniquely identified by `(name, coach)`.
-- **Display**: The Admin Dashboard and Timetable clearly show the coach name next to the group name to avoid confusion.
-- **Google Sheets**: Ensure that if you create multiple groups with the same name in the spreadsheet, they have distinct coach entries in the "Coach" column.
+#### 7. Schedule Migration Utility
+For transitioning legacy text-based schedules to structured records:
+1. Run the migration script locally or on the server:
+   ```bash
+   python3 backend/migrate_schedules.py
+   ```
+2. This will parse the `schedule` column in the `groups` table and populate `group_schedules`.
+3. **Repair Tool**: Alternatively, use the **Repair Timetable** button in the Admin Dashboard to trigger this logic remotely.
 
-#### 7. Google Sheets MCP Integration (AI Agents)
+#### 8. Google Sheets MCP Integration (AI Agents)
 For AI agents (like Antigravity) to interact with schedules:
 1.  **Configuration**: Defined in `mcp_config.json`.
 2.  **Credentials**: Uses `GOOGLE_APPLICATION_CREDENTIALS` pointing to the service account JSON.

@@ -5,12 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.12.3] - 2026-03-14
+## [1.12.4] - 2026-03-14
 
-### Fixed
-- **Admin Setup**: Fixed `/setup` route by adding missing `POST` method support.
-- **Login Sandbox**: Updated demo credentials on the login page to match current database state and clarified Administrator login data.
-- **Admin Access**: Restored administrative access via manual seeding of `admin@tennis.com`.
+### Added
+- **Migration Script**: Added `backend/migrate_schedules.py` to automate parsing text-based schedules into structured `group_schedules` table records.
+
+### Improved
+- **Google Apps Script Sync**: Enhanced `syncDataToTurso` with explicit sheet filtering (scans only Day-named or "data" sheets).
+- **Sync Robustness**: Added safety checks for empty sheets and improved error logging for batch operations.
+- **Admin Visibility**: The "Sync Sheets" feedback now reports the responding script version for better maintainability.
+
+## [1.12.3] - 2026-03-14
 
 ## [1.12.2] - 2026-03-12
 

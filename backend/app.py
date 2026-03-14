@@ -725,12 +725,13 @@ def admin_sync_spreadsheet():
         response = requests.post(
             webhook_url,
             json={"action": "sync_all"},
-            timeout=120,  # Full sync can take a while
+            timeout=120,
         )
         if response.status_code == 200:
             res_data = response.json()
+            version = res_data.get("version", "LEGACY")
             flash(
-                f"Sync triggered successfully! {res_data.get('rows_processed', 0)} rows processed.",
+                f"Sync successful! {res_data.get('rows_processed', 0)} rows processed (Script: {version}).",
                 "success",
             )
         else:

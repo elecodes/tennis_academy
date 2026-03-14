@@ -15,7 +15,8 @@ const DAYS_MAP = {
   "thursday": 3, "thu": 3, 
   "friday": 4, "fri": 4, 
   "saturday": 5, "sat": 5, 
-  "sunday": 6, "sun": 6 
+  "sunday": 6, "sun": 6,
+  "schedule": 0, "master": 0 // Added common defaults
 };
 
 function onSpreadsheetEdit(e) {
@@ -41,13 +42,26 @@ function syncAllData() {
   let totalUpdated = 0;
   sheets.forEach(sheet => {
     const sheetName = sheet.getName().toLowerCase();
-    if (Object.keys(DAYS_MAP).some(day => sheetName.includes(day)) || sheetName.includes("data")) {
-      Logger.log("Syncing sheet: " + sheet.getName());
+    const isDaySheet = Object.keys(DAYS_MAP).some(day => sheetName.includes(day));
+    const isDataSheet = sheetName.includes("data");
+
+    if (isDaySheet || isDataSheet) {
+      Logger.log("Scanning sheet for data: " + sheet.getName());
       const lastRow = sheet.getLastRow();
-      for (let i = 2; i <= lastRow; i++) {
-        syncRowToTurso(sheet, i, true); // true = skip per-row cleanup
-        totalUpdated++;
+      
+      if (lastRow < 2) {
+        Logger.log("Skipping empty sheet: " + sheet.getName());
+        return;
       }
+
+      for (let i = 2; i <= lastRow; i++) {
+        const result = syncRowToTurso(sheet, i, true);
+        if (result.status === "success") {
+          totalUpdated++;
+        }
+      }
+    } else {
+      Logger.log("Skipping non-schedule sheet: " + sheet.getName());
     }
   });
   Logger.log("Full sync complete! Processed " + totalUpdated + " rows.");
