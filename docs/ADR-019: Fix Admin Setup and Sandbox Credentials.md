@@ -1,7 +1,7 @@
 # ADR-019: Fix Admin Setup and Sandbox Credentials
 
 ## Status
-Proposed
+Accepted (2026-03-15)
 
 ## Context
 The application's initial setup flow (`/setup`) was failing because the route lacks the `POST` method in its Flask decorator. This prevented users from creating the initial administrator account. Additionally, demo credentials on the login page ("Sandbox Access") were outdated and did not match the actual seeded data in the Turso production database.

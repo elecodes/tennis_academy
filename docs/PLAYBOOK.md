@@ -8,6 +8,7 @@
 5. [Cloud Migration & Sync](#cloud-migration--sync)
 6. [Backup & Recovery](#backup--recovery)
 7. [Common Tasks](#common-tasks)
+8. [Agentic Workflow & Memory](#agentic-workflow--memory)
 
 ---
 

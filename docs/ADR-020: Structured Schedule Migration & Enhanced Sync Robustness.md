@@ -1,7 +1,7 @@
 # ADR-020: Structured Schedule Migration & Enhanced Sync Robustness
 
 ## Status
-Proposed (2026-03-14)
+Accepted (2026-03-15)
 
 ## Context
 The project is transitioning from purely text-based schedules stored in the `groups` table to structured, queryable session records in the `group_schedules` table. This is necessary for the weekly timetable grid and advanced RBAC filtering.
