@@ -41,7 +41,6 @@
             <th class="px-8 py-5">Group Name</th>
             <th class="px-8 py-5">Assignee</th>
             <th class="px-8 py-5">Schedule</th>
-            <th class="px-8 py-5">Capacity</th>
             <th class="px-8 py-5 text-right">Actions</th>
           </tr>
         </thead>
@@ -70,15 +69,6 @@
             <td class="px-8 py-6">
               <span class="text-xs font-bold text-navy/60 bg-navy/5 px-3 py-1 rounded-full">{{ group.schedule }}</span>
             </td>
-            <td class="px-8 py-6 text-center">
-              <div class="flex items-center gap-2">
-                <span
-                  class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-navy/5 text-navy font-bold text-sm">
-                  {{ group.member_count }}
-                </span>
-                <span class="text-[10px] font-black text-obsidian/20 uppercase tracking-widest">Students</span>
-              </div>
-            </td>
             <td class="px-8 py-6 text-right">
               <div class="flex items-center justify-end gap-2">
                 <button
@@ -100,7 +90,7 @@
           {% endfor %}
           {% else %}
           <tr>
-            <td colspan="5" class="px-8 py-20 text-center">
+            <td colspan="4" class="px-8 py-20 text-center">
               <div class="flex flex-col items-center gap-4 opacity-20">
                 <span class="material-symbols-outlined text-6xl">layers_clear</span>
                 <p class="font-black uppercase tracking-[0.3em] text-xs">No groups configured</p>

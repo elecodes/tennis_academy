@@ -123,6 +123,10 @@ As of Feb 2026, the application follows a **Premium Centered Layout** (`max-w-7x
 2. **Colors**: Primary color is Navy (`#0A192F`), accents use Gold and Emerald.
 3. **Cards**: Use `.card-premium` for elevated, bordered containers.
 4. **Modals**: Use the custom Vanilla JS system (see `ADR-002`).
+5. **Mobile-First Optimization** (New Feb 2026):
+   - **Timetables**: Use horizontal day selector and vertical group accordions on mobile viewports.
+   - **Density**: Prefer clean headers; hide low-priority fields like "Capacity" on mobile to reclaim space for time/date.
+   - **Typography**: Maintain large touch targets (min 44x44px) for all buttons and interactive elements.
 
 ### Working with Modals
 To add a new modal:

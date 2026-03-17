@@ -54,6 +54,19 @@
       .modal-backdrop.active > .modal-dialog {
         @apply translate-y-0;
       }
+      .accordion-content {
+        @apply max-h-0 overflow-hidden transition-all duration-500 ease-in-out;
+      }
+      .accordion-content.active {
+        @apply max-h-[2000px];
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
     }
   </style>
 </head>

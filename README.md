@@ -193,6 +193,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-019](docs/ADR-019:%20Fix%20Admin%20Setup%20and%20Sandbox%20Credentials.md)** - Fix Admin Setup and Sandbox Credentials
 - **[ADR-020](docs/ADR-020:%20Structured%20Schedule%20Migration%20&%20Enhanced%20Sync%20Robustness.md)** - Structured Schedule Migration & Enhanced Sync Robustness
 - **[ADR-021](docs/ADR-021:%20Agent%20Persistent%20Memory%20with%20Engram.md)** - Agent Persistent Memory with Engram
+- **[ADR-022](docs/ADR-022:%20Mobile%20UI%20Refinements%20and%20Space%20Optimization.md)** - Mobile UI Refinements
 - **[MCP Configuration](docs/mcp-configuration.md)** - Google Sheets Agent Integration
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
@@ -369,13 +370,14 @@ MIT License - Free to use and modify!
 ✅ Monitoring:     Complete (Sentry)
 ✅ CI/CD:          Complete (GitHub Actions)
 ✅ Tests:          Unit tests passing (20/20)
+✅ Mobile UI:      Refined (v1.13.0)
 🔜 Integration Tests: Coming soon
 🔜 PDF Export:      Coming soon
 🔜 Calendar View:   Coming soon
 ```
 
-**Last Updated**: 2026-03-15  
-**Version**: 1.12.5  
+**Last Updated**: 2026-03-17
+**Version**: 1.13.0
 **Status**: Production Ready ✅
 
 ---

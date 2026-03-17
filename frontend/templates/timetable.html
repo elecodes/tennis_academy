@@ -33,28 +33,41 @@
 
   <!-- Admin Actions -->
   {% if session.role == 'admin' %}
-  <div class="mb-12 flex justify-end animate-fade-in">
-    <button type="button" class="btn-primary shadow-xl shadow-navy/10" data-modal-target="addSessionModal">
+  <div class="mb-12 flex justify-end animate-fade-in px-4">
+    <button type="button" class="btn-primary shadow-xl shadow-navy/10 w-full md:w-auto" data-modal-target="addSessionModal">
       <span class="material-symbols-outlined">calendar_add_on</span>
       Provision New Session
     </button>
   </div>
   {% endif %}
 
+  <!-- Mobile Day Selector (Sticky) -->
+  <div class="md:hidden sticky top-24 z-30 -mx-6 mb-8 px-6 py-4 bg-mist/80 backdrop-blur-md border-b border-navy/5 overflow-x-auto hide-scrollbar flex gap-3 animate-fade-in" id="mobileDaySelector">
+    {% for day_name in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+    <button data-day-toggle="{{ loop.index0 }}"
+            data-day-index="{{ loop.index0 }}"
+            class="mobile-day-btn whitespace-nowrap px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all
+                   {% if loop.index0 == 0 %} bg-navy text-white shadow-lg shadow-navy/20 {% else %} bg-white text-navy/40 border border-navy/5 {% endif %}">
+      {{ day_name }}
+    </button>
+    {% endfor %}
+  </div>
+
   <!-- Groups Display -->
-  <div class="space-y-12">
+  <div class="space-y-6 md:space-y-12">
     {% if groups %}
     {% for group in groups %}
-    <div class="card-premium overflow-hidden p-0 border border-navy/10 shadow-2xl group animate-fade-in">
+    <div class="card-premium overflow-hidden p-0 border border-navy/10 shadow-2xl group animate-fade-in" id="group-card-{{ loop.index }}">
       <div
-        class="p-8 border-b border-navy/5 bg-navy/[0.02] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        data-accordion-toggle="{{ loop.index }}"
+        class="p-6 md:p-8 border-b border-navy/5 bg-navy/[0.02] flex flex-col md:flex-row justify-between items-start md:items-center gap-6 cursor-pointer hover:bg-navy/[0.04] transition-colors relative">
         <div class="flex items-center gap-6">
           <div
-            class="w-14 h-14 bg-navy text-white rounded-2xl flex items-center justify-center text-xl font-black font-serif shadow-lg shadow-navy/20">
+            class="w-12 h-12 md:w-14 md:h-14 bg-navy text-white rounded-2xl flex items-center justify-center text-lg md:text-xl font-black font-serif shadow-lg shadow-navy/20">
             {{ group.name[0] }}
           </div>
           <div>
-            <h5 class="text-2xl font-black text-navy font-serif mb-1">{{ group.name }}</h5>
+            <h5 class="text-xl md:text-2xl font-black text-navy font-serif mb-1">{{ group.name }}</h5>
             <div class="flex items-center gap-3">
               <span
                 class="px-2 py-0.5 bg-accent/10 text-accent font-black uppercase text-[9px] rounded-md tracking-widest border border-accent/10">{{
@@ -64,29 +77,35 @@
           </div>
         </div>
 
-        {% if group.kids and session.role in ['coach', 'admin'] %}
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] font-black text-navy/20 uppercase tracking-widest mr-2">Cohort Size</span>
-          <div class="flex -space-x-2">
-            {% for kid in group.kids[:5] %}
-            <div
-              class="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center text-[10px] font-black border-2 border-white shadow-sm"
-              title="{{ kid.name }}">
-              {{ kid.name[0] }}
+        <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+          {# Cohort Size hidden to reclaim space for time and date per user request #}
+          {% if false and group.kids and session.role in ['coach', 'admin'] %}
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-black text-navy/20 uppercase tracking-widest mr-2 hidden sm:inline">Cohort Size</span>
+            <div class="flex -space-x-2">
+              {% for kid in group.kids[:5] %}
+              <div
+                class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-navy text-white flex items-center justify-center text-[9px] md:text-[10px] font-black border-2 border-white shadow-sm"
+                title="{{ kid.name }}">
+                {{ kid.name[0] }}
+              </div>
+              {% endfor %}
+              {% if group.kids|length > 5 %}
+              <div
+                class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-mist text-navy/40 flex items-center justify-center text-[9px] md:text-[10px] font-black border-2 border-white">
+                +{{ group.kids|length - 5 }}
+              </div>
+              {% endif %}
             </div>
-            {% endfor %}
-            {% if group.kids|length > 5 %}
-            <div
-              class="w-8 h-8 rounded-full bg-mist text-navy/40 flex items-center justify-center text-[10px] font-black border-2 border-white">
-              +{{ group.kids|length - 5 }}
-            </div>
-            {% endif %}
           </div>
+          {% endif %}
+          
+          <span class="material-symbols-outlined text-navy/20 transition-transform duration-500 accordion-chevron" id="chevron-{{ loop.index }}">expand_more</span>
         </div>
-        {% endif %}
       </div>
 
-      <div class="p-8">
+      <div class="accordion-content active" id="accordion-{{ loop.index }}">
+        <div class="p-6 md:p-8">
         <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
           {% for day_name in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
           <div class="flex flex-col gap-4">
@@ -94,15 +113,18 @@
               class="text-[9px] font-black text-navy/20 uppercase tracking-[0.2em] text-center pb-2 border-b border-navy/5">
               {{ day_name[:3] }}
             </div>
-            <div class="min-h-[120px] space-y-3">
-              {% set day_num = loop.index0 %}
+            <div class="day-column space-y-3" data-day-index="{{ day_num }}">
               {% set day_schedules = group.schedules | selectattr('day', 'equalto', day_num) | list %}
               {% if day_schedules %}
               {% for sched in day_schedules %}
               <div
                 class="p-4 bg-mist/50 rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
-                <div class="text-xs font-black text-navy group-hover/entry:text-white mb-1 transition-colors">{{
-                  sched.start_time }}</div>
+                <div class="flex items-center justify-between mb-1">
+                  <div class="text-[11px] font-black text-navy group-hover/entry:text-white transition-colors">
+                    {{ sched.start_time }} - {{ sched.end_time }}
+                  </div>
+                  <div class="text-[9px] font-bold text-navy/30 group-hover/entry:text-white/40 md:hidden uppercase tracking-widest">{{ day_name[:3] }}</div>
+                </div>
                 <div
                   class="text-[10px] font-bold text-obsidian/40 group-hover/entry:text-white/60 uppercase tracking-tighter transition-colors">
                   {{ sched.court }}</div>
@@ -111,13 +133,17 @@
                 <div
                   class="absolute top-2 right-2 opacity-0 group-hover/entry:opacity-100 transition-opacity flex gap-1">
                   <button type="button"
-                    class="w-6 h-6 flex items-center justify-center text-white/50 hover:text-white transition-colors"
-                    onclick="openEditSessionModal('{{ sched.id }}', '{{ sched.day }}', '{{ sched.start_time }}', '{{ sched.end_time }}', '{{ sched.court }}')"
+                    class="w-6 h-6 flex items-center justify-center text-white/50 hover:text-white transition-colors edit-session-btn"
+                    data-session-id="{{ sched.id }}"
+                    data-session-day="{{ sched.day }}"
+                    data-session-start="{{ sched.start_time }}"
+                    data-session-end="{{ sched.end_time }}"
+                    data-session-court="{{ sched.court }}"
                     title="Edit Session">
-                    <span class="material-symbols-outlined text-xs">edit</span>
+                    <span class="material-symbols-outlined text-xs pointer-events-none">edit</span>
                   </button>
                   <form action="{{ url_for('timetables.delete_timetable_session', session_id=sched.id) }}"
-                    method="POST">
+                    method="POST" onsubmit="return confirm('Authorize session deletion?')">
                     <button type="submit"
                       class="w-6 h-6 flex items-center justify-center text-white/50 hover:text-white transition-colors"
                       title="Delete Session">
@@ -129,7 +155,7 @@
               </div>
               {% endfor %}
               {% else %}
-              <div class="h-full flex items-center justify-center">
+              <div class="h-16 md:h-full flex items-center justify-center">
                 <span class="w-1.5 h-1.5 rounded-full bg-navy/5"></span>
               </div>
               {% endif %}
@@ -280,7 +306,108 @@
 </div>
 
 <script>
-  function openEditSessionModal(id, day, start, end, court) {
+  function toggleGroupAccordion(index) {
+    const accordion = document.getElementById(`accordion-${index}`);
+    const chevron = document.getElementById(`chevron-${index}`);
+    
+    if (accordion.classList.contains('active')) {
+      accordion.classList.remove('active');
+      chevron.style.transform = 'rotate(0deg)';
+    } else {
+      accordion.classList.add('active');
+      chevron.style.transform = 'rotate(180deg)';
+    }
+  }
+
+  let currentMobileDay = 0;
+
+  function switchMobileDay(index) {
+    currentMobileDay = index;
+    
+    // Update buttons
+    const buttons = document.querySelectorAll('.mobile-day-btn');
+    buttons.forEach(btn => {
+      const btnIndex = parseInt(btn.getAttribute('data-day-index'));
+      if (btnIndex === index) {
+        btn.classList.add('bg-navy', 'text-white', 'shadow-lg', 'shadow-navy/20');
+        btn.classList.remove('bg-white', 'text-navy/40', 'border', 'border-navy/5');
+      } else {
+        btn.classList.remove('bg-navy', 'text-white', 'shadow-lg', 'shadow-navy/20');
+        btn.classList.add('bg-white', 'text-navy/40', 'border', 'border-navy/5');
+      }
+    });
+
+    // Update columns
+    const columns = document.querySelectorAll('.day-column');
+    columns.forEach(col => {
+      const colIndex = parseInt(col.getAttribute('data-day-index'));
+      // Only hide if on mobile (width < 768px)
+      if (window.innerWidth < 768) {
+        if (colIndex === index) {
+          col.parentElement.classList.remove('hidden');
+        } else {
+          col.parentElement.classList.add('hidden');
+        }
+      }
+    });
+  }
+
+  // Initial call to set mobile view if needed
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 768) {
+      document.querySelectorAll('.day-column').forEach(col => {
+        col.parentElement.classList.remove('hidden');
+      });
+    } else {
+      switchMobileDay(currentMobileDay);
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Accordion Toggle
+    document.querySelectorAll('[data-accordion-toggle]').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const index = toggle.getAttribute('data-accordion-toggle');
+        toggleGroupAccordion(index);
+      });
+    });
+
+    // Mobile Day Selector
+    document.querySelectorAll('[data-day-toggle]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.getAttribute('data-day-index'));
+        switchMobileDay(index);
+      });
+    });
+
+    // Edit Session Modal
+    document.querySelectorAll('.edit-session-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent accordion toggle
+        const data = btn.dataset;
+        openEditSessionModal(null, data.sessionId, data.sessionDay, data.sessionStart, data.sessionEnd, data.sessionCourt);
+      });
+    });
+
+    if (window.innerWidth < 768) {
+      switchMobileDay(0);
+      
+      // Auto-collapse all but first on mobile
+      const accordions = document.querySelectorAll('.accordion-content');
+      accordions.forEach((acc, idx) => {
+        if (idx > 0) {
+          acc.classList.remove('active');
+          const chevron = document.getElementById(`chevron-${idx + 1}`);
+          if (chevron) chevron.style.transform = 'rotate(0deg)';
+        } else {
+          const chevron = document.getElementById(`chevron-${idx + 1}`);
+          if (chevron) chevron.style.transform = 'rotate(180deg)';
+        }
+      });
+    }
+  });
+
+  function openEditSessionModal(event, id, day, start, end, court) {
     document.getElementById('edit_session_id').value = id;
     document.getElementById('edit_day').value = day;
     document.getElementById('edit_start_time').value = start;
