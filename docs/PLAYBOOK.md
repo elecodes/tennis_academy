@@ -556,5 +556,5 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-03-11
-**Version**: 1.12.1
+**Last Updated**: 2026-03-17
+**Version**: 1.13.0
