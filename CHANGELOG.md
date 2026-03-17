@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0] - 2026-03-17
+
+### Added
+- **ADR-022**: Documented Mobile UI Refinements and Space Optimization.
+
+### Changed
+- **Timetable UI**: Hidden "Cohort Size" (Capacity) and optimized session time display for mobile readability.
+- **Admin Groups**: Removed "Capacity" column from Groups management for a cleaner interface.
+- **Project Version**: Bumped to v1.13.0 across documentation.
+
 ## [1.12.5] - 2026-03-15
 
 ### Added
