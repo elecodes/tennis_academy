@@ -42,34 +42,23 @@
 
       <div class="p-8">
         {% if group_members[group.id] %}
-        <div class="overflow-x-auto">
-          <table class="w-full text-left premium-table">
-            <thead>
-              <tr class="text-navy/40 text-sm font-semibold uppercase tracking-wider">
-                <th class="px-4 py-4 border-b border-navy/5">Kid Name</th>
-                <th class="px-4 py-4 border-b border-navy/5">Parent Name</th>
-                <th class="px-4 py-4 border-b border-navy/5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-navy/5 text-navy">
-              {% for member in group_members[group.id] %}
-              <tr class="hover:bg-navy/[0.02] transition-colors group">
-                <td class="px-4 py-5 font-semibold">{{ member.kid_name }}</td>
-                <td class="px-4 py-5 text-navy/60">{{ member.parent_name }}</td>
-                <td class="px-4 py-5 text-right">
-                  <button class="p-2 text-navy/20 hover:text-navy transition-colors">
-                    <span class="material-symbols-rounded">more_vert</span>
-                  </button>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-navy/40 uppercase tracking-wider mb-4">Students</h3>
+          {% for member in group_members[group.id] %}
+          <div class="flex items-center justify-between p-4 bg-navy/5 rounded-xl">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
+                <span class="material-symbols-rounded text-accent">{{ member.kid_name[0]|upper }}</span>
+              </div>
+              <span class="font-semibold text-navy">{{ member.kid_name }}</span>
+            </div>
+          </div>
+          {% endfor %}
         </div>
         {% else %}
         <div class="flex flex-col items-center justify-center py-12 text-navy/40">
           <span class="material-symbols-rounded text-5xl mb-4">person_off</span>
-          <p>No members enrolled in this group yet.</p>
+          <p>No students enrolled in this group yet.</p>
         </div>
         {% endif %}
       </div>

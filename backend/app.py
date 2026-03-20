@@ -506,10 +506,21 @@ def dashboard():
         ).fetchall()
 
         total_families = sum(group["member_count"] for group in my_groups)
+
+        total_sessions = conn.execute(
+            """
+            SELECT COUNT(*) FROM group_schedules gs
+            JOIN groups g ON gs.group_id = g.id
+            WHERE g.coach_id = ?
+        """,
+            (user_id,),
+        ).fetchone()[0]
+
         stats = {
             "my_groups": my_groups,
             "recent_messages": recent_messages,
             "total_families": total_families,
+            "total_sessions": total_sessions,
         }
         template = "coach_dashboard.html"
 

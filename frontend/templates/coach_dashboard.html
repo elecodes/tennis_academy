@@ -22,12 +22,12 @@
     <div class="card-premium flex items-center gap-8 group">
       <div
         class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-navy group-hover:text-white transition-all duration-500 shadow-sm">
-        <span class="material-symbols-outlined text-3xl">family_restroom</span>
+        <span class="material-symbols-outlined text-3xl">calendar_month</span>
       </div>
       <div>
-        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">My Families</div>
+        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">Sessions This Week</div>
         <div class="text-4xl font-black text-navy">
-          {{ stats.total_families }}
+          {{ stats.total_sessions|default(0) }}
         </div>
       </div>
     </div>
@@ -76,33 +76,28 @@
     </div>
 
     {% if stats.my_groups %}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {% for group in stats.my_groups %}
-      <div class="card-premium group border border-navy/5 hover:border-accent/30 transition-all duration-500">
-        <div class="flex justify-between items-start mb-6">
+      <div class="card-premium group border border-navy/5 hover:border-accent/30 transition-all duration-500 p-6">
+        <div class="flex justify-between items-start mb-4">
           <div>
-            <h4 class="text-2xl font-black text-navy mb-2">{{ group.name }}</h4>
+            <h4 class="text-xl font-black text-navy mb-2">{{ group.name }}</h4>
             <div class="flex flex-wrap gap-1.5">
               {% for slot in group.schedule|schedule_compact %}
-              <span class="text-[10px] font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-lg border border-accent/10">{{ slot }}</span>
+              <span class="text-xs font-bold text-white bg-accent px-3 py-1 rounded-lg">{{ slot }}</span>
               {% endfor %}
             </div>
           </div>
-          <div class="flex flex-col items-end">
-            <span
-              class="px-3 py-1 bg-navy text-white text-[10px] font-black uppercase rounded-lg shadow-lg shadow-navy/20">
-              {{ group.member_count }} Members
-            </span>
-          </div>
         </div>
         {% if group.description %}
-        <p
-          class="text-sm text-obsidian/70 mb-6 leading-relaxed italic border-l-4 border-accent/20 pl-6 py-2 bg-mist/50 rounded-r-2xl">
+        <p class="text-sm text-obsidian/60 mb-4 leading-relaxed">
           {{ group.description }}
         </p>
         {% endif %}
-        <div class="flex justify-between items-center pt-6 border-t border-navy/5">
-          <div class="text-[10px] text-obsidian/20 font-black uppercase tracking-widest">SF TENNIS KIDS Club</div>
+        <div class="flex justify-between items-center pt-4 border-t border-navy/5">
+          <span class="text-[10px] text-obsidian/40 font-bold uppercase tracking-wider">
+            {{ group.member_count|default(0) }} enrolled
+          </span>
           <div class="text-[9px] font-mono text-navy/30">GID: {{ group.id }}</div>
         </div>
       </div>
