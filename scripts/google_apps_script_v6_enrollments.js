@@ -83,8 +83,9 @@ function syncAllData() {
   let enrollmentsCreated = 0;
   let errors = [];
 
-  // Clear existing schedules for full re-sync (keep groups and members)
+  // Clear existing schedules and members for full re-sync
   executeTursoSQL("DELETE FROM group_schedules;");
+  executeTursoSQL("DELETE FROM group_members;");
 
   sheets.forEach(sheet => {
     const sheetName = sheet.getName().toLowerCase();
@@ -230,8 +231,8 @@ function syncRowToTurso(sheetName, colMap, data) {
     }
   }
 
-  // 6. Add session to schedule
-  if (groupId) {
+  // 6. Add session to schedule (ONLY if coach and group exist - skip continuation rows)
+  if (groupId && coachId) {
     batch.push({
       query: "INSERT INTO group_schedules (group_id, day_of_week, start_time, end_time, court) VALUES (?, ?, ?, ?, ?)",
       args: [groupId, dayOfWeek, time, time, "Court 1"]
