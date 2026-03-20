@@ -1,0 +1,7 @@
+{
+  "google_sheets": {
+    "service_account": "/Users/elena/Developer/tennis_academy/google-sheets-key.json",
+    "spreadsheet_id": "1pnJWsdaALpM9NghSXM41O0yM29FMgXDCPgRnbbceQBU",
+    "spreadsheet_url": "https://docs.google.com/spreadsheets/d/1pnJWsdaALpM9NghSXM41O0yM29FMgXDCPgRnbbceQBU"
+  }
+}

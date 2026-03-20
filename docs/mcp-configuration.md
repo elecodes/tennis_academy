@@ -1,45 +1,51 @@
 # Google Sheets MCP Setup Guide
 
-This guide explains how to set up the Google Sheets MCP server to allow AI agents (like Antigravity) to interact with your spreadsheets.
+This guide explains how to set up the Google Sheets MCP server to allow AI agents to interact with your spreadsheets.
 
-## 1. Create Google Cloud Credentials
+## Current Configuration
 
-1.  Open the [Google Cloud Console](https://console.cloud.google.com/).
-2.  Create a project (e.g., "Tennis Academy MCP").
-3.  Go to **APIs & Services > Library** and search for "Google Sheets API". Click **Enable**.
-4.  Go to **APIs & Services > Credentials**.
-5.  Click **Create Credentials > Service Account**.
-6.  Follow the prompts to create the account. No specific roles are required at this stage.
-7.  Once created, click on the service account email, go to the **Keys** tab, and click **Add Key > Create new key**.
-8.  Select **JSON** and download the file.
-9.  Save this file inside your project directory as `service-account-key.json`. (Note: This file is already added to `.gitignore`).
+The project is configured to use:
+- **Service Account**: `tennis-mcp-bot@sfcoachesschedule.iam.gserviceaccount.com`
+- **Spreadsheet ID**: `1pnJWsdaALpM9NghSXM41O0yM29FMgXDCPgRnbbceQBU`
+- **Key File**: `google-sheets-key.json` (in project root)
 
-## 2. Share your Spreadsheet
+## Files
 
-1.  Open the Google Spreadsheet you want the agent to access.
-2.  Click the **Share** button.
-3.  Copy the email address of your service account (from the JSON file) and paste it into the share box.
-4.  Give it **Editor** permissions.
+| File | Description |
+|------|-------------|
+| `google-sheets-key.json` | Service account credentials (gitignored) |
+| `mcp_config.json` | MCP configuration |
+| `.env` | Environment variables with spreadsheet ID |
 
-## 3. Configure the Agent
+## Configure OpenCode MCP
 
-To use the MCP, you need to register it in your environment. If you are using Claude Desktop or another MCP-compatible client, add the following to your configuration:
+To enable the Google Sheets MCP in OpenCode, add this to your OpenCode config (`~/Downloads/opencode.json`):
 
 ```json
 {
-  "mcpServers": {
+  "mcp": {
     "google-sheets": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-google-sheets"
-      ],
+      "command": "uvx",
+      "args": ["mcp-google-sheets"],
       "env": {
-        "GOOGLE_APPLICATION_CREDENTIALS": "/absolute/path/to/tennis_academy/service-account-key.json"
+        "GOOGLE_APPLICATION_CREDENTIALS": "/Users/elena/Developer/tennis_academy/google-sheets-key.json"
       }
     }
   }
 }
 ```
 
-**Note**: Replace `/absolute/path/to/` with the actual path on your machine.
+## Spreadsheet Access
+
+Make sure the service account has access to your spreadsheet:
+1. Open your Google Sheet
+2. Click **Share**
+3. Add: `tennis-mcp-bot@sfcoachesschedule.iam.gserviceaccount.com`
+4. Give **Editor** access
+
+## Troubleshooting
+
+If the MCP isn't connecting:
+1. Verify the service account has spreadsheet access
+2. Check that `google-sheets-key.json` exists
+3. Restart OpenCode after config changes
