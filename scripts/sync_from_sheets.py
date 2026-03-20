@@ -187,6 +187,61 @@ def clean_time(time_str):
     return time_str
 
 
+def update_group_schedule_summaries():
+    """Build schedule summaries from group_schedules and update groups.schedule"""
+    DAYS = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
+
+    # Get all groups with their schedules
+    result = turso_query("""
+        SELECT g.id, g.name, gs.day_of_week, gs.start_time
+        FROM groups g
+        JOIN group_schedules gs ON g.id = gs.group_id
+        WHERE g.coach_id IS NOT NULL
+        ORDER BY g.id, gs.day_of_week, gs.start_time
+    """)
+
+    rows = result["results"][0]["response"]["result"]["rows"]
+
+    # Group by group_id
+    group_schedules = {}
+    for row in rows:
+        gid = row[0]["value"]
+        day = int(row[2]["value"])
+        time = row[3]["value"]
+        if gid not in group_schedules:
+            group_schedules[gid] = []
+        group_schedules[gid].append((day, time))
+
+    # Build summaries and update
+    for gid, schedules in group_schedules.items():
+        # Sort by day
+        schedules.sort()
+        # Build summary like "Mon 4pm, Wed 5pm, Sat 9am"
+        days_short = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        summary_parts = []
+        for day, time in schedules:
+            summary_parts.append(f"{days_short[day]} {time}")
+        summary = ", ".join(summary_parts)
+
+        # Update groups.schedule
+        turso_query(
+            "UPDATE groups SET schedule = ? WHERE id = ?",
+            [
+                {"type": "text", "value": summary},
+                {"type": "integer", "value": str(gid)},
+            ],
+        )
+        print(f"    Updated group {gid}: {summary}")
+
+
 def sync():
     """Main sync function"""
     print("🔄 Starting Google Sheets sync...")
@@ -255,12 +310,7 @@ def sync():
                 parent_email = str(row[8]).strip() if len(row) > 8 else ""
 
                 # Skip empty/header rows
-                if (
-                    not time
-                    or "time" in time.lower()
-                    or not group_name
-                    or group_name == "Group"
-                ):
+                if not time or "time" in time.lower() or not group_name:
                     continue
                 if not coach_name:
                     continue
@@ -289,6 +339,10 @@ def sync():
 
         except Exception as e:
             print(f"  ❌ Error reading {day_name}: {e}")
+
+    # Update groups.schedule text field from group_schedules
+    print("\n  Updating group schedule summaries...")
+    update_group_schedule_summaries()
 
     print(f"\n✅ Sync complete!")
     print(f"   Sessions: {total_sessions}")

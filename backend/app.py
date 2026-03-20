@@ -65,89 +65,66 @@ app.secret_key = secrets.token_hex(16)
 def format_schedule_compact(schedule_text):
     """
     Convert schedule text to compact mobile-friendly format.
-    Examples:
-    - "Monday & Wednesday 4:00-5:30 PM" -> ["Mon 4pm", "Wed 4pm"]
-    - "Saturday 9:00-11:00 AM" -> ["Sat 9am"]
+    Handles: "Tue 4pm, Thu 4:30pm, Fri 3pm" -> ["Tue 4pm", "Thu 4:30pm", "Fri 3pm"]
     """
     if not schedule_text:
         return []
 
+    import re
+
     days_map = {
+        "mon": "Mon",
         "monday": "Mon",
         "tue": "Tue",
-        "wednesday": "Wed",
+        "tuesday": "Tue",
+        "tues": "Tue",
+        "thur": "Thu",
+        "thu": "Thu",
         "thursday": "Thu",
+        "wed": "Wed",
+        "wednesday": "Wed",
+        "fri": "Fri",
         "friday": "Fri",
+        "sat": "Sat",
         "saturday": "Sat",
+        "sun": "Sun",
         "sunday": "Sun",
     }
 
-    import re
+    # Pattern to match "Day time" pairs - captures day and time together
+    # Handles: "Mon 4pm", "Tue 4:30pm", "Mon 2:40pm"
+    pair_pattern = r"\b((?:mon|tue[sday]*|wednesday|thu(?:rsday)?|fri|sat(?:urday)?|sun(?:day)?))\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\b"
 
-    schedules = []
+    matches = re.findall(pair_pattern, schedule_text, re.IGNORECASE)
 
-    # Extract time - supports various formats
-    time_pattern = (
-        r"(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?-(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?"
-    )
-    time_match = re.search(time_pattern, schedule_text, re.IGNORECASE)
+    if matches:
+        results = []
+        for day_full, time_str in matches:
+            day_lower = day_full.lower()[:3]
+            day_short = days_map.get(day_lower, day_full.title()[:3])
 
-    time_str = ""
-    if time_match:
-        hour = int(time_match.group(1))
-        minute = time_match.group(2) or "00"
-        period = (time_match.group(3) or time_match.group(6) or "").lower()
+            # Clean up time format
+            time_str = time_str.strip()
+            time_str = re.sub(r"\s+", "", time_str)  # Remove spaces
 
-        if period == "pm" and hour > 12:
-            hour -= 12
-        elif period == "am" and hour == 12:
-            hour = 12
+            results.append(f"{day_short} {time_str}")
+        return results if results else [schedule_text]
 
-        time_str = f"{hour}{period}" if period else f"{hour}:{minute}"
-    else:
-        # Try 24h format like "16:00" or "09:00"
-        time_24h = re.search(r"\b(\d{1,2}):(\d{2})\b(?!\s*-\s*\d)", schedule_text)
-        if time_24h:
-            hour = int(time_24h.group(1))
-            minute = time_24h.group(2)
-            if hour == 0:
-                time_str = f"12:{minute}am"
-            elif hour == 12:
-                time_str = f"12:{minute}pm"
-            elif hour > 12:
-                time_str = f"{hour - 12}:{minute}pm"
-            else:
-                time_str = f"{hour}:{minute}am"
-        else:
-            # Try single time with am/pm (e.g., "1:30pm", "4pm")
-            single_time = re.search(
-                r"(\d{1,2})(?::(\d{2}))?\s*(AM|PM)(?!\w)", schedule_text, re.IGNORECASE
-            )
-            if single_time:
-                hour = int(single_time.group(1))
-                minute = single_time.group(2)
-                period = single_time.group(3).lower()
+    # Fallback: try to find just times
+    time_pattern = r"(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)"
+    times = re.findall(time_pattern, schedule_text, re.IGNORECASE)
 
-                if minute:
-                    time_str = f"{hour}:{minute}{period}"
-                else:
-                    time_str = f"{hour}{period}"
+    day_pattern = r"\b((?:mon|tue|weden|thu|fri|sat|sun)[a-z]*)\b"
+    days = re.findall(day_pattern, schedule_text, re.IGNORECASE)
 
-    # Extract days (abbreviated or full)
-    day_pattern = r"\b(monday|tue[sday]*|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\b"
-    found_days = re.findall(day_pattern, schedule_text.lower())
+    if days and times:
+        results = []
+        day_short = days_map.get(days[0].lower()[:3], days[0].title()[:3])
+        time_str = times[0].replace(" ", "")
+        results.append(f"{day_short} {time_str}")
+        return results
 
-    if found_days:
-        for day in found_days:
-            # Normalize to short form
-            day_lower = day.lower()[:3]
-            day_short = days_map.get(day_lower, day.title()[:3])
-            if time_str:
-                schedules.append(f"{day_short} {time_str}")
-            else:
-                schedules.append(day_short)
-
-    return schedules if schedules else [schedule_text]
+    return [schedule_text]
 
 
 def format_time(time_str):
