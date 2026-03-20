@@ -122,7 +122,11 @@
                 class="p-3 bg-mist/50 rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
                 <div class="flex items-center justify-between mb-0.5">
                   <div class="text-[11px] font-black text-navy group-hover/entry:text-white transition-colors">
+                    {% if sched.start_time == sched.end_time %}
+                    {{ sched.start_time|format_time }}
+                    {% else %}
                     {{ sched.start_time|format_time }} - {{ sched.end_time|format_time }}
+                    {% endif %}
                   </div>
                 </div>
                 <div
