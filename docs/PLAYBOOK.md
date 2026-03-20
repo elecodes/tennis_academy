@@ -575,3 +575,23 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 **Last Updated**: 2026-03-20
 **Version**: 1.14.0
+
+---
+
+## Coach Dashboard (v1.14.0+)
+Simplified coach experience - no family email exposure:
+
+**Stats Shown:**
+- My Groups (count)
+- Sessions This Week (count)
+
+**Group Cards Display:**
+- Group name
+- Schedule (compact pills: Mon 4pm, Wed 5:30pm)
+- Enrollment count (no family details)
+
+**My Groups Page:**
+- Shows only student names
+- No parent emails or contact info visible
+
+This ensures coaches can manage their groups without accessing family personal data.

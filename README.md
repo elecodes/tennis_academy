@@ -6,7 +6,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 
 ### Role-Based Access Control (RBAC)
 - **Admin**: Full access to manage users, groups, schedules, and send messages to all
-- **Coach**: Manage assigned groups, send messages to their groups only
+- **Coach**: View assigned groups with schedules, send messages to their groups (no family email exposure)
 - **Family**: View messages for enrolled groups, see weekly schedules
 
 ### Weekly Timetables
@@ -372,7 +372,7 @@ MIT License - Free to use and modify!
 ✅ Monitoring:     Complete (Sentry)
 ✅ CI/CD:          Complete (GitHub Actions)
 ✅ Tests:          Unit tests passing (20/20)
-✅ Mobile UI:      Refined (v1.13.0)
+✅ Mobile UI:      Refined (v1.14.0)
 🔜 Integration Tests: Coming soon
 🔜 PDF Export:      Coming soon
 🔜 Calendar View:   Coming soon

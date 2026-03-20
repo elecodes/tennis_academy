@@ -10,19 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Schedule Compact Filter**: New `schedule_compact` Jinja2 filter parses schedule text into mobile-friendly pills (e.g., "Mon 4pm", "Wed 5:30pm").
 - **Time Format Filter**: New `format_time` filter converts 24h times to 12h format for display.
+- **Google Apps Script v6**: Enhanced spreadsheet sync with enrollment creation.
 
 ### Changed
 - **Mobile Schedule Display**: All views now show schedules as compact pills instead of long text strings.
 - **Timetable Fix**: Fixed undefined `day_num` variable that prevented schedule sessions from displaying correctly.
 - **Admin Groups Query**: Now uses original schedule text for consistent formatting.
+- **Coach Dashboard**: Simplified - removed families card, added sessions count, cleaner group cards.
+- **Coach My Groups**: Shows only student names (no family emails exposed).
 
 ### Updated Templates
 - `family_dashboard.html` - Compact schedule pills per enrollment
 - `admin/groups.html` - Schedule pills with accent color badges
-- `coach/my_groups.html` - Compact schedule display
-- `coach_dashboard.html` - Mobile-friendly group cards
+- `coach/my_groups.html` - Compact schedule display, student-only list
+- `coach_dashboard.html` - Mobile-friendly group cards, sessions stat
 - `family/enrollments.html` - Indigo-colored schedule pills
 - `timetable.html` - 12h time format with compact session cards
+
+### New Scripts
+- `scripts/google_apps_script_v6_enrollments.js` - Sync with enrollment creation
 
 ## [1.13.0] - 2026-03-17
 
