@@ -37,8 +37,12 @@
           <div class="flex items-start gap-3">
             <span class="material-symbols-rounded text-navy/20 mt-0.5">schedule</span>
             <div>
-              <p class="text-xs font-bold text-navy/40 uppercase tracking-wider mb-0.5">Schedule</p>
-              <p class="text-navy font-semibold">{{ enrollment.schedule }}</p>
+              <p class="text-xs font-bold text-navy/40 uppercase tracking-wider mb-1">Schedule</p>
+              <div class="flex flex-wrap gap-1">
+                {% for slot in enrollment.schedule|schedule_compact %}
+                <span class="text-xs font-bold text-white bg-indigo-500 px-2 py-0.5 rounded-md">{{ slot }}</span>
+                {% endfor %}
+              </div>
             </div>
           </div>
 

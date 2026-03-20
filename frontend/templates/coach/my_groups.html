@@ -20,9 +20,10 @@
           <div>
             <h2 class="text-2xl font-display font-bold mb-2">{{ group.name }}</h2>
             <div class="flex items-center gap-4 text-white/80 text-sm">
-              <span class="flex items-center gap-1.5">
-                <span class="material-symbols-rounded text-base">schedule</span>
-                {{ group.schedule }}
+              <span class="flex flex-wrap gap-1">
+                {% for slot in group.schedule|schedule_compact %}
+                <span class="text-xs font-bold bg-white/10 px-2 py-0.5 rounded">{{ slot }}</span>
+                {% endfor %}
               </span>
               {% if group.description %}
               <span class="flex items-center gap-1.5">

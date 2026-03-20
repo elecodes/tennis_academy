@@ -67,7 +67,11 @@
               </div>
             </td>
             <td class="px-8 py-6">
-              <span class="text-xs font-bold text-navy/60 bg-navy/5 px-3 py-1 rounded-full">{{ group.schedule }}</span>
+              <div class="flex flex-wrap gap-1.5">
+                {% for slot in group.schedule|schedule_compact %}
+                <span class="text-xs font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-lg border border-accent/10">{{ slot }}</span>
+                {% endfor %}
+              </div>
             </td>
             <td class="px-8 py-6 text-right">
               <div class="flex items-center justify-end gap-2">

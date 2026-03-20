@@ -62,6 +62,70 @@ app = Flask(
 app.secret_key = secrets.token_hex(16)
 
 
+def format_schedule_compact(schedule_text):
+    """
+    Convert schedule text to compact mobile-friendly format.
+    Examples:
+    - "Monday & Wednesday 4:00-5:30 PM" -> ["Mon 4pm", "Wed 4pm"]
+    - "Saturday 9:00-11:00 AM" -> ["Sat 9am"]
+    """
+    if not schedule_text:
+        return []
+
+    days_map = {
+        "monday": "Mon",
+        "tue": "Tue",
+        "wednesday": "Wed",
+        "thursday": "Thu",
+        "friday": "Fri",
+        "saturday": "Sat",
+        "sunday": "Sun",
+    }
+
+    import re
+
+    schedules = []
+
+    # Extract time range - supports "4:00-5:30 PM" and "4pm-5pm" formats
+    time_pattern = (
+        r"(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?-(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?"
+    )
+    time_match = re.search(time_pattern, schedule_text, re.IGNORECASE)
+
+    time_str = ""
+    if time_match:
+        hour = int(time_match.group(1))
+        minute = time_match.group(2) or "00"
+        period = (time_match.group(3) or time_match.group(6) or "").lower()
+
+        # Convert to 12h format
+        if period == "pm" and hour > 12:
+            hour -= 12
+        elif period == "am" and hour == 12:
+            hour = 12
+
+        time_str = f"{hour}{period}" if period else f"{hour}:{minute}"
+
+    # Extract days (abbreviated or full)
+    day_pattern = r"\b(monday|tue[sday]*|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\b"
+    found_days = re.findall(day_pattern, schedule_text.lower())
+
+    if found_days:
+        for day in found_days:
+            # Normalize to short form
+            day_lower = day.lower()[:3]
+            day_short = days_map.get(day_lower, day.title()[:3])
+            if time_str:
+                schedules.append(f"{day_short} {time_str}")
+            else:
+                schedules.append(day_short)
+
+    return schedules if schedules else [schedule_text]
+
+
+app.jinja_env.filters["schedule_compact"] = format_schedule_compact
+
+
 # Security Headers (Talisman)
 csp = {
     "default-src": "'self'",
@@ -319,7 +383,7 @@ def login():
             session["email"] = found_user["email"]
             session["role"] = found_user["role"]
             session["full_name"] = found_user["full_name"]
-            flash(f'Welcome, {found_user["full_name"]}!', "success")
+            flash(f"Welcome, {found_user['full_name']}!", "success")
             return redirect(url_for("dashboard"))
         else:
             flash("Invalid email or password.", "danger")
@@ -1027,7 +1091,7 @@ def admin_send_message():
             email_body = f"""
 SF TENNIS KIDS Club Notification
 
-Type: {message_type.replace('_', ' ').title()}
+Type: {message_type.replace("_", " ").title()}
 Subject: {subject}
 
 {content}
@@ -1196,10 +1260,10 @@ def coach_send_message():
 
             # Send emails
             email_body = f"""
-SF TENNIS KIDS Club Notification - From Coach {session['full_name']}
+SF TENNIS KIDS Club Notification - From Coach {session["full_name"]}
 
-Type: {message_type.replace('_', ' ').title()}
-Group: {group['name']}
+Type: {message_type.replace("_", " ").title()}
+Group: {group["name"]}
 Subject: {subject}
 
 {content}
