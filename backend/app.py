@@ -86,7 +86,7 @@ def format_schedule_compact(schedule_text):
 
     schedules = []
 
-    # Extract time range - supports "4:00-5:30 PM" and "4pm-5pm" formats
+    # Extract time - supports various formats
     time_pattern = (
         r"(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?-(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?"
     )
@@ -98,13 +98,40 @@ def format_schedule_compact(schedule_text):
         minute = time_match.group(2) or "00"
         period = (time_match.group(3) or time_match.group(6) or "").lower()
 
-        # Convert to 12h format
         if period == "pm" and hour > 12:
             hour -= 12
         elif period == "am" and hour == 12:
             hour = 12
 
         time_str = f"{hour}{period}" if period else f"{hour}:{minute}"
+    else:
+        # Try 24h format like "16:00" or "09:00"
+        time_24h = re.search(r"\b(\d{1,2}):(\d{2})\b(?!\s*-\s*\d)", schedule_text)
+        if time_24h:
+            hour = int(time_24h.group(1))
+            minute = time_24h.group(2)
+            if hour == 0:
+                time_str = f"12:{minute}am"
+            elif hour == 12:
+                time_str = f"12:{minute}pm"
+            elif hour > 12:
+                time_str = f"{hour - 12}:{minute}pm"
+            else:
+                time_str = f"{hour}:{minute}am"
+        else:
+            # Try single time with am/pm (e.g., "1:30pm", "4pm")
+            single_time = re.search(
+                r"(\d{1,2})(?::(\d{2}))?\s*(AM|PM)(?!\w)", schedule_text, re.IGNORECASE
+            )
+            if single_time:
+                hour = int(single_time.group(1))
+                minute = single_time.group(2)
+                period = single_time.group(3).lower()
+
+                if minute:
+                    time_str = f"{hour}:{minute}{period}"
+                else:
+                    time_str = f"{hour}{period}"
 
     # Extract days (abbreviated or full)
     day_pattern = r"\b(monday|tue[sday]*|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\b"
@@ -123,7 +150,29 @@ def format_schedule_compact(schedule_text):
     return schedules if schedules else [schedule_text]
 
 
+def format_time(time_str):
+    """Convert 24h time (HH:MM) to 12h format (4pm, 9:30am)"""
+    if not time_str:
+        return ""
+    try:
+        parts = time_str.split(":")
+        hour = int(parts[0])
+        minute = parts[1] if len(parts) > 1 else "00"
+
+        if hour == 0:
+            return f"12:{minute}am"
+        elif hour == 12:
+            return f"12:{minute}pm"
+        elif hour > 12:
+            return f"{hour - 12}:{minute}pm"
+        else:
+            return f"{hour}:{minute}am" if minute != "00" else f"{hour}am"
+    except:
+        return time_str
+
+
 app.jinja_env.filters["schedule_compact"] = format_schedule_compact
+app.jinja_env.filters["format_time"] = format_time
 
 
 # Security Headers (Talisman)
@@ -642,16 +691,7 @@ def admin_groups():
     groups = conn.execute(
         """
         SELECT g.id, g.name, g.coach_id, g.description, g.created_at,
-               COALESCE(
-                   (SELECT GROUP_CONCAT(
-                       CASE day_of_week
-                           WHEN 0 THEN 'Mon' WHEN 1 THEN 'Tue' WHEN 2 THEN 'Wed'
-                           WHEN 3 THEN 'Thu' WHEN 4 THEN 'Fri' WHEN 5 THEN 'Sat' WHEN 6 THEN 'Sun'
-                       END || ' ' || start_time,
-                       ', '
-                   ) FROM group_schedules WHERE group_id = g.id),
-                   g.schedule
-               ) as schedule,
+               g.schedule,
                u.full_name as coach_name,
                COUNT(DISTINCT gm.family_id) as member_count
         FROM groups g

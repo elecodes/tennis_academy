@@ -82,9 +82,9 @@
             class="w-14 h-14 bg-navy text-white rounded-2xl flex items-center justify-center font-serif text-2xl font-black shadow-lg shadow-navy/20">
             {{ enrollment.kid_name[0] }}
           </div>
-          <div>
-            <h4 class="text-xl font-black text-navy leading-none mb-1">{{ enrollment.kid_name }}</h4>
-            <p class="text-[10px] font-black text-accent uppercase tracking-widest">{{ enrollment.name }}</p>
+          <div class="min-w-0">
+            <h4 class="text-lg font-black text-navy leading-tight mb-0.5">{{ enrollment.kid_name }}</h4>
+            <p class="text-[9px] font-bold text-accent uppercase tracking-wider truncate">{{ enrollment.name }}</p>
           </div>
         </div>
 

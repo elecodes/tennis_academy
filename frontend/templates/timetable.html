@@ -108,6 +108,7 @@
         <div class="p-6 md:p-8">
         <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
           {% for day_name in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+          {% set day_num = loop.index0 %}
           <div class="flex flex-col gap-4">
             <div
               class="text-[9px] font-black text-navy/20 uppercase tracking-[0.2em] text-center pb-2 border-b border-navy/5">
@@ -118,15 +119,14 @@
               {% if day_schedules %}
               {% for sched in day_schedules %}
               <div
-                class="p-4 bg-mist/50 rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
-                <div class="flex items-center justify-between mb-1">
+                class="p-3 bg-mist/50 rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
+                <div class="flex items-center justify-between mb-0.5">
                   <div class="text-[11px] font-black text-navy group-hover/entry:text-white transition-colors">
-                    {{ sched.start_time }} - {{ sched.end_time }}
+                    {{ sched.start_time|format_time }} - {{ sched.end_time|format_time }}
                   </div>
-                  <div class="text-[9px] font-bold text-navy/30 group-hover/entry:text-white/40 md:hidden uppercase tracking-widest">{{ day_name[:3] }}</div>
                 </div>
                 <div
-                  class="text-[10px] font-bold text-obsidian/40 group-hover/entry:text-white/60 uppercase tracking-tighter transition-colors">
+                  class="text-[9px] font-bold text-obsidian/40 group-hover/entry:text-white/60 uppercase tracking-tighter transition-colors">
                   {{ sched.court }}</div>
 
                 {% if session.role == 'admin' %}
