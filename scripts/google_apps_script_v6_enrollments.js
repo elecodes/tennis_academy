@@ -21,15 +21,13 @@ const DAYS_MAP = {
   "thursday": 3, "thu": 3, "friday": 4, "fri": 4, "saturday": 5, "sat": 5, "sunday": 6, "sun": 6
 };
 
+// Handle webhook POST requests
 function doPost(e) {
   try {
-    // Handle test requests or missing postData
-    if (!e || !e.postData) {
-      return createJsonResponse({ status: "success", info: "Script is active. Use POST with action=sync_all to sync." });
-    }
-    const payload = JSON.parse(e.postData.contents);
+    var contents = e.postData.contents;
+    var payload = JSON.parse(contents);
     if (payload.action === "sync_all") {
-       return createJsonResponse(syncAllData());
+      return createJsonResponse(syncAllData());
     }
     return createJsonResponse({ status: "success", info: "Action received" });
   } catch (error) {
@@ -37,10 +35,16 @@ function doPost(e) {
   }
 }
 
-// Test function for debugging
+// Test function - run this to test sync
 function testSync() {
-  const result = syncAllData();
-  Logger.log(JSON.stringify(result, null, 2));
+  try {
+    var result = syncAllData();
+    Logger.log("Sync Result: " + JSON.stringify(result));
+    return result;
+  } catch (error) {
+    Logger.log("Error: " + error.toString());
+    return { status: "error", message: error.toString() };
+  }
 }
 
 function cleanTime(val) {
