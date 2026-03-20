@@ -6,32 +6,6 @@
 {% include 'dashboard_header.html' %}
 
 <div class="max-w-7xl mx-auto px-10 pb-24">
-  <!-- Stats Row -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-    <div class="card-premium flex items-center gap-8 group">
-      <div
-        class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-navy group-hover:text-white transition-all duration-500 shadow-sm">
-        <span class="material-symbols-outlined text-3xl">groups</span>
-      </div>
-      <div>
-        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">My Groups</div>
-        <div class="text-4xl font-black text-navy">{{ stats.my_groups|length }}</div>
-      </div>
-    </div>
-
-    <div class="card-premium flex items-center gap-8 group">
-      <div
-        class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-navy group-hover:text-white transition-all duration-500 shadow-sm">
-        <span class="material-symbols-outlined text-3xl">calendar_month</span>
-      </div>
-      <div>
-        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">Sessions This Week</div>
-        <div class="text-4xl font-black text-navy">
-          {{ stats.total_sessions|default(0) }}
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Quick Actions -->
   <div class="mb-20">
