@@ -360,6 +360,17 @@ For AI agents (like Antigravity) to interact with schedules:
     -   Ensure the `DRIVE_FOLDER_ID` is a clean ID, not a URL.
     -   **Bypass**: If the agent can't find the tool, use `uv run --with google-api-python-client --with google-auth script.py` for direct access.
 
+#### 9. Direct Python Sync Script
+For syncing data directly from Google Sheets without Apps Script:
+```bash
+python3 scripts/sync_from_sheets.py
+```
+This script:
+- Connects directly to Google Sheets API
+- Syncs schedules and sessions to Turso database
+- Updates group schedule summaries automatically
+- Creates/updates enrollments based on parent emails
+
 ---
 
 ### Daily Backup Script
@@ -581,14 +592,14 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 ## Coach Dashboard (v1.14.0+)
 Simplified coach experience - no family email exposure:
 
-**Stats Shown:**
-- My Groups (count)
-- Sessions This Week (count)
+**Coach Actions:**
+- Send Message to groups
+- View Roster (student names only)
 
 **Group Cards Display:**
 - Group name
 - Schedule (compact pills: Mon 4pm, Wed 5:30pm)
-- Enrollment count (no family details)
+- Enrollment count
 
 **My Groups Page:**
 - Shows only student names

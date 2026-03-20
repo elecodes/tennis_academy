@@ -11,24 +11,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Schedule Compact Filter**: New `schedule_compact` Jinja2 filter parses schedule text into mobile-friendly pills (e.g., "Mon 4pm", "Wed 5:30pm").
 - **Time Format Filter**: New `format_time` filter converts 24h times to 12h format for display.
 - **Google Apps Script v6**: Enhanced spreadsheet sync with enrollment creation.
+- **Python Sync Script**: `scripts/sync_from_sheets.py` - Direct Google Sheets to Turso sync via API.
 
 ### Changed
 - **Mobile Schedule Display**: All views now show schedules as compact pills instead of long text strings.
 - **Timetable Fix**: Fixed undefined `day_num` variable that prevented schedule sessions from displaying correctly.
 - **Admin Groups Query**: Now uses original schedule text for consistent formatting.
-- **Coach Dashboard**: Simplified - removed families card, added sessions count, cleaner group cards.
+- **Coach Dashboard**: Simplified - removed stats cards, cleaner group cards, no family email exposure.
 - **Coach My Groups**: Shows only student names (no family emails exposed).
+- **Schedule Filter**: Fixed to correctly parse times with minutes (e.g., "4:30pm" not "4pm").
 
 ### Updated Templates
 - `family_dashboard.html` - Compact schedule pills per enrollment
 - `admin/groups.html` - Schedule pills with accent color badges
 - `coach/my_groups.html` - Compact schedule display, student-only list
-- `coach_dashboard.html` - Mobile-friendly group cards, sessions stat
+- `coach_dashboard.html` - Groups only, no stats cards
 - `family/enrollments.html` - Indigo-colored schedule pills
-- `timetable.html` - 12h time format with compact session cards
+- `timetable.html` - 12h time format, single time display
 
 ### New Scripts
-- `scripts/google_apps_script_v6_enrollments.js` - Sync with enrollment creation
+- `scripts/google_apps_script_v6_enrollments.js` - Apps Script with enrollment sync
+- `scripts/sync_from_sheets.py` - Python script for direct Sheets API sync
+
+### New Files
+- `google-sheets-key.json` - Service account credentials (gitignored)
+- `mcp_config.json` - MCP server configuration
 
 ## [1.13.0] - 2026-03-17
 
