@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0] - 2026-03-20
+
+### Added
+- **Schedule Compact Filter**: New `schedule_compact` Jinja2 filter parses schedule text into mobile-friendly pills (e.g., "Mon 4pm", "Wed 5:30pm").
+- **Time Format Filter**: New `format_time` filter converts 24h times to 12h format for display.
+
+### Changed
+- **Mobile Schedule Display**: All views now show schedules as compact pills instead of long text strings.
+- **Timetable Fix**: Fixed undefined `day_num` variable that prevented schedule sessions from displaying correctly.
+- **Admin Groups Query**: Now uses original schedule text for consistent formatting.
+
+### Updated Templates
+- `family_dashboard.html` - Compact schedule pills per enrollment
+- `admin/groups.html` - Schedule pills with accent color badges
+- `coach/my_groups.html` - Compact schedule display
+- `coach_dashboard.html` - Mobile-friendly group cards
+- `family/enrollments.html` - Indigo-colored schedule pills
+- `timetable.html` - 12h time format with compact session cards
+
 ## [1.13.0] - 2026-03-17
 
 ### Added

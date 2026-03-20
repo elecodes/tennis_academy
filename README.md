@@ -15,6 +15,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - **Premium Centered Layout** - Elegant, focused experience using `max-w-7xl mx-auto` containers
 - **Custom Modal System** - Reliable, vanilla JS interactions for all record creation (no Bootstrap JS dependencies)
 - **Responsive design** - Optimized for mobile, tablet, and high-res desktops
+- **Mobile-friendly schedule display** - Compact day/time pills (e.g., "Mon 4pm", "Wed 5:30pm")
 
 ### Message Types
 - Rain cancellations (urgent)
@@ -194,6 +195,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-020](docs/ADR-020:%20Structured%20Schedule%20Migration%20&%20Enhanced%20Sync%20Robustness.md)** - Structured Schedule Migration & Enhanced Sync Robustness
 - **[ADR-021](docs/ADR-021:%20Agent%20Persistent%20Memory%20with%20Engram.md)** - Agent Persistent Memory with Engram
 - **[ADR-022](docs/ADR-022:%20Mobile%20UI%20Refinements%20and%20Space%20Optimization.md)** - Mobile UI Refinements
+- **[ADR-023](docs/ADR-023:%20Mobile%20Schedule%20Display%20Improvements.md)** - Mobile Schedule Pills
 - **[MCP Configuration](docs/mcp-configuration.md)** - Google Sheets Agent Integration
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
@@ -376,8 +378,8 @@ MIT License - Free to use and modify!
 🔜 Calendar View:   Coming soon
 ```
 
-**Last Updated**: 2026-03-17
-**Version**: 1.13.0
+**Last Updated**: 2026-03-20
+**Version**: 1.14.0
 **Status**: Production Ready ✅
 
 ---

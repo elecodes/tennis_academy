@@ -127,6 +127,23 @@ As of Feb 2026, the application follows a **Premium Centered Layout** (`max-w-7x
    - **Timetables**: Use horizontal day selector and vertical group accordions on mobile viewports.
    - **Density**: Prefer clean headers; hide low-priority fields like "Capacity" on mobile to reclaim space for time/date.
    - **Typography**: Maintain large touch targets (min 44x44px) for all buttons and interactive elements.
+   - **Schedule Display**: Use compact pills like "Mon 4pm", "Wed 5:30pm" instead of long strings.
+
+### Schedule Formatting Filters
+The app provides Jinja2 filters for consistent schedule display:
+
+| Filter | Purpose | Example |
+|--------|---------|---------|
+| `schedule_compact` | Parse schedule text to compact pills | `"Mon 4pm", "Wed 5:30pm"` |
+| `format_time` | Convert 24h to 12h format | `"16:00"` → `"4pm"` |
+
+Used in:
+- `family_dashboard.html` - Enrollments section
+- `admin/groups.html` - Groups table
+- `coach/my_groups.html` - Coach's groups
+- `coach_dashboard.html` - Active groups
+- `family/enrollments.html` - Enrollment cards
+- `timetable.html` - Session time cards
 
 ### Working with Modals
 To add a new modal:
@@ -556,5 +573,5 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-03-17
-**Version**: 1.13.0
+**Last Updated**: 2026-03-20
+**Version**: 1.14.0
