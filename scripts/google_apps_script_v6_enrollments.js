@@ -23,6 +23,10 @@ const DAYS_MAP = {
 
 function doPost(e) {
   try {
+    // Handle test requests or missing postData
+    if (!e || !e.postData) {
+      return createJsonResponse({ status: "success", info: "Script is active. Use POST with action=sync_all to sync." });
+    }
     const payload = JSON.parse(e.postData.contents);
     if (payload.action === "sync_all") {
        return createJsonResponse(syncAllData());
@@ -31,6 +35,12 @@ function doPost(e) {
   } catch (error) {
     return createJsonResponse({ status: "error", message: error.toString() }, 400);
   }
+}
+
+// Test function for debugging
+function testSync() {
+  const result = syncAllData();
+  Logger.log(JSON.stringify(result, null, 2));
 }
 
 function cleanTime(val) {
