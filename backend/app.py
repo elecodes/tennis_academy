@@ -249,13 +249,23 @@ def init_db():
             group_id INTEGER NOT NULL,
             family_id INTEGER NOT NULL,
             kid_name TEXT NOT NULL,
+            schedule_id INTEGER,
             enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
             FOREIGN KEY (family_id) REFERENCES users (id) ON DELETE CASCADE,
-            UNIQUE(group_id, family_id, kid_name)
+            FOREIGN KEY (schedule_id) REFERENCES group_schedules (id) ON DELETE SET NULL,
+            UNIQUE(group_id, family_id, kid_name, schedule_id)
         )
     """
     )
+
+    # Add schedule_id column if it doesn't exist (for existing databases)
+    cursor.execute("PRAGMA table_info(group_members)")
+    columns = [col[1] for col in cursor.fetchall()]
+    if "schedule_id" not in columns:
+        cursor.execute(
+            "ALTER TABLE group_members ADD COLUMN schedule_id INTEGER REFERENCES group_schedules(id) ON DELETE SET NULL"
+        )
 
     # Messages table
     cursor.execute(
@@ -850,6 +860,11 @@ def admin_repair_timetable():
                 continue
 
             # Clear existing structured schedules for this group
+            # First, clear schedule_id references to avoid FK constraint
+            conn.execute(
+                "UPDATE group_members SET schedule_id = NULL WHERE group_id = ? AND schedule_id IN (SELECT id FROM group_schedules WHERE group_id = ?)",
+                (group["id"], group["id"]),
+            )
             conn.execute(
                 "DELETE FROM group_schedules WHERE group_id = ?", (group["id"],)
             )
@@ -1063,6 +1078,7 @@ def admin_send_message():
             subject = request.form.get("subject", "").strip()
             content = request.form.get("content", "").strip()
             group_id = request.form.get("group_id")
+            schedule_id = request.form.get("schedule_id")
             is_general = 1 if request.form.get("is_general") else 0
 
             # Validation
@@ -1097,14 +1113,25 @@ def admin_send_message():
                 ).fetchall()
                 is_general = 1  # Force general if group_id is missing
             else:
-                recipients = conn.execute(
-                    """
-                    SELECT DISTINCT u.id, u.email FROM users u
-                    JOIN group_members gm ON u.id = gm.family_id
-                    WHERE gm.group_id = ? AND u.is_active = 1
-                """,
-                    (group_id,),
-                ).fetchall()
+                # Filter by specific schedule slot if provided
+                if schedule_id:
+                    recipients = conn.execute(
+                        """
+                        SELECT DISTINCT u.id, u.email FROM users u
+                        JOIN group_members gm ON u.id = gm.family_id
+                        WHERE gm.group_id = ? AND gm.schedule_id = ? AND u.is_active = 1
+                    """,
+                        (group_id, schedule_id),
+                    ).fetchall()
+                else:
+                    recipients = conn.execute(
+                        """
+                        SELECT DISTINCT u.id, u.email FROM users u
+                        JOIN group_members gm ON u.id = gm.family_id
+                        WHERE gm.group_id = ? AND u.is_active = 1
+                    """,
+                        (group_id,),
+                    ).fetchall()
 
             if not recipients:
                 flash(
@@ -1167,7 +1194,16 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
 
             return redirect(url_for("dashboard"))
 
-        groups = conn.execute("SELECT id, name FROM groups ORDER BY name").fetchall()
+        # Fetch groups with their schedules for the dropdown
+        groups = conn.execute(
+            """
+            SELECT g.id as group_id, g.name as group_name,
+                   gs.id as schedule_id, gs.day_of_week, gs.start_time, gs.end_time, gs.court
+            FROM groups g
+            LEFT JOIN group_schedules gs ON g.id = gs.group_id
+            ORDER BY g.name, gs.day_of_week, gs.start_time
+            """
+        ).fetchall()
         return render_template("admin/send_message.html", groups=groups)
 
     except Exception as e:

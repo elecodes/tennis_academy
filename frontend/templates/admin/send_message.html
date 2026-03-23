@@ -39,12 +39,19 @@
 
         <div class="space-y-3">
           <label class="text-xs font-black text-accent uppercase tracking-[0.2em] ml-4">Target Audience</label>
-          <select id="group_id" name="group_id" class="form-input text-lg py-4 border-dashed">
+          <select id="group_id" name="group_id" class="form-input text-lg py-4 border-dashed" required>
             <option value="">-- All Club Families --</option>
             {% for group in groups %}
-            <option value="{{ group.id }}">{{ group.name }}</option>
+              {% if group.schedule_id %}
+                <option value="{{ group.group_id }}" data-schedule-id="{{ group.schedule_id }}">
+                  {{ group.group_name }} — {{ ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][group.day_of_week] }} {{ group.start_time }}
+                </option>
+              {% else %}
+                <option value="{{ group.group_id }}">{{ group.group_name }}</option>
+              {% endif %}
             {% endfor %}
           </select>
+          <input type="hidden" name="schedule_id" id="schedule_id" value="">
         </div>
       </div>
 
@@ -101,6 +108,16 @@
     const contentTextarea = document.getElementById('content');
     const subjectInput = document.querySelector('input[name="subject"]');
     const messageTypeSelect = document.getElementById('message_type');
+    const groupSelect = document.getElementById('group_id');
+    const scheduleIdInput = document.getElementById('schedule_id');
+
+    // Update hidden schedule_id when group selection changes
+    if (groupSelect && scheduleIdInput) {
+      groupSelect.addEventListener('change', () => {
+        const selectedOption = groupSelect.options[groupSelect.selectedIndex];
+        scheduleIdInput.value = selectedOption.dataset.scheduleId || '';
+      });
+    }
 
     if (magicBtn && contentTextarea && subjectInput && messageTypeSelect) {
       magicBtn.addEventListener('click', async () => {
