@@ -36,44 +36,50 @@
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-left premium-table">
+        <colgroup>
+          <col class="w-1/6">
+          <col class="w-1/6">
+          <col class="w-1/2">
+          <col class="w-1/6">
+        </colgroup>
         <thead>
           <tr class="text-xs font-bold text-accent uppercase tracking-widest">
-            <th class="px-8 py-5">Group Name</th>
-            <th class="px-8 py-5">Assignee</th>
-            <th class="px-8 py-5">Schedule</th>
-            <th class="px-8 py-5 text-right">Actions</th>
+            <th class="px-6 py-5">Group</th>
+            <th class="px-6 py-5">Coach</th>
+            <th class="px-6 py-5">Schedule</th>
+            <th class="px-6 py-5 text-right">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-navy/5">
           {% if groups %}
           {% for group in groups %}
           <tr class="hover:bg-navy/[0.02] transition-colors">
-            <td class="px-8 py-6">
-              <div class="flex items-center gap-4">
-                <div
-                  class="w-10 h-10 rounded-xl bg-accent/5 flex items-center justify-center text-accent border border-accent/10">
-                  <span class="material-symbols-outlined text-xl">sports_tennis</span>
-                </div>
-                <span class="font-bold text-navy leading-tight">{{ group.name }}</span>
-              </div>
-            </td>
-            <td class="px-8 py-6">
+            <td class="px-6 py-5">
               <div class="flex items-center gap-3">
                 <div
-                  class="w-8 h-8 rounded-full bg-navy/5 flex items-center justify-center text-[10px] font-black text-navy">
-                  {{ (group.coach_name or 'UN')[:2].upper() }}
+                  class="w-8 h-8 rounded-lg bg-accent/5 flex items-center justify-center text-accent border border-accent/10">
+                  <span class="material-symbols-outlined text-sm">sports_tennis</span>
                 </div>
-                <span class="text-sm font-semibold text-obsidian/70">{{ group.coach_name or 'Unassigned' }}</span>
+                <span class="font-semibold text-navy text-sm leading-tight">{{ group.name }}</span>
               </div>
             </td>
-            <td class="px-8 py-6">
+            <td class="px-6 py-5">
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-6 h-6 rounded-full bg-navy/5 flex items-center justify-center text-[8px] font-black text-navy">
+                  {{ (group.coach_name or 'UN')[:2].upper() }}
+                </div>
+                <span class="text-xs font-medium text-obsidian/70">{{ group.coach_name or 'Unassigned' }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-5">
               <div class="flex flex-wrap gap-1.5">
                 {% for slot in group.schedule|schedule_compact %}
                 <span class="text-xs font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-lg border border-accent/10">{{ slot }}</span>
                 {% endfor %}
               </div>
             </td>
-            <td class="px-8 py-6 text-right">
+            <td class="px-6 py-5 text-right">
               <div class="flex items-center justify-end gap-2">
                 <button
                   class="w-8 h-8 rounded-lg bg-navy/5 text-navy hover:bg-navy hover:text-white transition-all flex items-center justify-center edit-group-btn"
@@ -94,7 +100,7 @@
           {% endfor %}
           {% else %}
           <tr>
-            <td colspan="4" class="px-8 py-20 text-center">
+            <td colspan="4" class="px-6 py-20 text-center">
               <div class="flex flex-col items-center gap-4 opacity-20">
                 <span class="material-symbols-outlined text-6xl">layers_clear</span>
                 <p class="font-black uppercase tracking-[0.3em] text-xs">No groups configured</p>

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- **Coach Dashboard Styling**: Improved roster card readability with darker schedule slot headers, removed member count badge from card headers
+- **Admin Manage Groups Table**: Adjusted column widths - smaller Group column, wider Schedule column for better readability
+
 ## [1.15.0] - 2026-03-23
 
 ### Added
