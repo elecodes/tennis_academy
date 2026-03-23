@@ -131,7 +131,7 @@ The app will be available at: **http://localhost:5001**
 3. Create Groups: Admin Panel → Groups → Add Group
 4. Assign Coach: Select coach when creating group
 5. Enroll Kids: Admin Panel → Enrollments → Add Enrollment
-6. Send Messages: Admin Panel → Send Message → Select recipients → Send
+6. Send Messages: Admin Panel → Broadcast → Select group or specific schedule slot → Send
 7. View Schedules: Dashboard → View Weekly Schedules
 ```
 

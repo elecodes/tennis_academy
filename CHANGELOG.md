@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Schedule-Specific Messaging**: Admin can now send messages to specific schedule slots (e.g., "Beginners — Mon 5:15pm") instead of entire groups. Dropdown shows each time slot separately.
+
 ### Changed
 - **Coach Dashboard Styling**: Improved roster card readability with darker schedule slot headers, removed member count badge from card headers
 - **Admin Manage Groups Table**: Adjusted column widths - smaller Group column, wider Schedule column for better readability
+- **Admin Dashboard**: Removed "System Health: Optimal" card from statistics snapshot
 
 ## [1.15.0] - 2026-03-23
 

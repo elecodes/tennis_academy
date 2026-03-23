@@ -504,13 +504,15 @@ sqlite3 academy.db ".mode csv" ".headers on" \
 As COACH:
 1. Dashboard → Send Message
 2. Message Type: announcement (or rain_cancellation, coach_delay)
-3. Group: Your group
+3. Group: Select your group (or specific schedule slot)
 4. Subject: "Session Update"
 5. Content: Your message
 6. Send
 
 ✅ All families get email immediately
 ```
+
+**Schedule-Specific Messaging (Admin)**: Admins can target messages to specific time slots like "Beginners — Mon 5:15pm" instead of the entire group. Select the desired slot from the dropdown when sending.
 
 ---
 
