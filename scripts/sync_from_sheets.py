@@ -109,32 +109,75 @@ def get_or_create_group(group_name, coach_id):
     return int(result["results"][0]["response"]["result"]["rows"][0][0]["value"])
 
 
-def get_or_create_family(email, name):
-    """Find or create a family user"""
-    if not email or "@" not in email:
-        return None
+def get_or_create_family(email, name, phone=None, kid_name=None):
+    """Find or create a family user by email, name, or kid_name"""
+    family_id = None
 
-    result = turso_query(
-        "SELECT id FROM users WHERE email = ?", [{"type": "text", "value": email}]
-    )
-    rows = result["results"][0]["response"]["result"]["rows"]
-    if rows:
-        return int(rows[0][0]["value"])
+    # Try email first if available
+    if email and "@" in email:
+        result = turso_query(
+            "SELECT id FROM users WHERE email = ?", [{"type": "text", "value": email}]
+        )
+        rows = result["results"][0]["response"]["result"]["rows"]
+        if rows:
+            return int(rows[0][0]["value"])
 
-    # Create new family
-    family_name = name if name else "Family"
-    turso_query(
-        "INSERT INTO users (email, full_name, role, password) VALUES (?, ?, 'family', 'temp')",
-        [{"type": "text", "value": email}, {"type": "text", "value": family_name}],
-    )
-    result = turso_query("SELECT last_insert_rowid()")
-    return int(result["results"][0]["response"]["result"]["rows"][0][0]["value"])
+    # Try name if email didn't work
+    lookup_name = name if name else kid_name
+    if lookup_name:
+        # Normalize name for lookup
+        normalized_name = lookup_name.strip().lower()
+        result = turso_query(
+            "SELECT id FROM users WHERE LOWER(full_name) = ? AND role = 'family'",
+            [{"type": "text", "value": normalized_name}],
+        )
+        rows = result["results"][0]["response"]["result"]["rows"]
+        if rows:
+            return int(rows[0][0]["value"])
+
+        # Create new family using name as identifier
+        family_name = lookup_name.strip()
+        family_email = (
+            email
+            if email and "@" in email
+            else f"{normalized_name.replace(' ', '.').replace('&', 'and').replace('@', '')}@tennis.local"
+        )
+
+        result = turso_query(
+            "INSERT INTO users (email, full_name, role, password, phone) VALUES (?, ?, 'family', 'sync123', ?)",
+            [
+                {"type": "text", "value": family_email},
+                {"type": "text", "value": family_name},
+                {"type": "text", "value": phone}
+                if phone
+                else {"type": "null", "value": None},
+            ],
+        )
+        result = turso_query("SELECT last_insert_rowid()")
+        return int(result["results"][0]["response"]["result"]["rows"][0][0]["value"])
+
+    return None
 
 
 def add_schedule(group_id, day_of_week, start_time, coach_id):
-    """Add a session schedule"""
+    """Add a session schedule if it doesn't already exist"""
     if not coach_id:
         return
+    # Check if schedule already exists
+    normalized_time = (
+        start_time.lower().replace(" ", "").replace(":00", "").replace(":", "")
+    )
+    result = turso_query(
+        "SELECT id FROM group_schedules WHERE group_id = ? AND day_of_week = ? AND start_time = ?",
+        [
+            {"type": "integer", "value": str(group_id)},
+            {"type": "integer", "value": str(day_of_week)},
+            {"type": "text", "value": start_time},
+        ],
+    )
+    rows = result["results"][0]["response"]["result"]["rows"]
+    if rows:
+        return  # Already exists, don't duplicate
     turso_query(
         "INSERT INTO group_schedules (group_id, day_of_week, start_time, end_time, court) VALUES (?, ?, ?, ?, 'Court 1')",
         [
@@ -146,22 +189,57 @@ def add_schedule(group_id, day_of_week, start_time, coach_id):
     )
 
 
-def add_enrollment(group_id, family_id, kid_name):
-    """Add enrollment"""
-    if not family_id or not kid_name:
-        return
-    turso_query(
-        "INSERT OR IGNORE INTO group_members (group_id, family_id, kid_name) VALUES (?, ?, ?)",
+def get_schedule_id(group_id, day_of_week, start_time):
+    """Find schedule ID by group, day, and time"""
+    # Normalize time for comparison
+    normalized_time = (
+        start_time.lower().replace(" ", "").replace(":00", "").replace(":", "")
+    )
+    result = turso_query(
+        "SELECT id, start_time FROM group_schedules WHERE group_id = ? AND day_of_week = ?",
         [
             {"type": "integer", "value": str(group_id)},
-            {"type": "integer", "value": str(family_id)},
-            {"type": "text", "value": kid_name},
+            {"type": "integer", "value": str(day_of_week)},
         ],
     )
+    rows = result["results"][0]["response"]["result"]["rows"]
+    for row in rows:
+        sched_time = (
+            row[1]["value"].lower().replace(" ", "").replace(":00", "").replace(":", "")
+        )
+        if sched_time == normalized_time:
+            return int(row[0]["value"])
+    # No exact match found
+    return None
+
+
+def add_enrollment(group_id, family_id, kid_name, schedule_id=None):
+    """Add enrollment with optional schedule_id"""
+    if not family_id or not kid_name:
+        return
+    if schedule_id:
+        turso_query(
+            "INSERT OR IGNORE INTO group_members (group_id, family_id, kid_name, schedule_id) VALUES (?, ?, ?, ?)",
+            [
+                {"type": "integer", "value": str(group_id)},
+                {"type": "integer", "value": str(family_id)},
+                {"type": "text", "value": kid_name},
+                {"type": "integer", "value": str(schedule_id)},
+            ],
+        )
+    else:
+        turso_query(
+            "INSERT OR IGNORE INTO group_members (group_id, family_id, kid_name) VALUES (?, ?, ?)",
+            [
+                {"type": "integer", "value": str(group_id)},
+                {"type": "integer", "value": str(family_id)},
+                {"type": "text", "value": kid_name},
+            ],
+        )
 
 
 def clean_time(time_str):
-    """Clean time string to h:mm am/pm format"""
+    """Clean time string to h:mm am/pm format (12-hour)"""
     if not time_str:
         return ""
     time_str = str(time_str).strip().lower()
@@ -175,6 +253,7 @@ def clean_time(time_str):
     if match:
         hour = int(match.group(1))
         minute = match.group(2)
+        # Convert 24-hour to 12-hour
         if hour >= 12:
             period = "pm"
             if hour > 12:
@@ -297,45 +376,88 @@ def sync():
 
             values = result.get("values", [])
 
+            # Track current slot context (for continuation rows)
+            current_time = None
+            current_coach = None
+            current_group = None
+            current_coach_id = None
+            current_group_id = None
+            current_schedule_id = None
+
             for i, row in enumerate(values):
                 if i == 0:  # Skip header
                     continue
-                if not row or len(row) < 4:
+                if not row:
                     continue
 
-                time = clean_time(row[0] if len(row) > 0 else "")
-                coach_name = str(row[1]).strip() if len(row) > 1 else ""
-                group_name = str(row[2]).strip() if len(row) > 2 else ""
-                kid_name = str(row[3]).strip() if len(row) > 3 else ""
-                parent_email = str(row[8]).strip() if len(row) > 8 else ""
+                raw_time = row[0] if len(row) > 0 else ""
+                raw_coach = row[1] if len(row) > 1 else ""
+                raw_group = row[2] if len(row) > 2 else ""
+                raw_kid = row[3] if len(row) > 3 else ""
 
-                # Skip empty/header rows
-                if not time or "time" in time.lower() or not group_name:
-                    continue
-                if not coach_name:
-                    continue
+                time = clean_time(raw_time) if raw_time else ""
+                coach_name = str(raw_coach).strip() if raw_coach else ""
+                group_name = str(raw_group).strip() if raw_group else ""
+                kid_name = str(raw_kid).strip() if raw_kid else ""
+                parent_name = str(row[7]).strip() if len(row) > 7 and row[7] else ""
+                parent_email = str(row[8]).strip() if len(row) > 8 and row[8] else ""
+                parent_phone = str(row[9]).strip() if len(row) > 9 and row[9] else ""
 
-                print(f"  {time} | {coach_name} | {group_name} | {kid_name}")
-
-                # Get coach
-                coach_id = get_coach_id(coach_name)
-                if not coach_id:
-                    print(f"    ⚠️ Coach '{coach_name}' not found!")
+                # Skip header rows (don't update context!)
+                if "time" in time.lower() or "coach" in coach_name.lower():
                     continue
 
-                # Get/create group
-                group_id = get_or_create_group(group_name, coach_id)
+                # Skip rows with no meaningful data
+                if not time and not coach_name and not group_name and not kid_name:
+                    continue
 
-                # Add schedule
-                add_schedule(group_id, day_num, time, coach_id)
-                total_sessions += 1
+                # If this row has new time/coach/group, update context
+                if time and coach_name and group_name:
+                    current_time = time
+                    current_coach = coach_name
+                    current_group = group_name
 
-                # Add enrollment if we have kid and parent info
-                if kid_name and parent_email:
-                    family_id = get_or_create_family(parent_email, kid_name)
-                    if family_id:
-                        add_enrollment(group_id, family_id, kid_name)
-                        total_enrollments += 1
+                    # Get coach and group IDs
+                    current_coach_id = get_coach_id(current_coach)
+                    if current_coach_id:
+                        current_group_id = get_or_create_group(
+                            current_group, current_coach_id
+                        )
+                        # Add schedule
+                        add_schedule(
+                            current_group_id, day_num, current_time, current_coach_id
+                        )
+                        total_sessions += 1
+                        # Get schedule_id
+                        current_schedule_id = get_schedule_id(
+                            current_group_id, day_num, current_time
+                        )
+
+                # Skip if no kid name
+                if not kid_name:
+                    continue
+
+                # Only add enrollment if this row has an explicit group (not a continuation row)
+                if not group_name:
+                    continue  # Skip continuation rows with kids but no group indicator
+
+                # Skip if coach not found
+                if not current_coach_id:
+                    continue
+
+                print(
+                    f"  {current_time} | {current_coach} | {current_group} | {kid_name}"
+                )
+
+                # Add enrollment with schedule_id
+                family_id = get_or_create_family(
+                    parent_email, parent_name or kid_name, parent_phone
+                )
+                if family_id:
+                    add_enrollment(
+                        current_group_id, family_id, kid_name, current_schedule_id
+                    )
+                    total_enrollments += 1
 
         except Exception as e:
             print(f"  ❌ Error reading {day_name}: {e}")

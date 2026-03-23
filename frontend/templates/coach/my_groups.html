@@ -14,6 +14,8 @@
   {% if groups %}
   <div class="space-y-12">
     {% for group in groups %}
+    {% set total_count = namespace(count=0) %}
+    
     <div class="card-premium border border-navy/10 shadow-2xl p-0 overflow-hidden bg-white">
       <div class="bg-navy p-8 text-white">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -35,25 +37,70 @@
           </div>
           <div class="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full whitespace-nowrap">
             <span class="material-symbols-rounded text-emerald-400">group</span>
-            <span class="font-semibold">{{ group_members[group.id]|length }} Members</span>
+            <span class="font-semibold">{{ group.member_count }} Member{{ 's' if group.member_count != 1 else '' }}</span>
           </div>
         </div>
       </div>
 
       <div class="p-8">
-        {% if group_members[group.id] %}
-        <div class="space-y-3">
-          <h3 class="text-sm font-bold text-navy/40 uppercase tracking-wider mb-4">Students</h3>
-          {% for member in group_members[group.id] %}
-          <div class="flex items-center justify-between p-4 bg-navy/5 rounded-xl">
-            <div class="flex items-center gap-4">
-              <div class="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
-                <span class="material-symbols-rounded text-accent">{{ member.kid_name[0]|upper }}</span>
+        {% set ns = namespace(any_student=false) %}
+        {% for sched in group_schedules[group.id] %}
+          {% if group_members[group.id][sched.id] %}
+            {% set ns.any_student = true %}
+          {% endif %}
+        {% endfor %}
+        {% if group_members[group.id][None] %}
+          {% set ns.any_student = true %}
+        {% endif %}
+        
+        {% if ns.any_student %}
+        <div class="space-y-6">
+          {% for sched in group_schedules[group.id] %}
+            {% if group_members[group.id][sched.id] %}
+            <div class="border border-navy/10 rounded-xl overflow-hidden">
+              <div class="bg-emerald-50 px-4 py-2 border-b border-emerald-100">
+                <span class="font-semibold text-emerald-700">{{ sched.label }}</span>
+                <span class="text-emerald-500 text-sm ml-2">({{ group_members[group.id][sched.id]|length }} student{{ 's' if group_members[group.id][sched.id]|length != 1 else '' }})</span>
               </div>
-              <span class="font-semibold text-navy">{{ member.kid_name }}</span>
+              <div class="divide-y divide-navy/5">
+                {% for member in group_members[group.id][sched.id] %}
+                <div class="flex items-center justify-between p-4 hover:bg-navy/5 transition-colors">
+                  <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
+                      <span class="material-symbols-rounded text-accent font-bold">{{ member.kid_name[0]|upper }}</span>
+                    </div>
+                    <div>
+                      <span class="font-semibold text-navy">{{ member.kid_name }}</span>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
             </div>
-          </div>
+            {% endif %}
           {% endfor %}
+          
+          {# Show unscheduled members #}
+          {% if group_members[group.id][None] %}
+            <div class="border border-navy/10 rounded-xl overflow-hidden">
+              <div class="bg-navy/5 px-4 py-2 border-b border-navy/10">
+                <span class="font-semibold text-navy/70">Unscheduled</span>
+                <span class="text-navy/50 text-sm ml-2">({{ group_members[group.id][None]|length }} student{{ 's' if group_members[group.id][None]|length != 1 else '' }})</span>
+              </div>
+              <div class="divide-y divide-navy/5">
+                {% for member in group_members[group.id][None] %}
+                <div class="flex items-center justify-between p-4 hover:bg-navy/5 transition-colors">
+                  <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
+                      <span class="material-symbols-rounded text-accent font-bold">{{ member.kid_name[0]|upper }}</span>
+                    </div>
+                    <span class="font-semibold text-navy">{{ member.kid_name }}</span>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
         </div>
         {% else %}
         <div class="flex flex-col items-center justify-center py-12 text-navy/40">

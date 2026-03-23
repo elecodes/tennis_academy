@@ -2,109 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.15.0] - 2026-03-23
+
+### Added
+- **Coach Dashboard Roster by Schedule**: Students now appear grouped by their specific schedule slot. Each time slot shows which kids are enrolled at that time.
+- **Spreadsheet Sync Continuation Rows**: Sync script now properly handles continuation rows where time/coach/group columns are empty but kid names are listed.
+- **Time Normalization**: Fixed time format handling to prevent duplicate schedule entries from different time formats (e.g., "4:00pm" vs "4:00:00pm").
+
+### Changed
+- **Coach My Groups Page**: Students are now displayed under their specific schedule slot instead of all together in a flat list.
+- **Removed UNIQUE Constraint**: `group_members` table no longer prevents duplicate kid entries in the same group, allowing the same kid to attend multiple slots.
+
+### Technical Details
+- Added `schedule_id` column to `group_members` table to track which schedule slot each enrollment belongs to
+- Updated sync script to track and maintain the kid → schedule association
+- Fixed time normalization to convert all times to 12-hour format consistently
 
 ## [1.14.0] - 2026-03-20
 
 ### Added
-- **Schedule Compact Filter**: New `schedule_compact` Jinja2 filter parses schedule text into mobile-friendly pills (e.g., "Mon 4pm", "Wed 5:30pm").
-- **Time Format Filter**: New `format_time` filter converts 24h times to 12h format for display.
-- **Google Apps Script v6**: Enhanced spreadsheet sync with enrollment creation.
-- **Python Sync Script**: `scripts/sync_from_sheets.py` - Direct Google Sheets to Turso sync via API.
+- Mobile schedule display with compact day/time pills
+- Simplified coach dashboard (removed families card)
+- Google Sheets MCP configuration
+- Google Apps Script v6 with enrollment sync
 
 ### Changed
-- **Mobile Schedule Display**: All views now show schedules as compact pills instead of long text strings.
-- **Timetable Fix**: Fixed undefined `day_num` variable that prevented schedule sessions from displaying correctly.
-- **Admin Groups Query**: Now uses original schedule text for consistent formatting.
-- **Coach Dashboard**: Simplified - removed stats cards, cleaner group cards, no family email exposure.
-- **Coach My Groups**: Shows only student names (no family emails exposed).
-- **Schedule Filter**: Fixed to correctly parse times with minutes (e.g., "4:30pm" not "4pm").
-
-### Updated Templates
-- `family_dashboard.html` - Compact schedule pills per enrollment
-- `admin/groups.html` - Schedule pills with accent color badges
-- `coach/my_groups.html` - Compact schedule display, student-only list
-- `coach_dashboard.html` - Groups only, no stats cards
-- `family/enrollments.html` - Indigo-colored schedule pills
-- `timetable.html` - 12h time format, single time display
-
-### New Scripts
-- `scripts/google_apps_script_v6_enrollments.js` - Apps Script with enrollment sync
-- `scripts/sync_from_sheets.py` - Python script for direct Sheets API sync
-
-### New Files
-- `google-sheets-key.json` - Service account credentials (gitignored)
-- `mcp_config.json` - MCP server configuration
+- Mobile-friendly schedule display
+- Coach dashboard shows only groups and sessions
+- Improved duplicate schedule detection and prevention
 
 ## [1.13.0] - 2026-03-17
 
 ### Added
-- **ADR-022**: Documented Mobile UI Refinements and Space Optimization.
+- Sentry error tracking integration
+- Turso cloud database with custom HTTP connector
 
 ### Changed
-- **Timetable UI**: Hidden "Cohort Size" (Capacity) and optimized session time display for mobile readability.
-- **Admin Groups**: Removed "Capacity" column from Groups management for a cleaner interface.
-- **Project Version**: Bumped to v1.13.0 across documentation.
+- One-way schedule sync architecture
+- GitHub Actions CI/CD pipeline
 
-## [1.12.5] - 2026-03-15
-
-### Added
-- **ADR-021**: Documented Agent Persistent Memory integration via Engram MCP.
-- **Agentic Workflow**: Added Section 8 to PLAYBOOK.md for Engram session management.
-
-### Changed
-- **Documentation Sync**: Updated README, Playbook, and ADRs (019, 020) to reflect the latest production state.
-- **Project Version**: Bumped to v1.12.5 across all documents.
-
-## [1.12.4] - 2026-03-14
-
-### Added
-- **Migration Script**: Added `backend/migrate_schedules.py` to automate parsing text-based schedules into structured `group_schedules` table records.
-
-### Improved
-- **Google Apps Script Sync**: Enhanced `syncDataToTurso` with explicit sheet filtering (scans only Day-named or "data" sheets).
-- **Sync Robustness**: Added safety checks for empty sheets and improved error logging for batch operations.
-- **Admin Visibility**: The "Sync Sheets" feedback now reports the responding script version for better maintainability.
-
-## [1.12.3] - 2026-03-14
-
-## [1.12.2] - 2026-03-12
-
-### Added
-- **Google Sheets MCP Integration**: Full configuration of `mcp-google-sheets` server with standardized environment variables.
-- **Environment Standardization**: Implemented `GOOGLE_APPLICATION_CREDENTIALS` support in MCP configuration.
-- **Improved Spreadsheet Sync Observability**: Bypassed agent-level discovery issues with direct credential validation logic.
-
-## [1.12.1] - 2026-03-11
-
-### Fixed
-- **Overlapping Sessions**: Resolved issue where same-time lessons with different coaches were hidden.
-- **Duplicate Group Names**: Groups with the same name (e.g., "Private") are now correctly distinguished by Coach ID.
-- **Spreadsheet Sync**: Fixed session wiping bug where multiple daily sessions for the same group would overwrite each other.
-
-## [1.12.0] - 2026-03-11
-
-### Added
-- **Admin Dashboard Tools**: New "Sync Sheets" and "Repair Timetable" buttons in the Manage Groups interface.
-- **Manual Sync Webhook**: Backend route `/admin/sync-spreadsheet` to trigger Google Apps Script sync remotely.
-- **Timetable Repair Logic**: Backend route `/admin/repair-timetable` to rebuild structured sessions from text schedules.
-- **Improved Logging**: Enhanced Google Apps Script error reporting for batch SQL executions.
-
-### Fixed
-- **Spreadsheet Sync reliability**: Improved error handling in `executeBatch` to prevent silent failures.
-- **Linting**: Resolved multiple linting errors across `app.py`, `magic_draft.py`, and test files.
-- **CI Pipeline**: Fixed character limit and line length issues in `app.py` that were breaking pre-commit hooks.
-
-### Changed
-- **Group Editing**: Updated Group edit form to include a note about using the Repair Timetable tool after schedule text updates.
-
-## [1.11.1] - 2026-03-05
-
-### Added
-- **Sentry Integration**: Added error tracking and monitoring.
-- **Security Headers**: Implemented `flask-talisman` for improved security.
-
-### Changed
-- **Premium UI**: Migrated to a centered layout for better readability on large screens.
-- **Turso Cloud**: Completed migration to Turso Edge database.
+## Previous Versions
+See git history for earlier changelog entries.

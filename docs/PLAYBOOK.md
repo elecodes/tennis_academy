@@ -584,25 +584,31 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-03-20
-**Version**: 1.14.0
+**Last Updated**: 2026-03-23
+**Version**: 1.15.0
 
 ---
 
-## Coach Dashboard (v1.14.0+)
+## Coach Dashboard (v1.15.0+)
 Simplified coach experience - no family email exposure:
 
 **Coach Actions:**
 - Send Message to groups
-- View Roster (student names only)
+- View Roster (student names by schedule slot)
 
 **Group Cards Display:**
 - Group name
-- Schedule (compact pills: Mon 4pm, Wed 5:30pm)
-- Enrollment count
+- Schedule slots with enrolled students
+- Students grouped by their specific time slot (e.g., Sat 11am shows all kids at that slot)
 
-**My Groups Page:**
-- Shows only student names
-- No parent emails or contact info visible
+**My Groups Page (v1.15.0+):**
+- Shows students organized by schedule slot
+- Each slot shows the day/time with student names below
+- Continuation rows from spreadsheet are properly synced (kids with same time appear together)
+
+**Spreadsheet Sync (v1.15.0+):**
+- Handles continuation rows (where time/coach/group columns are empty)
+- Only enrolls rows with explicit group column filled
+- Normalizes time formats to prevent duplicates
 
 This ensures coaches can manage their groups without accessing family personal data.

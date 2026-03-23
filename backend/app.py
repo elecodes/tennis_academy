@@ -1366,23 +1366,77 @@ def coach_my_groups():
         (coach_id,),
     ).fetchall()
 
-    # Get members for each group
+    # Get schedules and members for each group, grouped by schedule slot
+    group_schedules = {}
     group_members = {}
+
+    DAYS = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
+
     for group in groups:
-        members = conn.execute(
+        # Get all schedule slots for this group
+        schedules = conn.execute(
+            """
+            SELECT id, day_of_week, start_time, end_time
+            FROM group_schedules
+            WHERE group_id = ?
+            ORDER BY day_of_week, start_time
+        """,
+            (group["id"],),
+        ).fetchall()
+        group_schedules[group["id"]] = [
+            {
+                "id": s["id"],
+                "day": DAYS[s["day_of_week"]],
+                "time": s["start_time"],
+                "label": f"{DAYS[s['day_of_week']]} {s['start_time']}",
+            }
+            for s in schedules
+        ]
+
+        # Get members grouped by their schedule
+        members_by_schedule = {}
+        for schedule in schedules:
+            members = conn.execute(
+                """
+                SELECT gm.kid_name, u.full_name as parent_name, u.email, u.phone
+                FROM group_members gm
+                JOIN users u ON gm.family_id = u.id
+                WHERE gm.group_id = ? AND gm.schedule_id = ?
+            """,
+                (group["id"], schedule["id"]),
+            ).fetchall()
+            if members:
+                members_by_schedule[schedule["id"]] = members
+
+        # Also get members without a specific schedule
+        unscheduled = conn.execute(
             """
             SELECT gm.kid_name, u.full_name as parent_name, u.email, u.phone
             FROM group_members gm
             JOIN users u ON gm.family_id = u.id
-            WHERE gm.group_id = ?
+            WHERE gm.group_id = ? AND gm.schedule_id IS NULL
         """,
             (group["id"],),
         ).fetchall()
-        group_members[group["id"]] = members
+        if unscheduled:
+            members_by_schedule[None] = unscheduled
+
+        group_members[group["id"]] = members_by_schedule
 
     conn.close()
     return render_template(
-        "coach/my_groups.html", groups=groups, group_members=group_members
+        "coach/my_groups.html",
+        groups=groups,
+        group_members=group_members,
+        group_schedules=group_schedules,
     )
 
 
