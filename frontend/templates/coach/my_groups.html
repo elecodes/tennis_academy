@@ -14,30 +14,23 @@
   {% if groups %}
   <div class="space-y-12">
     {% for group in groups %}
-    {% set total_count = namespace(count=0) %}
     
     <div class="card-premium border border-navy/10 shadow-2xl p-0 overflow-hidden bg-white">
       <div class="bg-navy p-8 text-white">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 class="text-2xl font-display font-bold mb-2">{{ group.name }}</h2>
-            <div class="flex items-center gap-4 text-white/80 text-sm">
-              <span class="flex flex-wrap gap-1">
-                {% for slot in group.schedule|schedule_compact %}
-                <span class="text-xs font-bold bg-white/10 px-2 py-0.5 rounded">{{ slot }}</span>
-                {% endfor %}
-              </span>
-              {% if group.description %}
-              <span class="flex items-center gap-1.5">
-                <span class="material-symbols-rounded text-base">info</span>
-                {{ group.description }}
-              </span>
-              {% endif %}
-            </div>
-          </div>
-          <div class="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full whitespace-nowrap">
-            <span class="material-symbols-rounded text-emerald-400">group</span>
-            <span class="font-semibold">{{ group.member_count }} Member{{ 's' if group.member_count != 1 else '' }}</span>
+        <div>
+          <h2 class="text-2xl font-display font-bold mb-2 text-white">{{ group.name }}</h2>
+          <div class="flex items-center gap-4 text-white/80 text-sm">
+            <span class="flex flex-wrap gap-1">
+              {% for slot in group.schedule|schedule_compact %}
+              <span class="text-xs font-bold bg-white/10 px-2 py-0.5 rounded">{{ slot }}</span>
+              {% endfor %}
+            </span>
+            {% if group.description %}
+            <span class="flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-base">info</span>
+              {{ group.description }}
+            </span>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -58,9 +51,9 @@
           {% for sched in group_schedules[group.id] %}
             {% if group_members[group.id][sched.id] %}
             <div class="border border-navy/10 rounded-xl overflow-hidden">
-              <div class="bg-emerald-50 px-4 py-2 border-b border-emerald-100">
-                <span class="font-semibold text-emerald-700">{{ sched.label }}</span>
-                <span class="text-emerald-500 text-sm ml-2">({{ group_members[group.id][sched.id]|length }} student{{ 's' if group_members[group.id][sched.id]|length != 1 else '' }})</span>
+              <div class="bg-emerald-100 px-4 py-2 border-b border-emerald-200">
+                <span class="font-bold text-emerald-900 text-sm">{{ sched.label }}</span>
+                <span class="text-emerald-600 text-xs ml-2">({{ group_members[group.id][sched.id]|length }} student{{ 's' if group_members[group.id][sched.id]|length != 1 else '' }})</span>
               </div>
               <div class="divide-y divide-navy/5">
                 {% for member in group_members[group.id][sched.id] %}
