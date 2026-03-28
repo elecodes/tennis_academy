@@ -44,7 +44,7 @@
             {% for group in groups %}
               {% if group.schedule_id %}
                 <option value="{{ group.group_id }}" data-schedule-id="{{ group.schedule_id }}">
-                  {{ group.group_name }} — {{ ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][group.day_of_week] }} {{ group.start_time }}
+                  {{ group.group_name }} — {{ ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][group.day_of_week] }} {{ group.start_time }}
                 </option>
               {% else %}
                 <option value="{{ group.group_id }}">{{ group.group_name }}</option>
