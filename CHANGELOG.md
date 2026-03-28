@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - **Schedule-Specific Messaging**: Admin can now send messages to specific schedule slots (e.g., "Beginners — Mon 5:15pm") instead of entire groups. Dropdown shows each time slot separately.
+- **Coach Send Message Groups**: Coaches now see their groups with schedule slots (e.g., "Beginners — Mon 5:15pm") in the target audience dropdown when sending messages.
 
 ### Changed
 - **Coach Dashboard Styling**: Improved roster card readability with darker schedule slot headers, removed member count badge from card headers
