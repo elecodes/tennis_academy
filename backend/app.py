@@ -1278,7 +1278,14 @@ def coach_send_message():
 
     try:
         my_groups = conn.execute(
-            "SELECT id, name, schedule FROM groups WHERE coach_id = ? ORDER BY name",
+            """
+            SELECT g.id as group_id, g.name as group_name, g.schedule,
+                   gs.id as schedule_id, gs.day_of_week, gs.start_time, gs.end_time, gs.court
+            FROM groups g
+            LEFT JOIN group_schedules gs ON g.id = gs.group_id
+            WHERE g.coach_id = ?
+            ORDER BY g.name, gs.day_of_week, gs.start_time
+            """,
             (coach_id,),
         ).fetchall()
 
@@ -1287,6 +1294,7 @@ def coach_send_message():
             subject = request.form.get("subject", "").strip()
             content = request.form.get("content", "").strip()
             group_id = request.form.get("group_id")
+            schedule_id = request.form.get("schedule_id")
 
             # Validation
             if not message_type or not subject or not content or not group_id:
@@ -1312,15 +1320,25 @@ def coach_send_message():
             )
             message_id = cursor.lastrowid
 
-            # Get recipients
-            recipients = conn.execute(
-                """
-                SELECT DISTINCT u.id, u.email FROM users u
-                JOIN group_members gm ON u.id = gm.family_id
-                WHERE gm.group_id = ? AND u.is_active = 1
-            """,
-                (group_id,),
-            ).fetchall()
+            # Get recipients - filter by specific schedule slot if provided
+            if schedule_id:
+                recipients = conn.execute(
+                    """
+                    SELECT DISTINCT u.id, u.email FROM users u
+                    JOIN group_members gm ON u.id = gm.family_id
+                    WHERE gm.group_id = ? AND gm.schedule_id = ? AND u.is_active = 1
+                """,
+                    (group_id, schedule_id),
+                ).fetchall()
+            else:
+                recipients = conn.execute(
+                    """
+                    SELECT DISTINCT u.id, u.email FROM users u
+                    JOIN group_members gm ON u.id = gm.family_id
+                    WHERE gm.group_id = ? AND u.is_active = 1
+                """,
+                    (group_id,),
+                ).fetchall()
 
             # Send emails
             email_body = f"""
