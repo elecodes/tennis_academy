@@ -120,6 +120,18 @@ def get_weekly_timetable_api():
         return jsonify({"error": "Internal server error"}), 500
 
 
+@timetables_bp.route("/admin/timetable/new", methods=["GET"])
+def new_timetable_session():
+    """GET /admin/timetable/new - Admin creates a new session"""
+    if "user_id" not in session or session.get("role") != "admin":
+        return redirect(url_for("login"))
+
+    repository = TimetableRepository()
+    all_groups = repository.get_all_groups()
+
+    return render_template("timetable_new_session.html", all_groups=all_groups)
+
+
 @timetables_bp.route("/admin/timetable/session", methods=["POST"])
 def add_timetable_session():
     """POST /admin/timetable/session - Admin adds a session"""
