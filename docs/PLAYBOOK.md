@@ -126,8 +126,11 @@ As of Feb 2026, the application follows a **Premium Centered Layout** (`max-w-7x
 5. **Mobile-First Optimization** (New Feb 2026):
    - **Timetables**: Use horizontal day selector and vertical group accordions on mobile viewports.
    - **Density**: Prefer clean headers; hide low-priority fields like "Capacity" on mobile to reclaim space for time/date.
-   - **Typography**: Maintain large touch targets (min 44x44px) for all buttons and interactive elements.
+   - **Typography**: Maintain large touch targets (min 48x48px) for all buttons and interactive elements.
    - **Schedule Display**: Use compact pills like "Mon 4pm", "Wed 5:30pm" instead of long strings.
+   - **PWA Support**: App can be installed on mobile via "Add to Home Screen". Service worker caches offline access.
+   - **Bottom Navigation**: Mobile users see fixed bottom nav bar with quick links (Home, Schedule, Groups/Kids, Message).
+   - **Empty Days**: Days without scheduled lessons are hidden for coach/family to reduce clutter.
 
 ### Schedule Formatting Filters
 The app provides Jinja2 filters for consistent schedule display:

@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **PWA Support**: Added manifest.json, service worker (sw.js), and PWA meta tags for mobile "Add to Home Screen" functionality
+- **Mobile Bottom Navigation**: Fixed bottom navigation bar for mobile with active state highlighting
+- **Google Sheets Sync**: Schedules now sync directly from Google Sheets to Turso database
+
+### Changed
+- **Tailwind CDN**: Changed from link to script tag for proper loading
+- **Mobile Layout**: Improved send message pages (coach & admin) for mobile with smaller padding, larger touch targets
+- **Schedule Display**: Empty days now hidden for coach/family, shown with "+ Add" button for admin
+- **Dashboard Header**: Reduced size on mobile for less scrolling
+
+### Fixed
+- **CDN Blocking**: Added fallback styles and local Tailwind as workaround for blocked CDN
+- **Duplicate Groups**: Removed duplicate "Group" entry that was cluttering coach schedules
 - **Schedule-Specific Messaging**: Admin can now send messages to specific schedule slots (e.g., "Beginners — Mon 5:15pm") instead of entire groups. Dropdown shows each time slot separately.
 - **Coach Send Message Groups**: Coaches now see their groups with schedule slots (e.g., "Beginners — Mon 5:15pm") in the target audience dropdown when sending messages.
 

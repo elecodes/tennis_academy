@@ -15,6 +15,8 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - **Premium Centered Layout** - Elegant, focused experience using `max-w-7xl mx-auto` containers
 - **Custom Modal System** - Reliable, vanilla JS interactions for all record creation (no Bootstrap JS dependencies)
 - **Responsive design** - Optimized for mobile, tablet, and high-res desktops
+- **PWA-ready** - Can be installed on mobile via "Add to Home Screen" for app-like experience
+- **Mobile bottom navigation** - Quick access to Home, Schedule, Groups, and Message on mobile
 - **Mobile-friendly schedule display** - Compact day/time pills (e.g., "Mon 4pm", "Wed 5:30pm")
 
 ### Message Types
