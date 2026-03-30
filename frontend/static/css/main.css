@@ -144,6 +144,26 @@ h1, h2, h3, h4, .font-serif {
   color: var(--navy);
   font-weight: 600;
   transition: all 0.3s ease;
+  min-height: 48px;
+}
+
+/* Mobile touch targets */
+@media (max-width: 640px) {
+  .btn-primary,
+  .btn-outline {
+    min-height: 52px;
+    padding: 0.875rem 1.5rem;
+  }
+  
+  .form-input,
+  select.form-input {
+    padding: 0.875rem 1.25rem;
+    font-size: 16px;
+  }
+  
+  select.form-input {
+    min-height: 52px;
+  }
 }
 
 .form-input:focus {

@@ -1,12 +1,12 @@
 <!-- Dashboard Header Component -->
-<div class="bg-navy text-white py-16 mb-12 relative overflow-hidden rounded-[3rem] mx-6 mt-6 shadow-2xl">
+<div class="bg-navy text-white py-8 lg:py-16 mb-6 lg:mb-12 relative overflow-hidden rounded-2xl lg:rounded-[3rem] mx-4 lg:mx-6 mt-4 lg:mt-6 shadow-2xl">
   <!-- Dynamic Background Patterns -->
   <div class="absolute inset-0 pointer-events-none overflow-hidden">
-    <div class="absolute -top-24 -right-24 w-96 h-96 border-[16px] border-white/5 rounded-full animate-fade-in"
+    <div class="absolute -top-12 lg:-top-24 -right-12 lg:right-24 w-32 lg:w-96 h-32 lg:h-96 border-[8px] lg:border-[16px] border-white/5 rounded-full animate-fade-in"
       style="animation-delay: 0.5s"></div>
-    <div class="absolute top-1/2 right-1/4 w-64 h-64 border-8 border-accent/10 rounded-full animate-fade-in"
+    <div class="absolute top-1/2 right-1/4 w-20 lg:w-64 h-20 lg:h-64 border-4 lg:border-8 border-accent/10 rounded-full animate-fade-in"
       style="animation-delay: 0.8s"></div>
-    <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-accent/10 rounded-3xl rotate-12 animate-fade-in"
+    <div class="absolute -bottom-6 lg:-bottom-12 -left-6 lg:-left-12 w-20 lg:w-48 h-20 lg:h-48 bg-accent/10 rounded-xl lg:rounded-3xl rotate-12 animate-fade-in"
       style="animation-delay: 0.3s"></div>
 
     <!-- Decorative Mesh-like pattern -->
@@ -14,35 +14,36 @@
       style="background-image: radial-gradient(var(--white) 1px, transparent 1px); background-size: 32px 32px;"></div>
   </div>
 
-  <div class="max-w-7xl mx-auto px-10 relative z-10">
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
+  <div class="max-w-7xl mx-4 lg:px-10 relative z-10">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-10">
       <div class="max-w-2xl">
         <div
-          class="inline-flex items-center gap-3 px-4 py-1.5 bg-accent rounded-full text-white text-[10px] font-black uppercase tracking-[0.3em] mb-6 animate-slide-up shadow-lg">
-          <span class="material-symbols-outlined text-sm">verified_user</span>
-          Located at SFSU
+          class="inline-flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-1 lg:py-1.5 bg-accent rounded-full text-white text-[8px] lg:text-[10px] font-black uppercase tracking-[0.2em] lg:tracking-[0.3em] mb-3 lg:mb-6 animate-slide-up shadow-lg">
+          <span class="material-symbols-outlined text-xs lg:text-sm">verified_user</span>
+          <span class="hidden xs:inline">Located at SFSU</span>
+          <span class="xs:hidden">SFSU</span>
         </div>
         <h1
-          class="text-white text-5xl lg:text-7xl font-black tracking-tight mb-4 font-serif animate-slide-up leading-tight">
+          class="text-white text-3xl lg:text-5xl xl:text-7xl font-black tracking-tight mb-2 lg:mb-4 font-serif animate-slide-up leading-tight">
           SF TENNIS <span class="text-accent">KIDS</span> CLUB
         </h1>
-        <p class="text-xl text-white/60 italic font-medium animate-slide-up border-l-4 border-accent/30 pl-6 py-1"
+        <p class="text-base lg:text-xl text-white/60 italic font-medium animate-slide-up border-l-2 lg:border-l-4 border-accent/30 pl-4 lg:pl-6 py-0.5 lg:py-1"
           style="animation-delay: 0.2s">
-          "The Gift of Tennis - A Lifetime Sport!"
+          "The Gift of Tennis!"
         </p>
       </div>
 
-      <div class="flex items-center gap-6 animate-fade-in" style="animation-delay: 0.4s">
+      <div class="flex items-center gap-3 lg:gap-6 animate-fade-in" style="animation-delay: 0.4s">
         <div
-          class="bg-white/5 backdrop-blur-xl border border-white/10 px-8 py-5 rounded-[2rem] shadow-2xl flex items-center gap-5">
+          class="bg-white/5 backdrop-blur-xl border border-white/10 px-4 lg:px-8 py-3 lg:py-5 rounded-xl lg:rounded-[2rem] shadow-2xl flex items-center gap-3 lg:gap-5">
           <div
-            class="w-14 h-14 bg-navy rounded-2xl flex items-center justify-center text-white text-xl font-black shadow-lg ring-4 ring-white/5">
+            class="w-10 lg:w-14 h-10 lg:h-14 bg-navy rounded-xl lg:rounded-2xl flex items-center justify-center text-white text-lg lg:text-xl font-black shadow-lg ring-2 lg:ring-4 ring-white/5">
             {{ session.full_name[:1] }}
           </div>
-          <div>
-            <span class="text-[10px] font-black text-accent uppercase tracking-widest block mb-1">SF TENNIS KIDS
+          <div class="hidden sm:block">
+            <span class="text-[8px] lg:text-[10px] font-black text-accent uppercase tracking-widest block mb-0.5 lg:mb-1">SF TENNIS KIDS
               Portal</span>
-            <span class="text-lg font-bold text-white">{{ session.full_name }}</span>
+            <span class="text-base lg:text-lg font-bold text-white">{{ session.full_name }}</span>
           </div>
         </div>
       </div>
