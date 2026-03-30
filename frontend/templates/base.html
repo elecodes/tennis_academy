@@ -16,36 +16,34 @@
   <!-- Design System: Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 
-  <script src="{{ url_for('static', filename='js/tailwind.js') }}"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Fallback styles in case CDN fails */
+    body { background: #F8F9FA; color: #0A0D2E; }
+    .bg-white { background: white; }
+    .text-navy { color: #1A237E; }
+    .bg-navy { background: #1A237E; }
+    .btn-primary { background: #1A237E; color: white; padding: 10px 20px; border-radius: 8px; }
+  </style>
   <script>
-    console.log('Tailwind loaded:', typeof tailwind);
-    if (typeof tailwind === 'undefined') {
-      document.body.innerHTML = '<h1>Tailwind not loading!</h1><p>Please check your network.</p>';
-    }
-    window.onload = function() {
-      if (typeof tailwind !== 'undefined') {
-        tailwind.config = {
-          theme: {
-            extend: {
-              colors: {
-                navy: '#1A237E',
-                accent: '#F57C00',
-                clay: '#D32F2F',
-                obsidian: '#0A0D2E',
-                mist: '#F8F9FA',
-              },
-              fontFamily: {
-                serif: ['Playfair Display', 'serif'],
-                sans: ['Inter', 'sans-serif'],
-              }
-            }
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#1A237E',
+            accent: '#F57C00',
+            clay: '#D32F2F',
+            obsidian: '#0A0D2E',
+            mist: '#F8F9FA',
+          },
+          fontFamily: {
+            serif: ['Georgia', 'serif'],
+            sans: ['system-ui', '-apple-system', 'sans-serif'],
           }
         }
       }
@@ -86,7 +84,13 @@
   </style>
 </head>
 
-<body class="bg-mist font-sans text-obsidian antialiased">
+<body class="bg-mist font-sans text-obsidian antialiased" style="background-color: #F8F9FA; font-family: system-ui, -apple-system, sans-serif;">
+  <noscript>
+    <div style="padding: 20px; background: #1A237E; color: white; text-align: center;">
+      <h1>SF TENNIS KIDS</h1>
+      <p>Please enable JavaScript to use this app.</p>
+    </div>
+  </noscript>
   <!-- Premium Navigation -->
   <nav class="fixed top-0 left-0 right-0 z-50 header-glass px-6 py-4">
     <div class="max-w-7xl mx-auto flex items-center justify-between">

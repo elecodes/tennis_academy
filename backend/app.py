@@ -9,7 +9,16 @@ import sys
 # Ensure backend submodules can be found when running from root or within backend/
 sys.path.insert(0, os.path.dirname(__file__))
 
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    session,
+    send_file,
+)
 from functools import wraps
 from datetime import datetime
 from database import get_db
