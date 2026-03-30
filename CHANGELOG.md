@@ -12,6 +12,11 @@ All notable changes to this project will be documented in this file.
 - **Coach Dashboard Styling**: Improved roster card readability with darker schedule slot headers, removed member count badge from card headers
 - **Admin Manage Groups Table**: Adjusted column widths - smaller Group column, wider Schedule column for better readability
 - **Admin Dashboard**: Removed "System Health: Optimal" card from statistics snapshot
+- **Timetable Provision**: Added separate page (/admin/timetable/new) for creating new sessions instead of modal
+- **Local Tailwind**: Added local tailwind.js fallback when CDN is blocked
+
+### Fixed
+- **Duplicate Enrollments**: Removed duplicate student entries from database after sync
 
 ## [1.15.0] - 2026-03-23
 
