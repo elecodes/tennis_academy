@@ -105,23 +105,24 @@
       </div>
 
       <div class="accordion-content active" id="accordion-{{ loop.index }}">
-        <div class="p-6 md:p-8">
-        <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+        <div class="p-4 md:p-8">
+        <div class="grid grid-cols-1 md:grid-cols-7 gap-2 md:gap-4">
           {% for day_name in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
           {% set day_num = loop.index0 %}
-          <div class="flex flex-col gap-4">
+          {% set day_schedules = group.schedules | selectattr('day', 'equalto', day_num) | list %}
+          {% if day_schedules or session.role == 'admin' %}
+          <div class="flex flex-col gap-2 md:gap-4">
             <div
               class="text-[9px] font-black text-navy/20 uppercase tracking-[0.2em] text-center pb-2 border-b border-navy/5">
               {{ day_name[:3] }}
             </div>
-            <div class="day-column space-y-3" data-day-index="{{ day_num }}">
-              {% set day_schedules = group.schedules | selectattr('day', 'equalto', day_num) | list %}
+            <div class="day-column space-y-2 md:space-y-3" data-day-index="{{ day_num }}">
               {% if day_schedules %}
               {% for sched in day_schedules %}
               <div
-                class="p-3 bg-mist/50 rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
+                class="p-2 md:p-3 bg-mist/50 rounded-xl md:rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
                 <div class="flex items-center justify-between mb-0.5">
-                  <div class="text-[11px] font-black text-navy group-hover/entry:text-white transition-colors">
+                  <div class="text-[10px] md:text-[11px] font-black text-navy group-hover/entry:text-white transition-colors">
                     {% if sched.start_time == sched.end_time %}
                     {{ sched.start_time|format_time }}
                     {% else %}
@@ -130,14 +131,14 @@
                   </div>
                 </div>
                 <div
-                  class="text-[9px] font-bold text-obsidian/40 group-hover/entry:text-white/60 uppercase tracking-tighter transition-colors">
+                  class="text-[8px] md:text-[9px] font-bold text-obsidian/40 group-hover/entry:text-white/60 uppercase tracking-tighter transition-colors">
                   {{ sched.court }}</div>
 
                 {% if session.role == 'admin' %}
                 <div
-                  class="absolute top-2 right-2 opacity-0 group-hover/entry:opacity-100 transition-opacity flex gap-1">
+                  class="absolute top-1 right-1 md:top-2 md:right-2 opacity-0 group-hover/entry:opacity-100 transition-opacity flex gap-1">
                   <button type="button"
-                    class="w-6 h-6 flex items-center justify-center text-white/50 hover:text-white transition-colors edit-session-btn"
+                    class="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-white/50 hover:text-white transition-colors edit-session-btn"
                     data-session-id="{{ sched.id }}"
                     data-session-day="{{ sched.day }}"
                     data-session-start="{{ sched.start_time }}"
@@ -149,7 +150,7 @@
                   <form action="{{ url_for('timetables.delete_timetable_session', session_id=sched.id) }}"
                     method="POST" onsubmit="return confirm('Authorize session deletion?')">
                     <button type="submit"
-                      class="w-6 h-6 flex items-center justify-center text-white/50 hover:text-white transition-colors"
+                      class="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-white/50 hover:text-white transition-colors"
                       title="Delete Session">
                       <span class="material-symbols-outlined text-xs">close</span>
                     </button>
@@ -158,13 +159,20 @@
                 {% endif %}
               </div>
               {% endfor %}
+              {% elif session.role == 'admin' %}
+              <button type="button"
+                class="p-2 md:p-3 border-2 border-dashed border-navy/10 rounded-xl md:rounded-2xl text-navy/30 hover:border-navy/30 hover:text-navy/50 transition-colors text-xs font-bold flex items-center justify-center"
+                onclick="openModal('newSessionModal'); document.getElementById('new_session_group_id').value = {{ group.id }}; document.getElementById('new_session_day').value = {{ day_num }};">
+                + Add
+              </button>
               {% else %}
-              <div class="h-16 md:h-full flex items-center justify-center">
-                <span class="w-1.5 h-1.5 rounded-full bg-navy/5"></span>
+              <div class="h-12 md:h-full flex items-center justify-center">
+                <span class="w-1 h-1 rounded-full bg-navy/5"></span>
               </div>
               {% endif %}
             </div>
           </div>
+          {% endif %}
           {% endfor %}
         </div>
       </div>
