@@ -234,7 +234,7 @@
   </nav>
 
   <!-- Main Content -->
-  <main class="min-h-screen pt-24 pb-12">
+  <main class="min-h-screen pt-24 pb-28 lg:pb-12">
     <!-- Flash Messages -->
     <div class="max-w-7xl mx-auto px-6 mb-8">
       {% with messages = get_flashed_messages(with_categories=true) %}
@@ -262,8 +262,41 @@
     {% block content %}{% endblock %}
   </main>
 
+  <!-- Bottom Navigation (Mobile) -->
+  {% if 'user_id' in session %}
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-navy/10 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] lg:hidden z-50">
+    <div class="flex items-center justify-around py-2 px-4">
+      <a href="{{ url_for('dashboard') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+        <span class="material-symbols-outlined text-2xl">dashboard</span>
+        <span class="text-[10px] font-bold">Home</span>
+      </a>
+      <a href="{{ url_for('timetables.get_timetable_page') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+        <span class="material-symbols-outlined text-2xl">calendar_month</span>
+        <span class="text-[10px] font-bold">Schedule</span>
+      </a>
+      {% if session.role == 'coach' %}
+      <a href="{{ url_for('coach_my_groups') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+        <span class="material-symbols-outlined text-2xl">groups</span>
+        <span class="text-[10px] font-bold">Groups</span>
+      </a>
+      {% elif session.role == 'family' %}
+      <a href="{{ url_for('family_enrollments') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+        <span class="material-symbols-outlined text-2xl">groups</span>
+        <span class="text-[10px] font-bold">Kids</span>
+      </a>
+      {% endif %}
+      {% if session.role in ['admin', 'coach'] %}
+      <a href="{{ url_for('coach_send_message') if session.role == 'coach' else url_for('admin_send_message') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+        <span class="material-symbols-outlined text-2xl">send</span>
+        <span class="text-[10px] font-bold">Message</span>
+      </a>
+      {% endif %}
+    </div>
+  </nav>
+  {% endif %}
+
   <!-- Premium Footer -->
-  <footer class="bg-navy pt-20 pb-10 text-white/80">
+  <footer class="bg-navy pt-20 pb-10 text-white/80 hidden lg:block">
     <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-white/10 pb-12 mb-10">
       <div class="col-span-1 md:col-span-2">
         <div class="flex items-center gap-3 mb-6">
@@ -385,6 +418,20 @@
           setTimeout(() => alert.remove(), 500);
         });
       }, 6000);
+    });
+
+    // Bottom nav active state
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentPath = window.location.pathname;
+      const bottomNav = document.querySelector('nav.fixed.bottom-0');
+      if (bottomNav) {
+        bottomNav.querySelectorAll('a').forEach(link => {
+          if (link.getAttribute('href') === currentPath) {
+            link.classList.remove('text-navy/60');
+            link.classList.add('text-navy', 'bg-navy/10', 'rounded-xl');
+          }
+        });
+      }
     });
   </script>
   
