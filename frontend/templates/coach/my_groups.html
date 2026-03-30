@@ -42,11 +42,11 @@
             {% set ns.any_student = true %}
           {% endif %}
         {% endfor %}
-        {% if group_members[group.id][None] %}
+          {% if group_members[group.id][None] %}
           {% set ns.any_student = true %}
         {% endif %}
         
-        {% if ns.any_student %}
+        {% if ns.any_student and group_schedules[group.id] %}
         <div class="space-y-6">
           {% for sched in group_schedules[group.id] %}
             {% if group_members[group.id][sched.id] %}
