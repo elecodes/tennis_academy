@@ -42,12 +42,12 @@
   {% endif %}
 
   <!-- Mobile Day Selector (Sticky) -->
-  <div class="md:hidden sticky top-24 z-30 -mx-6 mb-8 px-6 py-4 bg-mist/80 backdrop-blur-md border-b border-navy/5 overflow-x-auto hide-scrollbar flex gap-3 animate-fade-in" id="mobileDaySelector">
+  <div class="md:hidden sticky top-24 z-30 -mx-6 mb-8 px-6 py-4 bg-mist/80 backdrop-blur-md border-b border-navy/10 overflow-x-auto hide-scrollbar flex gap-2 animate-fade-in" id="mobileDaySelector">
     {% for day_name in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
     <button data-day-toggle="{{ loop.index0 }}"
             data-day-index="{{ loop.index0 }}"
-            class="mobile-day-btn whitespace-nowrap px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all
-                   {% if loop.index0 == 0 %} bg-navy text-white shadow-lg shadow-navy/20 {% else %} bg-white text-navy/40 border border-navy/5 {% endif %}">
+            class="mobile-day-btn whitespace-nowrap px-5 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all shadow-sm
+                   {% if loop.index0 == 0 %} bg-navy text-white {% else %} bg-white text-navy/70 border border-navy/10 {% endif %}">
       {{ day_name }}
     </button>
     {% endfor %}
@@ -113,7 +113,7 @@
           {% if day_schedules or session.role == 'admin' %}
           <div class="flex flex-col gap-2 md:gap-4">
             <div
-              class="text-[9px] font-black text-navy/20 uppercase tracking-[0.2em] text-center pb-2 border-b border-navy/5">
+              class="text-[10px] md:text-[11px] font-black text-navy/60 uppercase tracking-[0.15em] text-center pb-2 border-b border-navy/10">
               {{ day_name[:3] }}
             </div>
             <div class="day-column space-y-2 md:space-y-3" data-day-index="{{ day_num }}">
