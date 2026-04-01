@@ -41,11 +41,30 @@
   </div>
   {% endif %}
 
+  <!-- Day Filter -->
+  <div class="flex flex-wrap gap-2 mb-6 justify-center">
+    {% for day_name in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+    <button onclick="filterGroupsByDay({{ loop.index0 }})"
+            class="day-filter-btn px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all
+                   {% if loop.index0 == 0 %} bg-navy text-white {% else %} bg-white text-navy/60 border border-navy/10 {% endif %}">
+      {{ day_name }}
+    </button>
+    {% endfor %}
+  </div>
+
   <!-- Groups Display -->
   <div class="space-y-6 md:space-y-12">
     {% if groups %}
     {% for group in groups %}
-    <div class="card-premium overflow-hidden p-0 border border-navy/10 shadow-2xl group animate-fade-in" id="group-card-{{ loop.index }}">
+    {% set group_days = [] %}
+    {% for sched in group.schedules %}
+      {% if sched.day not in group_days %}
+        {% set _ = group_days.append(sched.day) %}
+      {% endif %}
+    {% endfor %}
+    <div class="card-premium overflow-hidden p-0 border border-navy/10 shadow-2xl group animate-fade-in group-card" 
+         id="group-card-{{ loop.index }}" 
+         data-days="{{ group_days | join(',') }}">
       <div
         data-accordion-toggle="{{ loop.index }}"
         class="p-6 md:p-8 border-b border-navy/5 bg-navy/[0.02] flex flex-col md:flex-row justify-between items-start md:items-center gap-6 cursor-pointer hover:bg-navy/[0.04] transition-colors relative">
@@ -246,6 +265,30 @@
       accordion.classList.add('active');
       chevron.style.transform = 'rotate(180deg)';
     }
+  }
+
+  // Filter groups by day
+  function filterGroupsByDay(dayIndex) {
+    // Update button styles
+    document.querySelectorAll('.day-filter-btn').forEach((btn, idx) => {
+      if (idx === dayIndex) {
+        btn.classList.add('bg-navy', 'text-white');
+        btn.classList.remove('bg-white', 'text-navy/60', 'border', 'border-navy/10');
+      } else {
+        btn.classList.remove('bg-navy', 'text-white');
+        btn.classList.add('bg-white', 'text-navy/60', 'border', 'border-navy/10');
+      }
+    });
+    
+    // Filter group cards
+    document.querySelectorAll('.group-card').forEach(card => {
+      const days = card.getAttribute('data-days').split(',');
+      if (days.includes(dayIndex.toString())) {
+        card.classList.remove('hidden');
+      } else {
+        card.classList.add('hidden');
+      }
+    });
   }
 
   // Edit Session Modal
