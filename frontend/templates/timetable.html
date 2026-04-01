@@ -41,18 +41,6 @@
   </div>
   {% endif %}
 
-  <!-- Mobile Day Selector (Sticky) -->
-  <div class="md:hidden sticky top-24 z-30 -mx-6 mb-8 px-6 py-4 bg-mist/80 backdrop-blur-md border-b border-navy/10 overflow-x-auto hide-scrollbar flex gap-2 animate-fade-in" id="mobileDaySelector">
-    {% for day_name in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
-    <button data-day-toggle="{{ loop.index0 }}"
-            data-day-index="{{ loop.index0 }}"
-            class="mobile-day-btn whitespace-nowrap px-5 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all shadow-sm
-                   {% if loop.index0 == 0 %} bg-navy text-white {% else %} bg-white text-navy/70 border border-navy/10 {% endif %}">
-      {{ day_name }}
-    </button>
-    {% endfor %}
-  </div>
-
   <!-- Groups Display -->
   <div class="space-y-6 md:space-y-12">
     {% if groups %}
@@ -310,14 +298,6 @@
       toggle.addEventListener('click', () => {
         const index = toggle.getAttribute('data-accordion-toggle');
         toggleGroupAccordion(index);
-      });
-    });
-
-    // Mobile Day Selector
-    document.querySelectorAll('[data-day-toggle]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const index = parseInt(btn.getAttribute('data-day-index'));
-        switchMobileDay(index);
       });
     });
 
