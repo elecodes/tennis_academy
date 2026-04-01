@@ -131,6 +131,7 @@ As of Feb 2026, the application follows a **Premium Centered Layout** (`max-w-7x
    - **PWA Support**: App can be installed on mobile via "Add to Home Screen". Service worker caches offline access.
    - **Bottom Navigation**: Mobile users see fixed bottom nav bar with quick links (Home, Schedule, Groups/Kids, Message).
    - **Empty Days**: Days without scheduled lessons are hidden for coach/family to reduce clutter.
+   - **Day Filter**: Schedule page has day filter buttons (Mon-Sun) to show only groups with lessons on that day.
 
 ### Schedule Formatting Filters
 The app provides Jinja2 filters for consistent schedule display:

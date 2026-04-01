@@ -18,6 +18,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - **PWA-ready** - Can be installed on mobile via "Add to Home Screen" for app-like experience
 - **Mobile bottom navigation** - Quick access to Home, Schedule, Groups, and Message on mobile
 - **Mobile-friendly schedule display** - Compact day/time pills (e.g., "Mon 4pm", "Wed 5:30pm")
+- **Day filter buttons** - Filter schedule by day to show only groups with lessons on that day
 
 ### Message Types
 - Rain cancellations (urgent)

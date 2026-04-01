@@ -8,21 +8,18 @@ All notable changes to this project will be documented in this file.
 - **PWA Support**: Added manifest.json, service worker (sw.js), and PWA meta tags for mobile "Add to Home Screen" functionality
 - **Mobile Bottom Navigation**: Fixed bottom navigation bar for mobile with active state highlighting
 - **Google Sheets Sync**: Schedules now sync directly from Google Sheets to Turso database
+- **Day Filter Buttons**: Added day filter buttons on schedule page to show only groups with lessons on selected day
 
 ### Changed
 - **Tailwind CDN**: Changed from link to script tag for proper loading
 - **Mobile Layout**: Improved send message pages (coach & admin) for mobile with smaller padding, larger touch targets
 - **Schedule Display**: Empty days now hidden for coach/family, shown with "+ Add" button for admin
 - **Dashboard Header**: Reduced size on mobile for less scrolling
+- **Coach Schedule**: Now shows only groups that have lessons on the selected day via day filter
 
 ### Fixed
 - **CDN Blocking**: Added fallback styles and local Tailwind as workaround for blocked CDN
 - **Duplicate Groups**: Removed duplicate "Group" entry that was cluttering coach schedules
-- **Schedule-Specific Messaging**: Admin can now send messages to specific schedule slots (e.g., "Beginners — Mon 5:15pm") instead of entire groups. Dropdown shows each time slot separately.
-- **Coach Send Message Groups**: Coaches now see their groups with schedule slots (e.g., "Beginners — Mon 5:15pm") in the target audience dropdown when sending messages.
-
-### Changed
-- **Coach Dashboard Styling**: Improved roster card readability with darker schedule slot headers, removed member count badge from card headers
 - **Admin Manage Groups Table**: Adjusted column widths - smaller Group column, wider Schedule column for better readability
 - **Admin Dashboard**: Removed "System Health: Optimal" card from statistics snapshot
 - **Timetable Provision**: Added separate page (/admin/timetable/new) for creating new sessions instead of modal
