@@ -106,18 +106,17 @@
 
       <div class="accordion-content active" id="accordion-{{ loop.index }}">
         <div class="p-4 md:p-8">
-        <div class="grid grid-cols-1 md:grid-cols-7 gap-2 md:gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-7 gap-3 md:gap-4">
           {% for day_name in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
           {% set day_num = loop.index0 %}
           {% set day_schedules = group.schedules | selectattr('day', 'equalto', day_num) | list %}
-          {% if day_schedules or session.role == 'admin' %}
+          {% if day_schedules %}
           <div class="flex flex-col gap-2 md:gap-4">
             <div
               class="text-[10px] md:text-[11px] font-black text-navy/60 uppercase tracking-[0.15em] text-center pb-2 border-b border-navy/10">
               {{ day_name[:3] }}
             </div>
             <div class="day-column space-y-2 md:space-y-3" data-day-index="{{ day_num }}">
-              {% if day_schedules %}
               {% for sched in day_schedules %}
               <div
                 class="p-2 md:p-3 bg-mist/50 rounded-xl md:rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
@@ -159,22 +158,20 @@
                 {% endif %}
               </div>
               {% endfor %}
-              {% elif session.role == 'admin' %}
-              <button type="button"
-                class="p-2 md:p-3 border-2 border-dashed border-navy/10 rounded-xl md:rounded-2xl text-navy/30 hover:border-navy/30 hover:text-navy/50 transition-colors text-xs font-bold flex items-center justify-center"
-                onclick="openModal('newSessionModal'); document.getElementById('new_session_group_id').value = {{ group.id }}; document.getElementById('new_session_day').value = {{ day_num }};">
-                + Add
-              </button>
-              {% else %}
-              <div class="h-12 md:h-full flex items-center justify-center">
-                <span class="w-1 h-1 rounded-full bg-navy/5"></span>
-              </div>
-              {% endif %}
             </div>
           </div>
           {% endif %}
           {% endfor %}
         </div>
+        
+        {% if session.role == 'admin' %}
+        <div class="mt-4 pt-4 border-t border-navy/5 text-center">
+          <button type="button" class="text-xs font-bold text-navy/50 hover:text-navy transition-colors"
+            onclick="openModal('newSessionModal'); document.getElementById('new_session_group_id').value = {{ group.id }}">
+            + Add Session to {{ group.name }}
+          </button>
+        </div>
+        {% endif %}
       </div>
     </div>
     {% endfor %}
