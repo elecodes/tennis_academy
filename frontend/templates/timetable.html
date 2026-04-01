@@ -248,60 +248,7 @@
     }
   }
 
-  let currentMobileDay = 0;
-
-  function switchMobileDay(index) {
-    currentMobileDay = index;
-    
-    // Update buttons
-    const buttons = document.querySelectorAll('.mobile-day-btn');
-    buttons.forEach(btn => {
-      const btnIndex = parseInt(btn.getAttribute('data-day-index'));
-      if (btnIndex === index) {
-        btn.classList.add('bg-navy', 'text-white', 'shadow-lg', 'shadow-navy/20');
-        btn.classList.remove('bg-white', 'text-navy/40', 'border', 'border-navy/5');
-      } else {
-        btn.classList.remove('bg-navy', 'text-white', 'shadow-lg', 'shadow-navy/20');
-        btn.classList.add('bg-white', 'text-navy/40', 'border', 'border-navy/5');
-      }
-    });
-
-    // Update columns
-    const columns = document.querySelectorAll('.day-column');
-    columns.forEach(col => {
-      const colIndex = parseInt(col.getAttribute('data-day-index'));
-      // Only hide if on mobile (width < 768px)
-      if (window.innerWidth < 768) {
-        if (colIndex === index) {
-          col.parentElement.classList.remove('hidden');
-        } else {
-          col.parentElement.classList.add('hidden');
-        }
-      }
-    });
-  }
-
-  // Initial call to set mobile view if needed
-  window.addEventListener('resize', () => {
-    if (window.innerWidth >= 768) {
-      document.querySelectorAll('.day-column').forEach(col => {
-        col.parentElement.classList.remove('hidden');
-      });
-    } else {
-      switchMobileDay(currentMobileDay);
-    }
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // Accordion Toggle
-    document.querySelectorAll('[data-accordion-toggle]').forEach(toggle => {
-      toggle.addEventListener('click', () => {
-        const index = toggle.getAttribute('data-accordion-toggle');
-        toggleGroupAccordion(index);
-      });
-    });
-
-    // Edit Session Modal
+  // Edit Session Modal
     document.querySelectorAll('.edit-session-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation(); // Prevent accordion toggle
@@ -309,23 +256,6 @@
         openEditSessionModal(null, data.sessionId, data.sessionDay, data.sessionStart, data.sessionEnd, data.sessionCourt);
       });
     });
-
-    if (window.innerWidth < 768) {
-      switchMobileDay(0);
-      
-      // Auto-collapse all but first on mobile
-      const accordions = document.querySelectorAll('.accordion-content');
-      accordions.forEach((acc, idx) => {
-        if (idx > 0) {
-          acc.classList.remove('active');
-          const chevron = document.getElementById(`chevron-${idx + 1}`);
-          if (chevron) chevron.style.transform = 'rotate(0deg)';
-        } else {
-          const chevron = document.getElementById(`chevron-${idx + 1}`);
-          if (chevron) chevron.style.transform = 'rotate(180deg)';
-        }
-      });
-    }
   });
 
   function openEditSessionModal(event, id, day, start, end, court) {
