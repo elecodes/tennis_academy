@@ -286,25 +286,36 @@ export PYTHONPATH=$PYTHONPATH:. && pytest tests/integration/ --cov=backend --cov
 - ⚠️ **Use `tmp_db` fixture** to avoid writing to `academy.db`.
 ### Test Credentials
 ```
-Admin:  admin@tennis.com / admin123
-Coach:  coach1@tennis.com / password123
-Family: family1@email.com / password123
+Admin:  gelenmp@gmail.com / tennis2026
+Coach:  coach1@tennis.com / tennis2026
+Family: family1@email.com / tennis2026
 ```
 
 ## 🚀 Deployment
 
-### Option 1: PythonAnywhere (Recommended)
+### Option 1: Render (Recommended for Turso)
+1. Sign up at https://render.com
+2. Connect your GitHub repository
+3. Create Web Service (or use `render.yaml` in root)
+4. Set environment variables:
+   - `TURSO_URL` - Your Turso database URL
+   - `TURSO_TOKEN` - Your Turso token
+   - `SENDER_EMAIL` - Gmail address for notifications
+   - `SENDER_PASSWORD` - Gmail app password
+   - `SECRET_KEY` - Random string for sessions
+5. Deploy!
+
+Or deploy with `render.yaml`:
+```bash
+render deploy
+```
+
+### Option 2: PythonAnywhere
 1. Sign up at https://www.pythonanywhere.com (free tier)
 2. Upload your files
 3. Create Web App → Flask
 4. Set environment variables in WSGI config
 5. Reload web app
-
-### Option 2: Render
-1. Sign up at https://render.com
-2. Create Web Service → Connect GitHub
-3. Set environment variables
-4. Deploy!
 
 ### Option 3: Railway
 1. Sign up at https://railway.app

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: sf-tennis-kids
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python backend/app.py
+    envVars:
+      - key: TURSO_URL
+        sync: false
+      - key: TURSO_TOKEN
+        sync: false
+      - key: SENDER_EMAIL
+        sync: false
+      - key: SENDER_PASSWORD
+        sync: false
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        sync: false
+    regions:
+      - aws-us-west-2
