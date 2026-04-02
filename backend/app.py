@@ -212,7 +212,7 @@ REDIRECT_TARGET = "gelenmp@gmail.com"
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "gelenmp@gmail.com")
-SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD", "jpss htxt sssz raqm")
+SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD", "zqjl piud eqwi guci")
 REDIRECT_EMAILS_TO = REDIRECT_TARGET if TEST_MODE else None
 
 
