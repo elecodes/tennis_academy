@@ -270,7 +270,7 @@
   // Filter groups by day
   function filterGroupsByDay(dayIndex) {
     console.log('Filtering for day:', dayIndex);
-    alert('filterGroupsByDay called with: ' + dayIndex);
+    alert('Filtering for day: ' + dayIndex);
     
     // Update button styles
     document.querySelectorAll('.day-filter-btn').forEach((btn, idx) => {
@@ -283,11 +283,16 @@
       }
     });
     
-    // Filter group cards - use style.display instead of hidden class
-    document.querySelectorAll('.group-card').forEach(card => {
-      const days = card.getAttribute('data-days').split(',');
+    // Filter group cards
+    const cards = document.querySelectorAll('.group-card');
+    alert('Found ' + cards.length + ' cards');
+    
+    cards.forEach(card => {
+      const daysAttr = card.getAttribute('data-days');
+      alert('Card data-days: ' + daysAttr);
+      const days = daysAttr.split(',');
       if (days.includes(dayIndex.toString())) {
-        card.style.display = '';
+        card.style.display = 'block';
       } else {
         card.style.display = 'none';
       }
