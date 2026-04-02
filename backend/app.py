@@ -52,16 +52,14 @@ import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from flask_talisman import Talisman
 
-sentry_sdk.init(
-    dsn=os.environ.get("SENTRY_DSN"),
-    integrations=[FlaskIntegration()],
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    traces_sample_rate=1.0,
-    # Set profiles_sample_rate to 1.0 to capture 100%
-    # of transactions for profiling.
-    profiles_sample_rate=1.0,
-)
+if os.environ.get("SENTRY_DSN"):
+    sentry_sdk.init(
+        dsn=os.environ.get("SENTRY_DSN"),
+        integrations=[FlaskIntegration()],
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+        send_default_pii=True,
+    )
 
 app = Flask(
     __name__,
@@ -193,12 +191,14 @@ csp = {
     ],
 }
 
-Talisman(
-    app,
-    content_security_policy=csp,
-    force_https=False,  # Set to True in production with SSL
-    frame_options="DENY",
-)
+# Enable Talisman only if not in test mode
+if os.environ.get("ENABLE_TALISMAN", "false").lower() == "true":
+    Talisman(
+        app,
+        content_security_policy=csp,
+        force_https=False,
+        frame_options="DENY",
+    )
 
 app.register_blueprint(timetables_bp)
 
