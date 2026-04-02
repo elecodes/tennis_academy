@@ -269,6 +269,8 @@
 
   // Filter groups by day
   function filterGroupsByDay(dayIndex) {
+    console.log('Filtering for day:', dayIndex);
+    
     // Update button styles
     document.querySelectorAll('.day-filter-btn').forEach((btn, idx) => {
       if (idx === dayIndex) {
@@ -280,13 +282,13 @@
       }
     });
     
-    // Filter group cards
+    // Filter group cards - use style.display instead of hidden class
     document.querySelectorAll('.group-card').forEach(card => {
       const days = card.getAttribute('data-days').split(',');
       if (days.includes(dayIndex.toString())) {
-        card.classList.remove('hidden');
+        card.style.display = '';
       } else {
-        card.classList.add('hidden');
+        card.style.display = 'none';
       }
     });
   }
