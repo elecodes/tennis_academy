@@ -70,7 +70,9 @@ app = Flask(
 )
 app.jinja_env.auto_reload = True
 app.config["TEMPLATES_AUTO_RELOAD"] = True
-app.secret_key = secrets.token_hex(16)
+app.secret_key = os.environ.get(
+    "SECRET_KEY", "7f0d44a016b40a094b21c5b7f45496cc78a65eeda08491094a17408b2c05c88d"
+)
 
 
 def format_schedule_compact(schedule_text):
