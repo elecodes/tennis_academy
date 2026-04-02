@@ -294,9 +294,10 @@
   }
 
   // Edit Session Modal
+  document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.edit-session-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent accordion toggle
+        e.stopPropagation();
         const data = btn.dataset;
         openEditSessionModal(null, data.sessionId, data.sessionDay, data.sessionStart, data.sessionEnd, data.sessionCourt);
       });
