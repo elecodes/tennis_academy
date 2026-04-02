@@ -269,7 +269,7 @@
 
   // Filter groups by day
   function filterGroupsByDay(dayIndex) {
-    alert('filterGroupsByDay called with: ' + dayIndex);
+    const dayStr = dayIndex.toString();
     
     // Update button styles
     document.querySelectorAll('.day-filter-btn').forEach((btn, idx) => {
@@ -283,18 +283,14 @@
     });
     
     // Filter group cards
-    const cards = document.querySelectorAll('.group-card');
-    alert('Found ' + cards.length + ' cards, dayIndex=' + dayIndex);
-    
-    cards.forEach(card => {
+    document.querySelectorAll('.group-card').forEach(card => {
       const daysAttr = card.getAttribute('data-days');
-      alert('Card days: ' + daysAttr + ', includes ' + dayIndex + '? ' + daysAttr.split(',').includes(dayIndex.toString()));
       if (!daysAttr) {
         card.style.display = 'none';
         return;
       }
       const days = daysAttr.split(',');
-      if (days.includes(dayIndex.toString())) {
+      if (days.includes(dayStr)) {
         card.style.display = '';
       } else {
         card.style.display = 'none';
