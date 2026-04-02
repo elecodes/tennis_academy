@@ -283,8 +283,12 @@
     });
     
     // Filter group cards
-    document.querySelectorAll('.group-card').forEach(card => {
+    const cards = document.querySelectorAll('.group-card');
+    alert('Found ' + cards.length + ' cards, dayIndex=' + dayIndex);
+    
+    cards.forEach(card => {
       const daysAttr = card.getAttribute('data-days');
+      alert('Card days: ' + daysAttr + ', includes ' + dayIndex + '? ' + daysAttr.split(',').includes(dayIndex.toString()));
       if (!daysAttr) {
         card.style.display = 'none';
         return;
