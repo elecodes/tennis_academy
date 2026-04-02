@@ -293,7 +293,33 @@ Family: family1@email.com / tennis2026
 
 ## 🚀 Deployment
 
-### Option 1: Render (Recommended for Turso)
+### Option 1: Vercel (Fastest, recommended)
+1. Install Vercel CLI: `npm i -g vercel`
+2. Login: `vercel login`
+3. Set environment variables in Vercel dashboard:
+   - `TURSO_URL` - Your Turso database URL
+   - `TURSO_TOKEN` - Your Turso token
+   - `SENDER_EMAIL` - Your Gmail address
+   - `SENDER_PASSWORD` - Your Gmail app password
+   - `SECRET_KEY` - Random string
+4. Deploy:
+```bash
+vercel --prod
+```
+
+The app will be live at `https://your-project.vercel.app`
+
+### Option 2: Render (Alternative)
+1. Sign up at https://render.com
+2. Connect your GitHub repository
+3. Create Web Service (or use `render.yaml` in root)
+4. Set environment variables:
+   - `TURSO_URL` - Your Turso database URL
+   - `TURSO_TOKEN` - Your Turso token
+   - `SENDER_EMAIL` - Gmail address for notifications
+   - `SENDER_PASSWORD` - Gmail app password
+   - `SECRET_KEY` - Random string for sessions
+5. Deploy!
 1. Sign up at https://render.com
 2. Connect your GitHub repository
 3. Create Web Service (or use `render.yaml` in root)

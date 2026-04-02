@@ -1,0 +1,26 @@
+{
+  "builds": [
+    {
+      "src": "backend/app.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.12",
+        "requirements": "backend/requirements.txt"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/backend/app.py"
+    }
+  ],
+  "env": {
+    "TURSO_URL": "@turso_url",
+    "TURSO_TOKEN": "@turso_token",
+    "SENDER_EMAIL": "@sender_email",
+    "SENDER_PASSWORD": "@sender_password",
+    "SECRET_KEY": "@secret_key"
+  },
+  "framework": null
+}
