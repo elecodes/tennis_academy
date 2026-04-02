@@ -1,0 +1,13 @@
+Flask==3.0.0
+Werkzeug==3.0.1
+pytest==7.4.0
+pytest-cov==4.1.0
+python-dotenv==1.0.0
+flake8==7.0.0
+black==24.1.1
+sentry-sdk[flask]
+flask-talisman==1.1.0
+requests
+genkit
+genkit-plugin-google-genai
+pydantic
