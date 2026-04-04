@@ -118,12 +118,12 @@
           {% set day_num = loop.index0 %}
           {% set day_schedules = group.schedules | selectattr('day', 'equalto', day_num) | list %}
           {% if day_schedules %}
-          <div class="flex flex-col gap-2 md:gap-4">
+          <div class="flex flex-col gap-2 md:gap-4 day-wrapper" data-day-index="{{ day_num }}">
             <div
               class="text-[10px] md:text-[11px] font-black text-navy/60 uppercase tracking-[0.15em] text-center pb-2 border-b border-navy/10">
               {{ day_name[:3] }}
             </div>
-            <div class="day-column space-y-2 md:space-y-3" data-day-index="{{ day_num }}">
+            <div class="day-column space-y-2 md:space-y-3">
               {% for sched in day_schedules %}
               <div
                 class="p-2 md:p-3 bg-mist/50 rounded-xl md:rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
@@ -284,7 +284,7 @@
           grid.classList.remove('grid-cols-1');
           grid.classList.add('grid-cols-2', 'md:grid-cols-7');
         }
-        card.querySelectorAll('.day-column').forEach(col => {
+        card.querySelectorAll('.day-wrapper').forEach(col => {
           col.style.display = '';
         });
       });
@@ -330,8 +330,8 @@
           grid.classList.remove('grid-cols-2', 'md:grid-cols-7');
           grid.classList.add('grid-cols-1');
         }
-        // Filter day columns within this card
-        card.querySelectorAll('.day-column').forEach(col => {
+        // Filter day wrappers within this card
+        card.querySelectorAll('.day-wrapper').forEach(col => {
           const colDay = col.getAttribute('data-day-index');
           if (colDay === dayStr) {
             col.style.display = '';
