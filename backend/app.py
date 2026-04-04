@@ -139,14 +139,25 @@ def format_schedule_compact(schedule_text):
 
 
 def format_time(time_str):
-    """Convert 24h time (HH:MM) to 12h format (4pm, 9:30am)"""
+    """Convert time to clean 12h format (4pm, 9:30am)"""
     if not time_str:
         return ""
     try:
+        time_str = time_str.strip().lower()
+        # If already has am/pm, just clean it up
+        if time_str.endswith("am") or time_str.endswith("pm"):
+            suffix = "am" if time_str.endswith("am") else "pm"
+            time_part = time_str[:-2].strip()
+            parts = time_part.split(":")
+            hour = int(parts[0])
+            minute = parts[1] if len(parts) > 1 else "00"
+            if minute == "00":
+                return f"{hour}{suffix}"
+            return f"{hour}:{minute}{suffix}"
+        # Otherwise treat as 24-hour format
         parts = time_str.split(":")
         hour = int(parts[0])
         minute = parts[1] if len(parts) > 1 else "00"
-
         if hour == 0:
             return f"12:{minute}am"
         elif hour == 12:
