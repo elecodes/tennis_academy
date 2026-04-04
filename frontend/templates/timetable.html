@@ -338,7 +338,7 @@
         card.querySelectorAll('.day-wrapper').forEach(col => {
           const colDay = col.getAttribute('data-day-index');
           if (colDay === dayStr) {
-            col.style.display = '';
+            col.style.display = 'block';
             foundDay = true;
           } else {
             col.style.display = 'none';
