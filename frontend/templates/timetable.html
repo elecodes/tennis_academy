@@ -268,10 +268,40 @@
   }
 
   // Filter groups by day
+  let activeDay = null;
+  
   function filterGroupsByDay(dayIndex) {
     const dayStr = dayIndex.toString();
-    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    alert('Filtering for: ' + dayNames[dayIndex] + ' (index ' + dayIndex + ')');
+    
+    // Toggle: if clicking the same day, show all
+    if (activeDay === dayIndex) {
+      activeDay = null;
+      // Reset all cards and grids
+      document.querySelectorAll('.group-card').forEach(card => {
+        card.style.display = '';
+        const grid = card.querySelector('.grid');
+        if (grid) {
+          grid.classList.remove('grid-cols-1');
+          grid.classList.add('grid-cols-2', 'md:grid-cols-7');
+        }
+        card.querySelectorAll('.day-column').forEach(col => {
+          col.style.display = '';
+        });
+      });
+      // Reset button styles
+      document.querySelectorAll('.day-filter-btn').forEach((btn, idx) => {
+        if (idx === 0) {
+          btn.classList.add('bg-navy', 'text-white');
+          btn.classList.remove('bg-white', 'text-navy/60', 'border', 'border-navy/10');
+        } else {
+          btn.classList.remove('bg-navy', 'text-white');
+          btn.classList.add('bg-white', 'text-navy/60', 'border', 'border-navy/10');
+        }
+      });
+      return;
+    }
+    
+    activeDay = dayIndex;
     
     // Update button styles
     document.querySelectorAll('.day-filter-btn').forEach((btn, idx) => {
@@ -287,18 +317,22 @@
     // Filter group cards
     document.querySelectorAll('.group-card').forEach(card => {
       const daysAttr = card.getAttribute('data-days');
-      alert('Group card days: ' + daysAttr);
       if (!daysAttr) {
         card.style.display = 'none';
         return;
       }
       const days = daysAttr.split(',');
+      const grid = card.querySelector('.grid');
       if (days.includes(dayStr)) {
         card.style.display = '';
+        // Change grid to single column for filtered view
+        if (grid) {
+          grid.classList.remove('grid-cols-2', 'md:grid-cols-7');
+          grid.classList.add('grid-cols-1');
+        }
         // Filter day columns within this card
         card.querySelectorAll('.day-column').forEach(col => {
           const colDay = col.getAttribute('data-day-index');
-          alert('Column day: ' + colDay + ' vs selected: ' + dayStr);
           if (colDay === dayStr) {
             col.style.display = '';
           } else {
