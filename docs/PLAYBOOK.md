@@ -120,7 +120,10 @@ npm run build:js
 As of Feb 2026, the application follows a **Premium Centered Layout** (`max-w-7xl mx-auto`).
 
 1. **Typography**: Headings use `font-display` (Playfair Display), body uses `font-sans` (Inter).
-2. **Colors**: Primary color is Navy (`#0A192F`), accents use Gold and Emerald.
+2. **Colors**: 
+   - **V1 (Default)**: Navy (`#1A237E`) + Orange accent (`#F57C00`) + Light background (`#F8F9FA`)
+   - **V2 (Toggle)**: Deep Royal Blue (`#163E85`) + Golden Yellow (`#E6C200`) + Gray background (`#EEF0F5`)
+   - Toggle via palette icon in header — persisted in localStorage
 3. **Cards**: Use `.card-premium` for elevated, bordered containers.
 4. **Modals**: Use the custom Vanilla JS system (see `ADR-002`).
 5. **Mobile-First Optimization** (New Feb 2026):
@@ -139,7 +142,7 @@ The app provides Jinja2 filters for consistent schedule display:
 | Filter | Purpose | Example |
 |--------|---------|---------|
 | `schedule_compact` | Parse schedule text to compact pills | `"Mon 4pm", "Wed 5:30pm"` |
-| `format_time` | Convert 24h to 12h format | `"16:00"` → `"4pm"` |
+| `format_time` | Convert time to 12h format (handles both 24h and 12h DB formats) | `"16:00"` → `"4pm"`, `"2:40:00pm"` → `"2:40pm"` |
 
 Used in:
 - `family_dashboard.html` - Enrollments section

@@ -28,7 +28,15 @@ All notable changes to this project will be documented in this file.
 - **Local Tailwind**: Added local tailwind.js fallback when CDN is blocked
 - **Day Filter JavaScript**: Fixed `filterGroupsByDay` not defined error - wrapped event listeners in DOMContentLoaded
 - **Day Filter Type Mismatch**: Fixed string/number comparison bug in day filter - dayIndex now converted to string before comparison
+- **Day Filter Server-Side**: Switched from JS filtering to server-side rendering with `?day=X` URL parameter for reliable filtering
+- **Day Filter Grid Layout**: Fixed hidden day columns still taking grid space - now uses single-column layout when filtered
+- **Day Filter Day Headers**: Fixed day headers showing when content was hidden - now hides entire day wrapper
+- **Time Display AM/PM Bug**: Fixed `format_time` treating DB 12h times (e.g., "2:40:00pm") as 24h format, causing PM times to show as AM
+- **Quick-Login Passwords**: Fixed coach and family quick-login buttons using wrong password (`password123` → `admin123`)
 - **Duplicate Enrollments**: Removed duplicate student entries from database after sync
+
+### Added
+- **Coach My Groups Day Filter**: Added day filter buttons to coach my groups page to filter groups and schedule slots by day
 
 ## [1.15.0] - 2026-03-23
 
