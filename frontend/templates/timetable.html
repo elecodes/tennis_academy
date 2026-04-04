@@ -270,6 +270,8 @@
   // Filter groups by day
   function filterGroupsByDay(dayIndex) {
     const dayStr = dayIndex.toString();
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    alert('Filtering for: ' + dayNames[dayIndex] + ' (index ' + dayIndex + ')');
     
     // Update button styles
     document.querySelectorAll('.day-filter-btn').forEach((btn, idx) => {
@@ -285,6 +287,7 @@
     // Filter group cards
     document.querySelectorAll('.group-card').forEach(card => {
       const daysAttr = card.getAttribute('data-days');
+      alert('Group card days: ' + daysAttr);
       if (!daysAttr) {
         card.style.display = 'none';
         return;
@@ -292,9 +295,10 @@
       const days = daysAttr.split(',');
       if (days.includes(dayStr)) {
         card.style.display = '';
-        // Filter day columns within this card - hide all except selected day
+        // Filter day columns within this card
         card.querySelectorAll('.day-column').forEach(col => {
           const colDay = col.getAttribute('data-day-index');
+          alert('Column day: ' + colDay + ' vs selected: ' + dayStr);
           if (colDay === dayStr) {
             col.style.display = '';
           } else {
