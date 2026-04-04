@@ -292,6 +292,15 @@
       const days = daysAttr.split(',');
       if (days.includes(dayStr)) {
         card.style.display = '';
+        // Filter day columns within this card - hide all except selected day
+        card.querySelectorAll('.day-column').forEach(col => {
+          const colDay = col.getAttribute('data-day-index');
+          if (colDay === dayStr) {
+            col.style.display = '';
+          } else {
+            col.style.display = 'none';
+          }
+        });
       } else {
         card.style.display = 'none';
       }
