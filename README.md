@@ -21,6 +21,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - **Mobile bottom navigation** - Quick access to Home, Schedule, Groups, and Message on mobile
 - **Mobile-friendly schedule display** - Compact day/time pills (e.g., "Mon 4pm", "Wed 5:30pm")
 - **Day filter buttons** - Filter schedule by day to show only groups with lessons on that day
+- **Theme toggle** - Click the palette icon in the header to switch between V1 (original) and V2 (royal blue + golden yellow) themes
 
 ### Message Types
 - Rain cancellations (urgent)

@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - **Mobile Bottom Navigation**: Fixed bottom navigation bar for mobile with active state highlighting
 - **Google Sheets Sync**: Schedules now sync directly from Google Sheets to Turso database
 - **Day Filter Buttons**: Added day filter buttons on schedule page to show only groups with lessons on selected day
+- **V1/V2 Theme Toggle**: Palette button in header toggles between V1 (original navy/orange) and V2 (royal blue/golden yellow) themes, persisted in localStorage
 
 ### Changed
 - **Tailwind CDN**: Changed from link to script tag for proper loading
@@ -16,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - **Schedule Display**: Empty days now hidden for coach/family, shown with "+ Add" button for admin
 - **Dashboard Header**: Reduced size on mobile for less scrolling
 - **Coach Schedule**: Now shows only groups that have lessons on the selected day via day filter
+- **Color Palette V2**: Deep Royal Blue (#163E85) + Golden Yellow (#E6C200) + medium-light gray background (#EEF0F5)
 
 ### Fixed
 - **CDN Blocking**: Added fallback styles and local Tailwind as workaround for blocked CDN
@@ -24,8 +26,8 @@ All notable changes to this project will be documented in this file.
 - **Admin Dashboard**: Removed "System Health: Optimal" card from statistics snapshot
 - **Timetable Provision**: Added separate page (/admin/timetable/new) for creating new sessions instead of modal
 - **Local Tailwind**: Added local tailwind.js fallback when CDN is blocked
-
-### Fixed
+- **Day Filter JavaScript**: Fixed `filterGroupsByDay` not defined error - wrapped event listeners in DOMContentLoaded
+- **Day Filter Type Mismatch**: Fixed string/number comparison bug in day filter - dayIndex now converted to string before comparison
 - **Duplicate Enrollments**: Removed duplicate student entries from database after sync
 
 ## [1.15.0] - 2026-03-23
