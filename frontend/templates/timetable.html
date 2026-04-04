@@ -45,14 +45,14 @@
   <div class="flex flex-wrap gap-2 mb-6 justify-center">
     {% for day_name in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
     {% set is_active = (day_filter is not none and day_filter == loop.index0) %}
-    <a href="?{% if is_active %}{{ request.query_string.decode() | replace('day=' ~ loop.index0, '') | replace('&&', '&') | trim('&') }}{% else %}{{ request.query_string.decode() }}&day={{ loop.index0 }}{% endif %}"
+    <a href="javascript:void(0)" onclick="setDayFilter({{ loop.index0 }})"
        class="day-filter-btn px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all
               {% if is_active %} bg-navy text-white {% else %} bg-white text-navy/60 border border-navy/10 {% endif %}">
       {{ day_name }}
     </a>
     {% endfor %}
     {% if day_filter is not none %}
-    <a href="?{{ request.query_string.decode() | replace('day=' ~ day_filter, '') | replace('&&', '&') | trim('&') }}"
+    <a href="javascript:void(0)" onclick="clearDayFilter()"
        class="px-3 py-2 rounded-full text-xs font-bold text-obsidian/40 hover:text-navy transition-colors">
       <span class="material-symbols-outlined text-sm align-middle">close</span> Show All
     </a>
@@ -127,7 +127,7 @@
           {% set day_schedules = group.schedules | selectattr('day', 'equalto', day_num) | list %}
           {% if day_schedules %}
           {% if day_filter is none or day_filter == day_num %}
-          <div class="flex flex-col gap-2 md:gap-4 {% if day_filter is not none %}col-span-2 md:col-span-7{% endif %}">
+          <div class="flex flex-col gap-2 md:gap-4 {% if day_filter is not none %}col-span-1{% endif %}">
             <div
               class="text-[10px] md:text-[11px] font-black text-navy/60 uppercase tracking-[0.15em] text-center pb-2 border-b border-navy/10">
               {{ day_name[:3] }}
@@ -265,6 +265,18 @@
 </div>
 
 <script>
+  function setDayFilter(dayIndex) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('day', dayIndex);
+    window.location.href = url.toString();
+  }
+
+  function clearDayFilter() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('day');
+    window.location.href = url.toString();
+  }
+
   function toggleGroupAccordion(index) {
     const accordion = document.getElementById(`accordion-${index}`);
     const chevron = document.getElementById(`chevron-${index}`);
