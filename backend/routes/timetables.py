@@ -58,6 +58,14 @@ def get_timetable_page():
         if user_role == "admin":
             all_groups = repository.get_all_groups()
 
+        # Day filter
+        day_filter = request.args.get("day")
+        if day_filter is not None:
+            try:
+                day_filter = int(day_filter)
+            except ValueError:
+                day_filter = None
+
         return render_template(
             "timetable.html",
             groups=result["groups"],
@@ -66,6 +74,7 @@ def get_timetable_page():
             week_end=result["week_end"],
             prev_week=prev_week,
             next_week=next_week,
+            day_filter=day_filter,
         )
 
     except ValueError as e:
