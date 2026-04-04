@@ -12,10 +12,29 @@
   </div>
 
   {% if groups %}
+  <!-- Day Filter -->
+  <div class="flex flex-wrap gap-2 mb-6 justify-center">
+    {% for day_name in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+    <button onclick="filterGroupsByDay({{ loop.index0 }})"
+            class="day-filter-btn px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all
+                   {% if loop.index0 == 0 %} bg-navy text-white {% else %} bg-white text-navy/60 border border-navy/10 {% endif %}">
+      {{ day_name }}
+    </button>
+    {% endfor %}
+  </div>
+
   <div class="space-y-12">
     {% for group in groups %}
+    {% set group_days = [] %}
+    {% for sched in group_schedules.get(group.id, []) %}
+      {% set day_num = sched.day_of_week %}
+      {% if day_num not in group_days %}
+        {% set _ = group_days.append(day_num) %}
+      {% endif %}
+    {% endfor %}
     
-    <div class="card-premium border border-navy/10 shadow-2xl p-0 overflow-hidden bg-white">
+    <div class="card-premium border border-navy/10 shadow-2xl p-0 overflow-hidden bg-white group-card" 
+         data-days="{{ group_days | join(',') }}">
       <div class="bg-navy p-8 text-white">
         <div>
           <h2 class="text-2xl font-display font-bold mb-2 text-white">{{ group.name }}</h2>
@@ -50,7 +69,7 @@
         <div class="space-y-6">
           {% for sched in group_schedules[group.id] %}
             {% if group_members[group.id][sched.id] %}
-            <div class="border border-navy/10 rounded-xl overflow-hidden">
+            <div class="border border-navy/10 rounded-xl overflow-hidden schedule-slot" data-sched-day="{{ sched.day_of_week }}">
               <div class="bg-emerald-100 px-4 py-2 border-b border-emerald-200">
                 <span class="font-bold text-emerald-900 text-sm">{{ sched.label }}</span>
                 <span class="text-emerald-600 text-xs ml-2">({{ group_members[group.id][sched.id]|length }} student{{ 's' if group_members[group.id][sched.id]|length != 1 else '' }})</span>
@@ -117,4 +136,45 @@
   </div>
   {% endif %}
 </div>
+
+<script>
+  function filterGroupsByDay(dayIndex) {
+    const dayStr = dayIndex.toString();
+    
+    // Update button styles
+    document.querySelectorAll('.day-filter-btn').forEach((btn, idx) => {
+      if (idx === dayIndex) {
+        btn.classList.add('bg-navy', 'text-white');
+        btn.classList.remove('bg-white', 'text-navy/60', 'border', 'border-navy/10');
+      } else {
+        btn.classList.remove('bg-navy', 'text-white');
+        btn.classList.add('bg-white', 'text-navy/60', 'border', 'border-navy/10');
+      }
+    });
+    
+    // Filter group cards
+    document.querySelectorAll('.group-card').forEach(card => {
+      const daysAttr = card.getAttribute('data-days');
+      if (!daysAttr) {
+        card.style.display = 'none';
+        return;
+      }
+      const days = daysAttr.split(',');
+      if (days.includes(dayStr)) {
+        card.style.display = '';
+        // Also filter schedule slots within this card
+        card.querySelectorAll('.schedule-slot').forEach(slot => {
+          const slotDay = slot.getAttribute('data-sched-day');
+          if (slotDay === dayStr) {
+            slot.style.display = '';
+          } else {
+            slot.style.display = 'none';
+          }
+        });
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+</script>
 {% endblock %}
