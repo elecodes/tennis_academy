@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#1A237E">
+  <meta name="theme-color" content="#163E85">
   <meta name="description" content="SF TENNIS KIDS Club - Manage tennis sessions, groups, and communications">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -24,17 +24,29 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* Fallback styles in case CDN fails */
-    body { background: #F8F9FA; color: #0A0D2E; }
+    body { background: var(--mist, #F8F9FA); color: #0A0D2E; }
     .bg-white { background: white; }
-    .text-navy { color: #1A237E; }
-    .bg-navy { background: #1A237E; }
-    .btn-primary { background: #1A237E; color: white; padding: 10px 20px; border-radius: 8px; }
+    .text-navy { color: var(--navy, #1A237E); }
+    .bg-navy { background: var(--navy, #1A237E); }
+    .btn-primary { background: var(--navy, #1A237E); color: white; padding: 10px 20px; border-radius: 8px; }
   </style>
   <script>
+    // Theme toggle: V1 (default) = orange, V2 = yellow
+    var currentTheme = localStorage.getItem('theme') || 'v1';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    if (currentTheme === 'v2') {
+      document.documentElement.classList.add('theme-v2');
+    }
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
+          colors: currentTheme === 'v2' ? {
+            navy: '#163E85',
+            accent: '#E6C200',
+            clay: '#D32F2F',
+            obsidian: '#0A0D2E',
+            mist: '#EEF0F5',
+          } : {
             navy: '#1A237E',
             accent: '#F57C00',
             clay: '#D32F2F',
@@ -86,7 +98,7 @@
 
 <body class="bg-mist font-sans text-obsidian antialiased" style="background-color: #F8F9FA; font-family: system-ui, -apple-system, sans-serif;">
   <noscript>
-    <div style="padding: 20px; background: #1A237E; color: white; text-align: center;">
+    <div style="padding: 20px; background: #163E85; color: white; text-align: center;">
       <h1>SF TENNIS KIDS</h1>
       <p>Please enable JavaScript to use this app.</p>
     </div>
@@ -180,6 +192,12 @@
 
       <!-- Action Area -->
       <div class="flex items-center gap-4">
+        <!-- Theme Toggle -->
+        <button id="theme-toggle" onclick="toggleTheme()"
+          class="w-10 h-10 rounded-full bg-navy/5 hover:bg-navy/10 flex items-center justify-center transition-colors"
+          title="Toggle theme">
+          <span class="material-symbols-outlined text-navy text-lg">palette</span>
+        </button>
         {% if 'user_id' in session %}
         <div class="relative group">
           <button
@@ -437,6 +455,20 @@
         });
       }
     });
+
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = localStorage.getItem('theme') || 'v1';
+      const next = current === 'v1' ? 'v2' : 'v1';
+      if (next === 'v2') {
+        html.classList.add('theme-v2');
+      } else {
+        html.classList.remove('theme-v2');
+      }
+      localStorage.setItem('theme', next);
+      location.reload();
+    }
   </script>
   
   <!-- PWA Service Worker -->
