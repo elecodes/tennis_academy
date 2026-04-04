@@ -272,6 +272,7 @@
   
   function filterGroupsByDay(dayIndex) {
     const dayStr = dayIndex.toString();
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     
     // Toggle: if clicking the same day, show all
     if (activeDay === dayIndex) {
@@ -315,6 +316,7 @@
     });
     
     // Filter group cards
+    let visibleCount = 0;
     document.querySelectorAll('.group-card').forEach(card => {
       const daysAttr = card.getAttribute('data-days');
       if (!daysAttr) {
@@ -325,24 +327,30 @@
       const grid = card.querySelector('.grid');
       if (days.includes(dayStr)) {
         card.style.display = '';
+        visibleCount++;
         // Change grid to single column for filtered view
         if (grid) {
           grid.classList.remove('grid-cols-2', 'md:grid-cols-7');
           grid.classList.add('grid-cols-1');
         }
         // Filter day wrappers within this card
+        let foundDay = false;
         card.querySelectorAll('.day-wrapper').forEach(col => {
           const colDay = col.getAttribute('data-day-index');
           if (colDay === dayStr) {
             col.style.display = '';
+            foundDay = true;
           } else {
             col.style.display = 'none';
           }
         });
+        alert('Group "' + card.querySelector('h5')?.textContent + '" - days: ' + daysAttr + ', found ' + dayNames[dayIndex] + ': ' + foundDay);
       } else {
         card.style.display = 'none';
       }
     });
+    
+    alert('Filtering for ' + dayNames[dayIndex] + ': ' + visibleCount + ' group(s) visible');
   }
 
   // Edit Session Modal
