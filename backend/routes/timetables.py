@@ -11,14 +11,33 @@ from flask import (
     redirect,
     url_for,
     flash,
+    current_app,
 )
 from datetime import datetime, timedelta
 from repositories.timetable_repository import TimetableRepository
+from functools import wraps
 
 timetables_bp = Blueprint("timetables", __name__)
 
 
+def cache_response(max_age=300):
+    """Add Cache-Control headers to GET responses in production."""
+
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            resp = f(*args, **kwargs)
+            if not current_app.debug and request.method == "GET":
+                resp.headers["Cache-Control"] = f"private, max-age={max_age}"
+            return resp
+
+        return wrapper
+
+    return decorator
+
+
 @timetables_bp.route("/timetable")
+@cache_response(max_age=300)
 def get_timetable_page():
     """
     GET /timetable?date=2026-02-16

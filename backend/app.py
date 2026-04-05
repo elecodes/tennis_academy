@@ -178,6 +178,26 @@ app.jinja_env.filters["schedule_compact"] = format_schedule_compact
 app.jinja_env.filters["format_time"] = format_time
 
 
+def cache_response(max_age=300):
+    """Add Cache-Control headers to GET responses.
+
+    Uses 'private' so each browser caches separately (respects RBAC).
+    Only active in production (not debug mode).
+    """
+
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            resp = f(*args, **kwargs)
+            if not app.debug and request.method == "GET":
+                resp.headers["Cache-Control"] = f"private, max-age={max_age}"
+            return resp
+
+        return wrapper
+
+    return decorator
+
+
 # Security Headers (Talisman)
 csp = {
     "default-src": "'self'",
@@ -464,6 +484,7 @@ def logout():
 
 @app.route("/dashboard")
 @login_required
+@cache_response(max_age=120)
 def dashboard():
     conn = get_db()
     user_id = session["user_id"]
@@ -579,6 +600,7 @@ def dashboard():
 
 @app.route("/admin/users")
 @admin_required
+@cache_response(max_age=300)
 def admin_users():
     conn = get_db()
     users = conn.execute(
@@ -712,6 +734,7 @@ def admin_delete_user(user_id):
 
 @app.route("/admin/groups")
 @admin_required
+@cache_response(max_age=300)
 def admin_groups():
     conn = get_db()
     groups = conn.execute(
@@ -935,6 +958,7 @@ def admin_delete_group(group_id):
 
 @app.route("/admin/enrollments")
 @admin_required
+@cache_response(max_age=300)
 def admin_enrollments():
     conn = get_db()
     enrollments = conn.execute(
@@ -1433,6 +1457,7 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
 
 @app.route("/coach/my-groups")
 @coach_required
+@cache_response(max_age=300)
 def coach_my_groups():
     conn = get_db()
     coach_id = session["user_id"]
@@ -1527,6 +1552,7 @@ def coach_my_groups():
 
 @app.route("/family/my-messages")
 @login_required
+@cache_response(max_age=300)
 def family_messages():
     if session["role"] != "family":
         return redirect(url_for("dashboard"))
@@ -1560,6 +1586,7 @@ def family_messages():
 
 @app.route("/family/my-enrollments")
 @login_required
+@cache_response(max_age=300)
 def family_enrollments():
     if session["role"] != "family":
         return redirect(url_for("dashboard"))
