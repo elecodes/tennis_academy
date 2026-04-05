@@ -421,9 +421,10 @@ MIT License - Free to use and modify!
 ✅ Day Filter:      Server-side filtering on timetable & coach groups (v1.16.0)
 ✅ Theme Toggle:    V1/V2 color palette switcher (v1.16.0)
 ✅ Time Display:    Fixed AM/PM formatting bug (v1.16.0)
+✅ UI Readability:  Enlarged day headers and time text on timetable & coach pages (v1.16.0)
 ```
 
-**Last Updated**: 2026-04-04
+**Last Updated**: 2026-04-05
 **Version**: 1.16.0
 **Status**: Production Ready ✅
 

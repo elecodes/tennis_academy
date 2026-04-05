@@ -133,8 +133,10 @@ As of Feb 2026, the application follows a **Premium Centered Layout** (`max-w-7x
    - **Schedule Display**: Use compact pills like "Mon 4pm", "Wed 5:30pm" instead of long strings.
    - **PWA Support**: App can be installed on mobile via "Add to Home Screen". Service worker caches offline access.
    - **Bottom Navigation**: Mobile users see fixed bottom nav bar with quick links (Home, Schedule, Groups/Kids, Message).
-   - **Empty Days**: Days without scheduled lessons are hidden for coach/family to reduce clutter.
-   - **Day Filter**: Schedule page has day filter buttons (Mon-Sun) to show only groups with lessons on that day.
+    - **Empty Days**: Days without scheduled lessons are hidden for coach/family to reduce clutter.
+    - **Day Filter**: Schedule page has day filter buttons (Mon-Sun) to show only groups with lessons on that day.
+    - **Readability**: Day headers use `text-lg` bold navy with thicker borders. Time text uses `text-base` for clear visibility.
+    - **Coach Schedule**: Bold uppercase day names (`font-black text-base`) with larger time (`text-lg`) in schedule slot headers.
 
 ### Schedule Formatting Filters
 The app provides Jinja2 filters for consistent schedule display:

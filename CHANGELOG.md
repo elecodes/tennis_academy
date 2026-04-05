@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file.
 - **Dashboard Header**: Reduced size on mobile for less scrolling
 - **Coach Schedule**: Now shows only groups that have lessons on the selected day via day filter
 - **Color Palette V2**: Deep Royal Blue (#163E85) + Golden Yellow (#E6C200) + medium-light gray background (#EEF0F5)
+- **Timetable Readability**: Enlarged day headers (text-lg) and time text (text-base) with bolder styling and thicker borders
+- **Coach Schedule UI**: Bold uppercase day names with larger time display for better readability
 
 ### Fixed
 - **CDN Blocking**: Added fallback styles and local Tailwind as workaround for blocked CDN
