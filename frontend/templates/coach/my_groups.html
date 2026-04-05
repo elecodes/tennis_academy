@@ -70,9 +70,12 @@
           {% for sched in group_schedules[group.id] %}
             {% if group_members[group.id][sched.id] %}
             <div class="border border-navy/10 rounded-xl overflow-hidden schedule-slot" data-sched-day="{{ sched.day_of_week }}">
-              <div class="bg-emerald-100 px-4 py-2 border-b border-emerald-200">
-                <span class="font-bold text-emerald-900 text-sm">{{ sched.label }}</span>
-                <span class="text-emerald-600 text-xs ml-2">({{ group_members[group.id][sched.id]|length }} student{{ 's' if group_members[group.id][sched.id]|length != 1 else '' }})</span>
+              <div class="bg-emerald-100 px-4 py-3 border-b border-emerald-200 flex items-center justify-between">
+                <div class="flex items-baseline gap-3">
+                  <span class="font-black text-navy text-base uppercase tracking-wider">{{ sched.day }}</span>
+                  <span class="font-bold text-navy/70 text-lg">{{ sched.time }}</span>
+                </div>
+                <span class="text-emerald-600 text-xs font-semibold">({{ group_members[group.id][sched.id]|length }} student{{ 's' if group_members[group.id][sched.id]|length != 1 else '' }})</span>
               </div>
               <div class="divide-y divide-navy/5">
                 {% for member in group_members[group.id][sched.id] %}
