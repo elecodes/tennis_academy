@@ -66,8 +66,12 @@ app = Flask(
     template_folder="../frontend/templates",
     static_folder="../frontend/static",
 )
-app.jinja_env.auto_reload = True
-app.config["TEMPLATES_AUTO_RELOAD"] = True
+# Template caching: disable auto-reload in production for faster cold starts
+is_production = (
+    os.environ.get("FLASK_ENV") == "production" or os.environ.get("VERCEL") == "1"
+)
+app.jinja_env.auto_reload = not is_production
+app.config["TEMPLATES_AUTO_RELOAD"] = not is_production
 app.secret_key = os.environ.get(
     "SECRET_KEY", "7f0d44a016b40a094b21c5b7f45496cc78a65eeda08491094a17408b2c05c88d"
 )
