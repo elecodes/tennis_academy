@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - **Google Sheets Sync**: Schedules now sync directly from Google Sheets to Turso database
 - **Day Filter Buttons**: Added day filter buttons on schedule page to show only groups with lessons on selected day
 - **V1/V2 Theme Toggle**: Palette button in header toggles between V1 (original navy/orange) and V2 (royal blue/golden yellow) themes, persisted in localStorage
+- **Docker Support**: Added Dockerfile, docker-compose.yml, and .dockerignore for containerized deployment
 
 ### Changed
 - **Tailwind CDN**: Changed from link to script tag for proper loading

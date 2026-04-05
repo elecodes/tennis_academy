@@ -2,19 +2,38 @@
 
 ## Table of Contents
 1. [Setup Initial](#setup-initial)
-2. [Daily Operations](#daily-operations)
-3. [Design System](#design-system)
-4. [Troubleshooting](#troubleshooting)
-5. [Cloud Migration & Sync](#cloud-migration--sync)
-6. [Backup & Recovery](#backup--recovery)
-7. [Common Tasks](#common-tasks)
+2. [Docker Setup](#docker-setup)
+3. [Daily Operations](#daily-operations)
+4. [Design System](#design-system)
+5. [Troubleshooting](#troubleshooting)
+6. [Cloud Migration & Sync](#cloud-migration--sync)
+7. [Backup & Recovery](#backup--recovery)
+8. [Common Tasks](#common-tasks)
 8. [Agentic Workflow & Memory](#agentic-workflow--memory)
 
 ---
 
 ## Setup Initial
 
-### First Time Setup
+### Quick Start with Docker
+
+```bash
+# 1. Clone project
+cd tennis_academy
+
+# 2. Set environment variables
+export TURSO_URL=libsql://your-db.turso.io
+export TURSO_TOKEN=your-token
+export SENDER_EMAIL=your-email@gmail.com
+export SENDER_PASSWORD=your-app-password
+
+# 3. Run with Docker
+docker compose up --build
+
+# App available at http://localhost:5001
+```
+
+### First Time Setup (Manual)
 
 ```bash
 # 1. Clone project
@@ -53,6 +72,53 @@ sqlite3 academy.db < backend/migrations/002_insert_sample_data.sql
 # 2. Go to Users → Add User (create coaches)
 # 3. Go to Groups → Add Group (create groups)
 # 4. Go to Enrollments → Add Enrollment (assign kids)
+```
+
+---
+
+## Docker Setup
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed
+- Environment variables set (Turso credentials, Gmail)
+
+### Commands
+
+```bash
+# First time build and start
+docker compose up --build
+
+# Start (after first build)
+docker compose up
+
+# Start in background
+docker compose up -d
+
+# View logs
+docker compose logs -f app
+
+# Stop
+docker compose down
+
+# Rebuild after code changes
+docker compose up --build
+
+# Run tests inside container
+docker compose run --rm app python -m pytest tests/ -v
+```
+
+### Volume Mounts
+- `./backend:/app/backend` - Backend code hot-reloads
+- `./frontend:/app/frontend` - Templates hot-reload
+
+### Environment Variables
+Set in `.env` file or export before running:
+```bash
+TURSO_URL=libsql://your-db.turso.io
+TURSO_TOKEN=your-token
+SENDER_EMAIL=your-email@gmail.com
+SENDER_PASSWORD=your-app-password
+SECRET_KEY=your-secret-key
 ```
 
 ---

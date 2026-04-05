@@ -51,9 +51,36 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 | Monitoring | **Sentry** | Free tier |
 | Security | **flask-talisman** (Security Headers) | Free |
 | CI/CD | GitHub Actions | Free |
-| Deployment | PythonAnywhere / Render / Railway | Free tier available |
+| Container | **Docker** + Docker Compose | Free |
+| Deployment | Docker / PythonAnywhere / Render / Railway | Free tier available |
 
 ## 📦 Installation
+
+### Option A: Docker (Recommended)
+
+#### Prerequisites
+- [Docker](https://www.docker.com/products/docker-desktop/) and Docker Compose
+
+#### Quick Start
+
+```bash
+# 1. Clone the project
+git clone <your-repo-url>
+cd tennis_academy
+
+# 2. Set environment variables
+export TURSO_URL=libsql://your-db.turso.io
+export TURSO_TOKEN=your-token
+export SENDER_EMAIL=your-email@gmail.com
+export SENDER_PASSWORD=your-app-password
+
+# 3. Build and run
+docker compose up --build
+```
+
+The app will be available at: **http://localhost:5001**
+
+### Option B: Manual Installation
 
 ### 1. Prerequisites
 - Python 3.8 or higher
@@ -296,6 +323,14 @@ Family: family1@email.com / admin123
 
 ## 🚀 Deployment
 
+### Option 0: Docker (Local Development)
+
+```bash
+docker compose up --build
+```
+
+App runs at **http://localhost:5001** with hot reload via volume mounts.
+
 ### Option 1: Vercel (Fastest, recommended)
 1. Install Vercel CLI: `npm i -g vercel`
 2. Login: `vercel login`
@@ -422,6 +457,7 @@ MIT License - Free to use and modify!
 ✅ Theme Toggle:    V1/V2 color palette switcher (v1.16.0)
 ✅ Time Display:    Fixed AM/PM formatting bug (v1.16.0)
 ✅ UI Readability:  Enlarged day headers and time text on timetable & coach pages (v1.16.0)
+✅ Docker Support:  Containerized deployment with docker-compose (v1.16.0)
 ```
 
 **Last Updated**: 2026-04-05
