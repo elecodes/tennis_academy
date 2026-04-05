@@ -3,12 +3,13 @@
 ## Table of Contents
 1. [Setup Initial](#setup-initial)
 2. [Docker Setup](#docker-setup)
-3. [Daily Operations](#daily-operations)
-4. [Design System](#design-system)
-5. [Troubleshooting](#troubleshooting)
-6. [Cloud Migration & Sync](#cloud-migration--sync)
-7. [Backup & Recovery](#backup--recovery)
-8. [Common Tasks](#common-tasks)
+3. [Vercel Deployment & Caching](#vercel-deployment--caching)
+4. [Daily Operations](#daily-operations)
+5. [Design System](#design-system)
+6. [Troubleshooting](#troubleshooting)
+7. [Cloud Migration & Sync](#cloud-migration--sync)
+8. [Backup & Recovery](#backup--recovery)
+9. [Common Tasks](#common-tasks)
 8. [Agentic Workflow & Memory](#agentic-workflow--memory)
 
 ---
@@ -119,6 +120,60 @@ TURSO_TOKEN=your-token
 SENDER_EMAIL=your-email@gmail.com
 SENDER_PASSWORD=your-app-password
 SECRET_KEY=your-secret-key
+```
+
+---
+
+## Vercel Deployment & Caching
+
+### Deploy to Vercel
+
+```bash
+# Install CLI
+npm i -g vercel
+
+# Login
+vercel login
+
+# Deploy
+vercel --prod
+```
+
+### Required Environment Variables (Vercel Dashboard)
+| Variable | Description |
+|----------|-------------|
+| `TURSO_URL` | Your Turso database URL (libsql://...) |
+| `TURSO_TOKEN` | Your Turso auth token |
+| `SENDER_EMAIL` | Gmail address for notifications |
+| `SENDER_PASSWORD` | Gmail app password |
+| `SECRET_KEY` | Random string for Flask sessions |
+
+### Caching Strategy
+
+The app uses a 3-layer caching approach on Vercel:
+
+| Layer | What | Cache Duration | How |
+|-------|------|----------------|-----|
+| **Static Assets** | CSS, JS, icons, fonts, manifest | 1 year (immutable) | `vercel.json` route headers |
+| **Service Worker** | `sw.js` | 0 (always revalidate) | Separate route in `vercel.json` |
+| **Templates** | Jinja2 templates | Per cold start | Disabled auto-reload in production |
+
+**Why this matters on Vercel:**
+- Vercel is serverless — each request can trigger a cold start
+- Static assets are served from Vercel's edge CDN (no cold start)
+- Template caching eliminates file-watcher overhead on cold starts
+- Service worker must always revalidate so PWA updates deploy immediately
+
+### Verifying Cache Headers
+
+```bash
+# Check static asset cache headers
+curl -I https://your-app.vercel.app/static/css/main.css
+# Should show: cache-control: public, max-age=31536000, immutable
+
+# Check service worker cache headers
+curl -I https://your-app.vercel.app/static/sw.js
+# Should show: cache-control: public, max-age=0, must-revalidate
 ```
 
 ---

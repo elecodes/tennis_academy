@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file.
 - **Day Filter Buttons**: Added day filter buttons on schedule page to show only groups with lessons on selected day
 - **V1/V2 Theme Toggle**: Palette button in header toggles between V1 (original navy/orange) and V2 (royal blue/golden yellow) themes, persisted in localStorage
 - **Docker Support**: Added Dockerfile, docker-compose.yml, and .dockerignore for containerized deployment
+- **Vercel Static Asset Caching**: 1-year immutable cache for CSS/JS/icons via Vercel edge CDN, service worker always revalidated
+- **Template Caching**: Disabled auto-reload in production for faster Vercel cold starts
 
 ### Changed
 - **Tailwind CDN**: Changed from link to script tag for proper loading

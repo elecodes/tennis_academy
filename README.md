@@ -458,6 +458,7 @@ MIT License - Free to use and modify!
 ✅ Time Display:    Fixed AM/PM formatting bug (v1.16.0)
 ✅ UI Readability:  Enlarged day headers and time text on timetable & coach pages (v1.16.0)
 ✅ Docker Support:  Containerized deployment with docker-compose (v1.16.0)
+✅ Vercel Caching:  Static asset CDN caching + template caching for cold starts (v1.16.0)
 ```
 
 **Last Updated**: 2026-04-05
