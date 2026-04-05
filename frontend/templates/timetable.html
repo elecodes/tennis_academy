@@ -129,15 +129,15 @@
           {% if day_filter is none or day_filter == day_num %}
           <div class="flex flex-col gap-2 md:gap-4 {% if day_filter is not none %}col-span-1{% endif %}">
             <div
-              class="text-[10px] md:text-[11px] font-black text-navy/60 uppercase tracking-[0.15em] text-center pb-2 border-b border-navy/10">
+              class="text-sm md:text-lg font-black text-navy uppercase tracking-wider text-center pb-2 border-b-2 border-navy/20">
               {{ day_name[:3] }}
             </div>
             <div class="day-column space-y-2 md:space-y-3">
               {% for sched in day_schedules %}
               <div
-                class="p-2 md:p-3 bg-mist/50 rounded-xl md:rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
+                class="p-3 md:p-4 bg-mist/50 rounded-xl md:rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
                 <div class="flex items-center justify-between mb-0.5">
-                  <div class="text-[10px] md:text-[11px] font-black text-navy group-hover/entry:text-white transition-colors">
+                  <div class="text-sm md:text-base font-black text-navy group-hover/entry:text-white transition-colors">
                     {% if sched.start_time == sched.end_time %}
                     {{ sched.start_time|format_time }}
                     {% else %}
