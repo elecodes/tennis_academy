@@ -1,5 +1,7 @@
 # SF TENNIS KIDS Club
 
+**Live**: https://tennis-academy-aw30.onrender.com
+
 A simple, free-tier communication platform for tennis clubs to connect administrators, coaches, and families via email notifications.
 
 ## 🎯 Features
@@ -15,7 +17,11 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - **Premium Centered Layout** - Elegant, focused experience using `max-w-7xl mx-auto` containers
 - **Custom Modal System** - Reliable, vanilla JS interactions for all record creation (no Bootstrap JS dependencies)
 - **Responsive design** - Optimized for mobile, tablet, and high-res desktops
+- **PWA-ready** - Can be installed on mobile via "Add to Home Screen" for app-like experience
+- **Mobile bottom navigation** - Quick access to Home, Schedule, Groups, and Message on mobile
 - **Mobile-friendly schedule display** - Compact day/time pills (e.g., "Mon 4pm", "Wed 5:30pm")
+- **Day filter buttons** - Filter schedule by day to show only groups with lessons on that day
+- **Theme toggle** - Click the palette icon in the header to switch between V1 (original) and V2 (royal blue + golden yellow) themes
 
 ### Message Types
 - Rain cancellations (urgent)
@@ -45,9 +51,36 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 | Monitoring | **Sentry** | Free tier |
 | Security | **flask-talisman** (Security Headers) | Free |
 | CI/CD | GitHub Actions | Free |
-| Deployment | PythonAnywhere / Render / Railway | Free tier available |
+| Container | **Docker** + Docker Compose | Free |
+| Deployment | Docker / PythonAnywhere / Render / Railway | Free tier available |
 
 ## 📦 Installation
+
+### Option A: Docker (Recommended)
+
+#### Prerequisites
+- [Docker](https://www.docker.com/products/docker-desktop/) and Docker Compose
+
+#### Quick Start
+
+```bash
+# 1. Clone the project
+git clone <your-repo-url>
+cd tennis_academy
+
+# 2. Set environment variables
+export TURSO_URL=libsql://your-db.turso.io
+export TURSO_TOKEN=your-token
+export SENDER_EMAIL=your-email@gmail.com
+export SENDER_PASSWORD=your-app-password
+
+# 3. Build and run
+docker compose up --build
+```
+
+The app will be available at: **http://localhost:5001**
+
+### Option B: Manual Installation
 
 ### 1. Prerequisites
 - Python 3.8 or higher
@@ -284,24 +317,69 @@ export PYTHONPATH=$PYTHONPATH:. && pytest tests/integration/ --cov=backend --cov
 ### Test Credentials
 ```
 Admin:  admin@tennis.com / admin123
-Coach:  coach1@tennis.com / password123
-Family: family1@email.com / password123
+Coach:  coach1@tennis.com / admin123
+Family: family1@email.com / admin123
 ```
 
 ## 🚀 Deployment
 
-### Option 1: PythonAnywhere (Recommended)
+### Option 0: Docker (Local Development)
+
+```bash
+docker compose up --build
+```
+
+App runs at **http://localhost:5001** with hot reload via volume mounts.
+
+### Option 1: Vercel (Fastest, recommended)
+1. Install Vercel CLI: `npm i -g vercel`
+2. Login: `vercel login`
+3. Set environment variables in Vercel dashboard:
+   - `TURSO_URL` - Your Turso database URL
+   - `TURSO_TOKEN` - Your Turso token
+   - `SENDER_EMAIL` - Your Gmail address
+   - `SENDER_PASSWORD` - Your Gmail app password
+   - `SECRET_KEY` - Random string
+4. Deploy:
+```bash
+vercel --prod
+```
+
+The app will be live at `https://your-project.vercel.app`
+
+### Option 2: Render (Alternative)
+1. Sign up at https://render.com
+2. Connect your GitHub repository
+3. Create Web Service (or use `render.yaml` in root)
+4. Set environment variables:
+   - `TURSO_URL` - Your Turso database URL
+   - `TURSO_TOKEN` - Your Turso token
+   - `SENDER_EMAIL` - Gmail address for notifications
+   - `SENDER_PASSWORD` - Gmail app password
+   - `SECRET_KEY` - Random string for sessions
+5. Deploy!
+1. Sign up at https://render.com
+2. Connect your GitHub repository
+3. Create Web Service (or use `render.yaml` in root)
+4. Set environment variables:
+   - `TURSO_URL` - Your Turso database URL
+   - `TURSO_TOKEN` - Your Turso token
+   - `SENDER_EMAIL` - Gmail address for notifications
+   - `SENDER_PASSWORD` - Gmail app password
+   - `SECRET_KEY` - Random string for sessions
+5. Deploy!
+
+Or deploy with `render.yaml`:
+```bash
+render deploy
+```
+
+### Option 2: PythonAnywhere
 1. Sign up at https://www.pythonanywhere.com (free tier)
 2. Upload your files
 3. Create Web App → Flask
 4. Set environment variables in WSGI config
 5. Reload web app
-
-### Option 2: Render
-1. Sign up at https://render.com
-2. Create Web Service → Connect GitHub
-3. Set environment variables
-4. Deploy!
 
 ### Option 3: Railway
 1. Sign up at https://railway.app
@@ -375,13 +453,15 @@ MIT License - Free to use and modify!
 ✅ Mobile UI:      Refined (v1.14.0)
 ✅ Coach Roster:    Schedule-based grouping (v1.15.0)
 ✅ Spreadsheet Sync: Continuation rows support (v1.15.0)
-🔜 Integration Tests: Coming soon
-🔜 PDF Export:      Coming soon
-🔜 Calendar View:   Coming soon
+✅ Day Filter:      Server-side filtering on timetable & coach groups (v1.16.0)
+✅ Theme Toggle:    V1/V2 color palette switcher (v1.16.0)
+✅ Time Display:    Fixed AM/PM formatting bug (v1.16.0)
+✅ UI Readability:  Enlarged day headers and time text on timetable & coach pages (v1.16.0)
+✅ Docker Support:  Containerized deployment with docker-compose (v1.16.0)
 ```
 
-**Last Updated**: 2026-03-23
-**Version**: 1.15.0
+**Last Updated**: 2026-04-05
+**Version**: 1.16.0
 **Status**: Production Ready ✅
 
 ---

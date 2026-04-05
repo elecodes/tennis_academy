@@ -1,14 +1,19 @@
 from pydantic import BaseModel, Field
-from genkit.ai import Genkit
-from genkit.plugins.google_genai import GoogleAI
 from asgiref.sync import async_to_sync
 
-# Initialize Genkit with the Google AI plugin
-# Model gemini-2.5-flash is confirmed working with your API key
-ai = Genkit(
-    plugins=[GoogleAI()],
-    model="googleai/gemini-2.5-flash",
-)
+try:
+    from genkit.ai import Genkit
+    from genkit.plugins.google_genai import GoogleAI
+
+    # Initialize Genkit with the Google AI plugin
+    ai = Genkit(
+        plugins=[GoogleAI()],
+        model="googleai/gemini-2.5-flash",
+    )
+    GENKIT_AVAILABLE = True
+except ImportError:
+    GENKIT_AVAILABLE = False
+    ai = None
 
 
 class DraftInput(BaseModel):
@@ -27,6 +32,9 @@ def generate_email_draft(message_type: str, notes: str):
     """
     Generates a professional email draft using Genkit and Gemini 2.5 Flash.
     """
+    if not GENKIT_AVAILABLE:
+        raise Exception("AI draft feature not available - genkit not installed")
+
     prompt = f"""Act as a professional administrator for SF TENNIS KIDS Club.
 You are writing an email of type: {message_type}.
 Take these rough notes and write a professional, polite, and clear email.

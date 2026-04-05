@@ -41,23 +41,38 @@
   </div>
   {% endif %}
 
-  <!-- Mobile Day Selector (Sticky) -->
-  <div class="md:hidden sticky top-24 z-30 -mx-6 mb-8 px-6 py-4 bg-mist/80 backdrop-blur-md border-b border-navy/5 overflow-x-auto hide-scrollbar flex gap-3 animate-fade-in" id="mobileDaySelector">
+  <!-- Day Filter -->
+  <div class="flex flex-wrap gap-2 mb-6 justify-center">
     {% for day_name in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
-    <button data-day-toggle="{{ loop.index0 }}"
-            data-day-index="{{ loop.index0 }}"
-            class="mobile-day-btn whitespace-nowrap px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all
-                   {% if loop.index0 == 0 %} bg-navy text-white shadow-lg shadow-navy/20 {% else %} bg-white text-navy/40 border border-navy/5 {% endif %}">
+    {% set is_active = (day_filter is not none and day_filter == loop.index0) %}
+    <a href="javascript:void(0)" onclick="setDayFilter({{ loop.index0 }})"
+       class="day-filter-btn px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all
+              {% if is_active %} bg-navy text-white {% else %} bg-white text-navy/60 border border-navy/10 {% endif %}">
       {{ day_name }}
-    </button>
+    </a>
     {% endfor %}
+    {% if day_filter is not none %}
+    <a href="javascript:void(0)" onclick="clearDayFilter()"
+       class="px-3 py-2 rounded-full text-xs font-bold text-obsidian/40 hover:text-navy transition-colors">
+      <span class="material-symbols-outlined text-sm align-middle">close</span> Show All
+    </a>
+    {% endif %}
   </div>
 
   <!-- Groups Display -->
   <div class="space-y-6 md:space-y-12">
     {% if groups %}
     {% for group in groups %}
-    <div class="card-premium overflow-hidden p-0 border border-navy/10 shadow-2xl group animate-fade-in" id="group-card-{{ loop.index }}">
+    {% set group_days = [] %}
+    {% for sched in group.schedules %}
+      {% if sched.day not in group_days %}
+        {% set _ = group_days.append(sched.day) %}
+      {% endif %}
+    {% endfor %}
+    {% if day_filter is none or day_filter in group_days %}
+    <div class="card-premium overflow-hidden p-0 border border-navy/10 shadow-2xl group animate-fade-in group-card" 
+         id="group-card-{{ loop.index }}" 
+         data-days="{{ group_days | join(',') }}">
       <div
         data-accordion-toggle="{{ loop.index }}"
         class="p-6 md:p-8 border-b border-navy/5 bg-navy/[0.02] flex flex-col md:flex-row justify-between items-start md:items-center gap-6 cursor-pointer hover:bg-navy/[0.04] transition-colors relative">
@@ -105,23 +120,24 @@
       </div>
 
       <div class="accordion-content active" id="accordion-{{ loop.index }}">
-        <div class="p-6 md:p-8">
-        <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+        <div class="p-4 md:p-8">
+        <div class="grid grid-cols-2 md:grid-cols-7 gap-3 md:gap-4">
           {% for day_name in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
           {% set day_num = loop.index0 %}
-          <div class="flex flex-col gap-4">
+          {% set day_schedules = group.schedules | selectattr('day', 'equalto', day_num) | list %}
+          {% if day_schedules %}
+          {% if day_filter is none or day_filter == day_num %}
+          <div class="flex flex-col gap-2 md:gap-4 {% if day_filter is not none %}col-span-1{% endif %}">
             <div
-              class="text-[9px] font-black text-navy/20 uppercase tracking-[0.2em] text-center pb-2 border-b border-navy/5">
+              class="text-sm md:text-lg font-black text-navy uppercase tracking-wider text-center pb-2 border-b-2 border-navy/20">
               {{ day_name[:3] }}
             </div>
-            <div class="day-column space-y-3" data-day-index="{{ day_num }}">
-              {% set day_schedules = group.schedules | selectattr('day', 'equalto', day_num) | list %}
-              {% if day_schedules %}
+            <div class="day-column space-y-2 md:space-y-3">
               {% for sched in day_schedules %}
               <div
-                class="p-3 bg-mist/50 rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
+                class="p-3 md:p-4 bg-mist/50 rounded-xl md:rounded-2xl border border-navy/5 group/entry hover:bg-navy transition-all duration-300 relative">
                 <div class="flex items-center justify-between mb-0.5">
-                  <div class="text-[11px] font-black text-navy group-hover/entry:text-white transition-colors">
+                  <div class="text-sm md:text-base font-black text-navy group-hover/entry:text-white transition-colors">
                     {% if sched.start_time == sched.end_time %}
                     {{ sched.start_time|format_time }}
                     {% else %}
@@ -130,14 +146,14 @@
                   </div>
                 </div>
                 <div
-                  class="text-[9px] font-bold text-obsidian/40 group-hover/entry:text-white/60 uppercase tracking-tighter transition-colors">
+                  class="text-[8px] md:text-[9px] font-bold text-obsidian/40 group-hover/entry:text-white/60 uppercase tracking-tighter transition-colors">
                   {{ sched.court }}</div>
 
                 {% if session.role == 'admin' %}
                 <div
-                  class="absolute top-2 right-2 opacity-0 group-hover/entry:opacity-100 transition-opacity flex gap-1">
+                  class="absolute top-1 right-1 md:top-2 md:right-2 opacity-0 group-hover/entry:opacity-100 transition-opacity flex gap-1">
                   <button type="button"
-                    class="w-6 h-6 flex items-center justify-center text-white/50 hover:text-white transition-colors edit-session-btn"
+                    class="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-white/50 hover:text-white transition-colors edit-session-btn"
                     data-session-id="{{ sched.id }}"
                     data-session-day="{{ sched.day }}"
                     data-session-start="{{ sched.start_time }}"
@@ -149,7 +165,7 @@
                   <form action="{{ url_for('timetables.delete_timetable_session', session_id=sched.id) }}"
                     method="POST" onsubmit="return confirm('Authorize session deletion?')">
                     <button type="submit"
-                      class="w-6 h-6 flex items-center justify-center text-white/50 hover:text-white transition-colors"
+                      class="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-white/50 hover:text-white transition-colors"
                       title="Delete Session">
                       <span class="material-symbols-outlined text-xs">close</span>
                     </button>
@@ -158,17 +174,24 @@
                 {% endif %}
               </div>
               {% endfor %}
-              {% else %}
-              <div class="h-16 md:h-full flex items-center justify-center">
-                <span class="w-1.5 h-1.5 rounded-full bg-navy/5"></span>
-              </div>
-              {% endif %}
             </div>
           </div>
+          {% endif %}
+          {% endif %}
           {% endfor %}
         </div>
+        
+        {% if session.role == 'admin' %}
+        <div class="mt-4 pt-4 border-t border-navy/5 text-center">
+          <button type="button" class="text-xs font-bold text-navy/50 hover:text-navy transition-colors"
+            onclick="openModal('newSessionModal'); document.getElementById('new_session_group_id').value = {{ group.id }}">
+            + Add Session to {{ group.name }}
+          </button>
+        </div>
+        {% endif %}
       </div>
     </div>
+    {% endif %}
     {% endfor %}
     {% else %}
     <div class="card-premium p-24 text-center border-2 border-dashed border-navy/10 animate-fade-in shadow-inner">
@@ -242,6 +265,18 @@
 </div>
 
 <script>
+  function setDayFilter(dayIndex) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('day', dayIndex);
+    window.location.href = url.toString();
+  }
+
+  function clearDayFilter() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('day');
+    window.location.href = url.toString();
+  }
+
   function toggleGroupAccordion(index) {
     const accordion = document.getElementById(`accordion-${index}`);
     const chevron = document.getElementById(`chevron-${index}`);
@@ -255,92 +290,14 @@
     }
   }
 
-  let currentMobileDay = 0;
-
-  function switchMobileDay(index) {
-    currentMobileDay = index;
-    
-    // Update buttons
-    const buttons = document.querySelectorAll('.mobile-day-btn');
-    buttons.forEach(btn => {
-      const btnIndex = parseInt(btn.getAttribute('data-day-index'));
-      if (btnIndex === index) {
-        btn.classList.add('bg-navy', 'text-white', 'shadow-lg', 'shadow-navy/20');
-        btn.classList.remove('bg-white', 'text-navy/40', 'border', 'border-navy/5');
-      } else {
-        btn.classList.remove('bg-navy', 'text-white', 'shadow-lg', 'shadow-navy/20');
-        btn.classList.add('bg-white', 'text-navy/40', 'border', 'border-navy/5');
-      }
-    });
-
-    // Update columns
-    const columns = document.querySelectorAll('.day-column');
-    columns.forEach(col => {
-      const colIndex = parseInt(col.getAttribute('data-day-index'));
-      // Only hide if on mobile (width < 768px)
-      if (window.innerWidth < 768) {
-        if (colIndex === index) {
-          col.parentElement.classList.remove('hidden');
-        } else {
-          col.parentElement.classList.add('hidden');
-        }
-      }
-    });
-  }
-
-  // Initial call to set mobile view if needed
-  window.addEventListener('resize', () => {
-    if (window.innerWidth >= 768) {
-      document.querySelectorAll('.day-column').forEach(col => {
-        col.parentElement.classList.remove('hidden');
-      });
-    } else {
-      switchMobileDay(currentMobileDay);
-    }
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // Accordion Toggle
-    document.querySelectorAll('[data-accordion-toggle]').forEach(toggle => {
-      toggle.addEventListener('click', () => {
-        const index = toggle.getAttribute('data-accordion-toggle');
-        toggleGroupAccordion(index);
-      });
-    });
-
-    // Mobile Day Selector
-    document.querySelectorAll('[data-day-toggle]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const index = parseInt(btn.getAttribute('data-day-index'));
-        switchMobileDay(index);
-      });
-    });
-
-    // Edit Session Modal
+  document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.edit-session-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent accordion toggle
+        e.stopPropagation();
         const data = btn.dataset;
         openEditSessionModal(null, data.sessionId, data.sessionDay, data.sessionStart, data.sessionEnd, data.sessionCourt);
       });
     });
-
-    if (window.innerWidth < 768) {
-      switchMobileDay(0);
-      
-      // Auto-collapse all but first on mobile
-      const accordions = document.querySelectorAll('.accordion-content');
-      accordions.forEach((acc, idx) => {
-        if (idx > 0) {
-          acc.classList.remove('active');
-          const chevron = document.getElementById(`chevron-${idx + 1}`);
-          if (chevron) chevron.style.transform = 'rotate(0deg)';
-        } else {
-          const chevron = document.getElementById(`chevron-${idx + 1}`);
-          if (chevron) chevron.style.transform = 'rotate(180deg)';
-        }
-      });
-    }
   });
 
   function openEditSessionModal(event, id, day, start, end, court) {

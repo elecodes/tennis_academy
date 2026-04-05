@@ -1,6 +1,4 @@
-/* SF SF TENNIS KIDS Club - Premium Design System */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap');
+/* SF TENNIS KIDS Club - Premium Design System */
 
 :root {
   --navy: #1A237E;
@@ -12,6 +10,16 @@
   --mist: #F8F9FA;
   --obsidian: #0A0D2E;
   --white: #FFFFFF;
+}
+
+/* V2 Theme - Royal Blue + Golden Yellow */
+.theme-v2 {
+  --navy: #163E85;
+  --navy-light: rgba(22, 62, 133, 0.05);
+  --navy-muted: rgba(22, 62, 133, 0.1);
+  --accent: #E6C200;
+  --accent-light: rgba(230, 194, 0, 0.05);
+  --mist: #EEF0F5;
 }
 
 /* Base Styles */
@@ -146,6 +154,26 @@ h1, h2, h3, h4, .font-serif {
   color: var(--navy);
   font-weight: 600;
   transition: all 0.3s ease;
+  min-height: 48px;
+}
+
+/* Mobile touch targets */
+@media (max-width: 640px) {
+  .btn-primary,
+  .btn-outline {
+    min-height: 52px;
+    padding: 0.875rem 1.5rem;
+  }
+  
+  .form-input,
+  select.form-input {
+    padding: 0.875rem 1.25rem;
+    font-size: 16px;
+  }
+  
+  select.form-input {
+    min-height: 52px;
+  }
 }
 
 .form-input:focus {

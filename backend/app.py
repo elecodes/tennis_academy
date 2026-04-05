@@ -9,7 +9,16 @@ import sys
 # Ensure backend submodules can be found when running from root or within backend/
 sys.path.insert(0, os.path.dirname(__file__))
 
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    session,
+    send_file,
+)
 from functools import wraps
 from datetime import datetime
 from database import get_db
@@ -43,16 +52,14 @@ import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from flask_talisman import Talisman
 
-sentry_sdk.init(
-    dsn=os.environ.get("SENTRY_DSN"),
-    integrations=[FlaskIntegration()],
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    traces_sample_rate=1.0,
-    # Set profiles_sample_rate to 1.0 to capture 100%
-    # of transactions for profiling.
-    profiles_sample_rate=1.0,
-)
+if os.environ.get("SENTRY_DSN"):
+    sentry_sdk.init(
+        dsn=os.environ.get("SENTRY_DSN"),
+        integrations=[FlaskIntegration()],
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+        send_default_pii=True,
+    )
 
 app = Flask(
     __name__,
@@ -61,7 +68,9 @@ app = Flask(
 )
 app.jinja_env.auto_reload = True
 app.config["TEMPLATES_AUTO_RELOAD"] = True
-app.secret_key = secrets.token_hex(16)
+app.secret_key = os.environ.get(
+    "SECRET_KEY", "7f0d44a016b40a094b21c5b7f45496cc78a65eeda08491094a17408b2c05c88d"
+)
 
 
 def format_schedule_compact(schedule_text):
@@ -130,14 +139,25 @@ def format_schedule_compact(schedule_text):
 
 
 def format_time(time_str):
-    """Convert 24h time (HH:MM) to 12h format (4pm, 9:30am)"""
+    """Convert time to clean 12h format (4pm, 9:30am)"""
     if not time_str:
         return ""
     try:
+        time_str = time_str.strip().lower()
+        # If already has am/pm, just clean it up
+        if time_str.endswith("am") or time_str.endswith("pm"):
+            suffix = "am" if time_str.endswith("am") else "pm"
+            time_part = time_str[:-2].strip()
+            parts = time_part.split(":")
+            hour = int(parts[0])
+            minute = parts[1] if len(parts) > 1 else "00"
+            if minute == "00":
+                return f"{hour}{suffix}"
+            return f"{hour}:{minute}{suffix}"
+        # Otherwise treat as 24-hour format
         parts = time_str.split(":")
         hour = int(parts[0])
         minute = parts[1] if len(parts) > 1 else "00"
-
         if hour == 0:
             return f"12:{minute}am"
         elif hour == 12:
@@ -182,12 +202,14 @@ csp = {
     ],
 }
 
-Talisman(
-    app,
-    content_security_policy=csp,
-    force_https=False,  # Set to True in production with SSL
-    frame_options="DENY",
-)
+# Enable Talisman only if not in test mode
+if os.environ.get("ENABLE_TALISMAN", "false").lower() == "true":
+    Talisman(
+        app,
+        content_security_policy=csp,
+        force_https=False,
+        frame_options="DENY",
+    )
 
 app.register_blueprint(timetables_bp)
 
@@ -203,7 +225,7 @@ REDIRECT_TARGET = "gelenmp@gmail.com"
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "gelenmp@gmail.com")
-SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD", "jpss htxt sssz raqm")
+SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD", "zqjl piud eqwi guci")
 REDIRECT_EMAILS_TO = REDIRECT_TARGET if TEST_MODE else None
 
 
@@ -1607,3 +1629,8 @@ def setup():
 if __name__ == "__main__":
     init_db()
     app.run(debug=True, host="0.0.0.0", port=5001)
+
+
+# Vercel deployment - added handler
+def handler(request):
+    return app(request)

@@ -2,19 +2,38 @@
 
 ## Table of Contents
 1. [Setup Initial](#setup-initial)
-2. [Daily Operations](#daily-operations)
-3. [Design System](#design-system)
-4. [Troubleshooting](#troubleshooting)
-5. [Cloud Migration & Sync](#cloud-migration--sync)
-6. [Backup & Recovery](#backup--recovery)
-7. [Common Tasks](#common-tasks)
+2. [Docker Setup](#docker-setup)
+3. [Daily Operations](#daily-operations)
+4. [Design System](#design-system)
+5. [Troubleshooting](#troubleshooting)
+6. [Cloud Migration & Sync](#cloud-migration--sync)
+7. [Backup & Recovery](#backup--recovery)
+8. [Common Tasks](#common-tasks)
 8. [Agentic Workflow & Memory](#agentic-workflow--memory)
 
 ---
 
 ## Setup Initial
 
-### First Time Setup
+### Quick Start with Docker
+
+```bash
+# 1. Clone project
+cd tennis_academy
+
+# 2. Set environment variables
+export TURSO_URL=libsql://your-db.turso.io
+export TURSO_TOKEN=your-token
+export SENDER_EMAIL=your-email@gmail.com
+export SENDER_PASSWORD=your-app-password
+
+# 3. Run with Docker
+docker compose up --build
+
+# App available at http://localhost:5001
+```
+
+### First Time Setup (Manual)
 
 ```bash
 # 1. Clone project
@@ -53,6 +72,53 @@ sqlite3 academy.db < backend/migrations/002_insert_sample_data.sql
 # 2. Go to Users → Add User (create coaches)
 # 3. Go to Groups → Add Group (create groups)
 # 4. Go to Enrollments → Add Enrollment (assign kids)
+```
+
+---
+
+## Docker Setup
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed
+- Environment variables set (Turso credentials, Gmail)
+
+### Commands
+
+```bash
+# First time build and start
+docker compose up --build
+
+# Start (after first build)
+docker compose up
+
+# Start in background
+docker compose up -d
+
+# View logs
+docker compose logs -f app
+
+# Stop
+docker compose down
+
+# Rebuild after code changes
+docker compose up --build
+
+# Run tests inside container
+docker compose run --rm app python -m pytest tests/ -v
+```
+
+### Volume Mounts
+- `./backend:/app/backend` - Backend code hot-reloads
+- `./frontend:/app/frontend` - Templates hot-reload
+
+### Environment Variables
+Set in `.env` file or export before running:
+```bash
+TURSO_URL=libsql://your-db.turso.io
+TURSO_TOKEN=your-token
+SENDER_EMAIL=your-email@gmail.com
+SENDER_PASSWORD=your-app-password
+SECRET_KEY=your-secret-key
 ```
 
 ---
@@ -120,14 +186,23 @@ npm run build:js
 As of Feb 2026, the application follows a **Premium Centered Layout** (`max-w-7xl mx-auto`).
 
 1. **Typography**: Headings use `font-display` (Playfair Display), body uses `font-sans` (Inter).
-2. **Colors**: Primary color is Navy (`#0A192F`), accents use Gold and Emerald.
+2. **Colors**: 
+   - **V1 (Default)**: Navy (`#1A237E`) + Orange accent (`#F57C00`) + Light background (`#F8F9FA`)
+   - **V2 (Toggle)**: Deep Royal Blue (`#163E85`) + Golden Yellow (`#E6C200`) + Gray background (`#EEF0F5`)
+   - Toggle via palette icon in header — persisted in localStorage
 3. **Cards**: Use `.card-premium` for elevated, bordered containers.
 4. **Modals**: Use the custom Vanilla JS system (see `ADR-002`).
 5. **Mobile-First Optimization** (New Feb 2026):
    - **Timetables**: Use horizontal day selector and vertical group accordions on mobile viewports.
    - **Density**: Prefer clean headers; hide low-priority fields like "Capacity" on mobile to reclaim space for time/date.
-   - **Typography**: Maintain large touch targets (min 44x44px) for all buttons and interactive elements.
+   - **Typography**: Maintain large touch targets (min 48x48px) for all buttons and interactive elements.
    - **Schedule Display**: Use compact pills like "Mon 4pm", "Wed 5:30pm" instead of long strings.
+   - **PWA Support**: App can be installed on mobile via "Add to Home Screen". Service worker caches offline access.
+   - **Bottom Navigation**: Mobile users see fixed bottom nav bar with quick links (Home, Schedule, Groups/Kids, Message).
+    - **Empty Days**: Days without scheduled lessons are hidden for coach/family to reduce clutter.
+    - **Day Filter**: Schedule page has day filter buttons (Mon-Sun) to show only groups with lessons on that day.
+    - **Readability**: Day headers use `text-lg` bold navy with thicker borders. Time text uses `text-base` for clear visibility.
+    - **Coach Schedule**: Bold uppercase day names (`font-black text-base`) with larger time (`text-lg`) in schedule slot headers.
 
 ### Schedule Formatting Filters
 The app provides Jinja2 filters for consistent schedule display:
@@ -135,7 +210,7 @@ The app provides Jinja2 filters for consistent schedule display:
 | Filter | Purpose | Example |
 |--------|---------|---------|
 | `schedule_compact` | Parse schedule text to compact pills | `"Mon 4pm", "Wed 5:30pm"` |
-| `format_time` | Convert 24h to 12h format | `"16:00"` → `"4pm"` |
+| `format_time` | Convert time to 12h format (handles both 24h and 12h DB formats) | `"16:00"` → `"4pm"`, `"2:40:00pm"` → `"2:40pm"` |
 
 Used in:
 - `family_dashboard.html` - Enrollments section

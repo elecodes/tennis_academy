@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "5001:5001"
+    environment:
+      - TURSO_URL=${TURSO_URL:-libsql://sf-tennis-academy-elecodes.turso.io}
+      - TURSO_TOKEN=${TURSO_TOKEN:-}
+      - SENDER_EMAIL=${SENDER_EMAIL:-}
+      - SENDER_PASSWORD=${SENDER_PASSWORD:-}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - FLASK_ENV=development
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+    restart: unless-stopped

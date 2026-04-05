@@ -5,18 +5,41 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- **Schedule-Specific Messaging**: Admin can now send messages to specific schedule slots (e.g., "Beginners — Mon 5:15pm") instead of entire groups. Dropdown shows each time slot separately.
-- **Coach Send Message Groups**: Coaches now see their groups with schedule slots (e.g., "Beginners — Mon 5:15pm") in the target audience dropdown when sending messages.
+- **PWA Support**: Added manifest.json, service worker (sw.js), and PWA meta tags for mobile "Add to Home Screen" functionality
+- **Mobile Bottom Navigation**: Fixed bottom navigation bar for mobile with active state highlighting
+- **Google Sheets Sync**: Schedules now sync directly from Google Sheets to Turso database
+- **Day Filter Buttons**: Added day filter buttons on schedule page to show only groups with lessons on selected day
+- **V1/V2 Theme Toggle**: Palette button in header toggles between V1 (original navy/orange) and V2 (royal blue/golden yellow) themes, persisted in localStorage
+- **Docker Support**: Added Dockerfile, docker-compose.yml, and .dockerignore for containerized deployment
 
 ### Changed
-- **Coach Dashboard Styling**: Improved roster card readability with darker schedule slot headers, removed member count badge from card headers
+- **Tailwind CDN**: Changed from link to script tag for proper loading
+- **Mobile Layout**: Improved send message pages (coach & admin) for mobile with smaller padding, larger touch targets
+- **Schedule Display**: Empty days now hidden for coach/family, shown with "+ Add" button for admin
+- **Dashboard Header**: Reduced size on mobile for less scrolling
+- **Coach Schedule**: Now shows only groups that have lessons on the selected day via day filter
+- **Color Palette V2**: Deep Royal Blue (#163E85) + Golden Yellow (#E6C200) + medium-light gray background (#EEF0F5)
+- **Timetable Readability**: Enlarged day headers (text-lg) and time text (text-base) with bolder styling and thicker borders
+- **Coach Schedule UI**: Bold uppercase day names with larger time display for better readability
+
+### Fixed
+- **CDN Blocking**: Added fallback styles and local Tailwind as workaround for blocked CDN
+- **Duplicate Groups**: Removed duplicate "Group" entry that was cluttering coach schedules
 - **Admin Manage Groups Table**: Adjusted column widths - smaller Group column, wider Schedule column for better readability
 - **Admin Dashboard**: Removed "System Health: Optimal" card from statistics snapshot
 - **Timetable Provision**: Added separate page (/admin/timetable/new) for creating new sessions instead of modal
 - **Local Tailwind**: Added local tailwind.js fallback when CDN is blocked
-
-### Fixed
+- **Day Filter JavaScript**: Fixed `filterGroupsByDay` not defined error - wrapped event listeners in DOMContentLoaded
+- **Day Filter Type Mismatch**: Fixed string/number comparison bug in day filter - dayIndex now converted to string before comparison
+- **Day Filter Server-Side**: Switched from JS filtering to server-side rendering with `?day=X` URL parameter for reliable filtering
+- **Day Filter Grid Layout**: Fixed hidden day columns still taking grid space - now uses single-column layout when filtered
+- **Day Filter Day Headers**: Fixed day headers showing when content was hidden - now hides entire day wrapper
+- **Time Display AM/PM Bug**: Fixed `format_time` treating DB 12h times (e.g., "2:40:00pm") as 24h format, causing PM times to show as AM
+- **Quick-Login Passwords**: Fixed coach and family quick-login buttons using wrong password (`password123` → `admin123`)
 - **Duplicate Enrollments**: Removed duplicate student entries from database after sync
+
+### Added
+- **Coach My Groups Day Filter**: Added day filter buttons to coach my groups page to filter groups and schedule slots by day
 
 ## [1.15.0] - 2026-03-23
 

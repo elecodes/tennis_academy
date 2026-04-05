@@ -4,41 +4,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#163E85">
+  <meta name="description" content="SF TENNIS KIDS Club - Manage tennis sessions, groups, and communications">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="SF Tennis Kids">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
   <title>{% block title %}SF TENNIS KIDS Club{% endblock %}</title>
 
   <!-- Design System: Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 
-  <script src="{{ url_for('static', filename='js/tailwind.js') }}"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Fallback styles in case CDN fails */
+    body { background: var(--mist, #F8F9FA); color: #0A0D2E; }
+    .bg-white { background: white; }
+    .text-navy { color: var(--navy, #1A237E); }
+    .bg-navy { background: var(--navy, #1A237E); }
+    .btn-primary { background: var(--navy, #1A237E); color: white; padding: 10px 20px; border-radius: 8px; }
+  </style>
   <script>
-    console.log('Tailwind loaded:', typeof tailwind);
-    if (typeof tailwind === 'undefined') {
-      document.body.innerHTML = '<h1>Tailwind not loading!</h1><p>Please check your network.</p>';
+    // Theme toggle: V1 (default) = orange, V2 = yellow
+    var currentTheme = localStorage.getItem('theme') || 'v1';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    if (currentTheme === 'v2') {
+      document.documentElement.classList.add('theme-v2');
     }
-    window.onload = function() {
-      if (typeof tailwind !== 'undefined') {
-        tailwind.config = {
-          theme: {
-            extend: {
-              colors: {
-                navy: '#1A237E',
-                accent: '#F57C00',
-                clay: '#D32F2F',
-                obsidian: '#0A0D2E',
-                mist: '#F8F9FA',
-              },
-              fontFamily: {
-                serif: ['Playfair Display', 'serif'],
-                sans: ['Inter', 'sans-serif'],
-              }
-            }
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: currentTheme === 'v2' ? {
+            navy: '#163E85',
+            accent: '#E6C200',
+            clay: '#D32F2F',
+            obsidian: '#0A0D2E',
+            mist: '#EEF0F5',
+          } : {
+            navy: '#1A237E',
+            accent: '#F57C00',
+            clay: '#D32F2F',
+            obsidian: '#0A0D2E',
+            mist: '#F8F9FA',
+          },
+          fontFamily: {
+            serif: ['Georgia', 'serif'],
+            sans: ['system-ui', '-apple-system', 'sans-serif'],
           }
         }
       }
@@ -79,7 +96,13 @@
   </style>
 </head>
 
-<body class="bg-mist font-sans text-obsidian antialiased">
+<body class="bg-mist font-sans text-obsidian antialiased" style="background-color: #F8F9FA; font-family: system-ui, -apple-system, sans-serif;">
+  <noscript>
+    <div style="padding: 20px; background: #163E85; color: white; text-align: center;">
+      <h1>SF TENNIS KIDS</h1>
+      <p>Please enable JavaScript to use this app.</p>
+    </div>
+  </noscript>
   <!-- Premium Navigation -->
   <nav class="fixed top-0 left-0 right-0 z-50 header-glass px-6 py-4">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
@@ -169,6 +192,12 @@
 
       <!-- Action Area -->
       <div class="flex items-center gap-4">
+        <!-- Theme Toggle -->
+        <button id="theme-toggle" onclick="toggleTheme()"
+          class="w-10 h-10 rounded-full bg-navy/5 hover:bg-navy/10 flex items-center justify-center transition-colors"
+          title="Toggle theme">
+          <span class="material-symbols-outlined text-navy text-lg">palette</span>
+        </button>
         {% if 'user_id' in session %}
         <div class="relative group">
           <button
@@ -227,7 +256,7 @@
   </nav>
 
   <!-- Main Content -->
-  <main class="min-h-screen pt-24 pb-12">
+  <main class="min-h-screen pt-24 pb-28 lg:pb-12">
     <!-- Flash Messages -->
     <div class="max-w-7xl mx-auto px-6 mb-8">
       {% with messages = get_flashed_messages(with_categories=true) %}
@@ -255,8 +284,41 @@
     {% block content %}{% endblock %}
   </main>
 
+  <!-- Bottom Navigation (Mobile) -->
+  {% if 'user_id' in session %}
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-navy/10 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] lg:hidden z-50">
+    <div class="flex items-center justify-around py-2 px-4">
+      <a href="{{ url_for('dashboard') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+        <span class="material-symbols-outlined text-2xl">dashboard</span>
+        <span class="text-[10px] font-bold">Home</span>
+      </a>
+      <a href="{{ url_for('timetables.get_timetable_page') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+        <span class="material-symbols-outlined text-2xl">calendar_month</span>
+        <span class="text-[10px] font-bold">Schedule</span>
+      </a>
+      {% if session.role == 'coach' %}
+      <a href="{{ url_for('coach_my_groups') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+        <span class="material-symbols-outlined text-2xl">groups</span>
+        <span class="text-[10px] font-bold">Groups</span>
+      </a>
+      {% elif session.role == 'family' %}
+      <a href="{{ url_for('family_enrollments') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+        <span class="material-symbols-outlined text-2xl">groups</span>
+        <span class="text-[10px] font-bold">Kids</span>
+      </a>
+      {% endif %}
+      {% if session.role in ['admin', 'coach'] %}
+      <a href="{{ url_for('coach_send_message') if session.role == 'coach' else url_for('admin_send_message') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+        <span class="material-symbols-outlined text-2xl">send</span>
+        <span class="text-[10px] font-bold">Message</span>
+      </a>
+      {% endif %}
+    </div>
+  </nav>
+  {% endif %}
+
   <!-- Premium Footer -->
-  <footer class="bg-navy pt-20 pb-10 text-white/80">
+  <footer class="bg-navy pt-20 pb-10 text-white/80 hidden lg:block">
     <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-white/10 pb-12 mb-10">
       <div class="col-span-1 md:col-span-2">
         <div class="flex items-center gap-3 mb-6">
@@ -379,6 +441,45 @@
         });
       }, 6000);
     });
+
+    // Bottom nav active state
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentPath = window.location.pathname;
+      const bottomNav = document.querySelector('nav.fixed.bottom-0');
+      if (bottomNav) {
+        bottomNav.querySelectorAll('a').forEach(link => {
+          if (link.getAttribute('href') === currentPath) {
+            link.classList.remove('text-navy/60');
+            link.classList.add('text-navy', 'bg-navy/10', 'rounded-xl');
+          }
+        });
+      }
+    });
+
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = localStorage.getItem('theme') || 'v1';
+      const next = current === 'v1' ? 'v2' : 'v1';
+      if (next === 'v2') {
+        html.classList.add('theme-v2');
+      } else {
+        html.classList.remove('theme-v2');
+      }
+      localStorage.setItem('theme', next);
+      location.reload();
+    }
+  </script>
+  
+  <!-- PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/static/sw.js')
+          .then((reg) => console.log('SW registered:', reg.scope))
+          .catch((err) => console.log('SW registration failed:', err));
+      });
+    }
   </script>
 </body>
 

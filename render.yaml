@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: sf-tennis-kids
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python backend/app.py
+    envVars:
+      - key: ENABLE_TALISMAN
+        value: "false"
+    regions:
+      - aws-us-west-2
