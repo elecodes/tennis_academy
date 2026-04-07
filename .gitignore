@@ -9,3 +9,4 @@ service-account-key.json
 google-sheets-key.json
 *.json.key
 mcp_config.json
+.vercel
