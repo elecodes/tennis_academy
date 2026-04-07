@@ -1,20 +1,16 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-# Try using Flask's wsgi_to_asgi or direct handler
-from werkzeug.wrappers import Request as WerkzeugRequest
+# Fix path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
 # Import Flask app
-from backend.app import app as flask_app
+from app import app as flask_app
 
 
 def handler(request):
-    """Vercel handler using Flask's test client for simplicity"""
-    # Use Flask's test client to handle the request
+    """Vercel handler using Flask test client"""
     with flask_app.test_client() as client:
-        # Convert Vercel request to Flask test request
         response = client.open(
             path=request.path,
             method=request.method,
@@ -29,5 +25,4 @@ def handler(request):
         }
 
 
-# For local testing
 app = handler
