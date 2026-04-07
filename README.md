@@ -1,6 +1,6 @@
 # SF TENNIS KIDS Club
 
-**Live**: https://tennis-academy-aw30.onrender.com
+**Live**: https://tennis-academy-six.vercel.app
 
 A simple, free-tier communication platform for tennis clubs to connect administrators, coaches, and families via email notifications.
 
@@ -459,9 +459,10 @@ MIT License - Free to use and modify!
 ✅ UI Readability:  Enlarged day headers and time text on timetable & coach pages (v1.16.0)
 ✅ Docker Support:  Containerized deployment with docker-compose (v1.16.0)
 ✅ Vercel Caching:  Static asset CDN caching + template caching for cold starts (v1.16.0)
+✅ Vercel Deploy:   Production deployment on Vercel (v1.16.0)
 ```
 
-**Last Updated**: 2026-04-05
+**Last Updated**: 2026-04-07
 **Version**: 1.16.0
 **Status**: Production Ready ✅
 

@@ -142,6 +142,7 @@ vercel --prod
 ### Required Environment Variables (Vercel Dashboard)
 | Variable | Description |
 |----------|-------------|
+| `VERCEL` | Set to `1` to enable production mode (template caching) |
 | `TURSO_URL` | Your Turso database URL (libsql://...) |
 | `TURSO_TOKEN` | Your Turso auth token |
 | `SENDER_EMAIL` | Gmail address for notifications |
@@ -150,19 +151,22 @@ vercel --prod
 
 ### Caching Strategy
 
-The app uses a 3-layer caching approach on Vercel:
+The app uses a 4-layer caching approach on Vercel:
 
 | Layer | What | Cache Duration | How |
 |-------|------|----------------|-----|
 | **Static Assets** | CSS, JS, icons, fonts, manifest | 1 year (immutable) | `vercel.json` route headers |
 | **Service Worker** | `sw.js` | 0 (always revalidate) | Separate route in `vercel.json` |
-| **Templates** | Jinja2 templates | Per cold start | Disabled auto-reload in production |
+| **Templates** | Jinja2 templates | Per cold start | Disabled auto-reload when `VERCEL=1` |
+| **API Responses** | GET routes (dashboard, timetable, etc.) | 2-5 min | `Cache-Control: private` header in app.py |
 
 **Why this matters on Vercel:**
 - Vercel is serverless — each request can trigger a cold start
 - Static assets are served from Vercel's edge CDN (no cold start)
 - Template caching eliminates file-watcher overhead on cold starts
+- API response caching reduces Turso DB calls (2-5 min TTL)
 - Service worker must always revalidate so PWA updates deploy immediately
+- `private` cache ensures RBAC - each user/browser gets their own cached data
 
 ### Verifying Cache Headers
 

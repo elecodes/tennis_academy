@@ -13,6 +13,8 @@ All notable changes to this project will be documented in this file.
 - **Docker Support**: Added Dockerfile, docker-compose.yml, and .dockerignore for containerized deployment
 - **Vercel Static Asset Caching**: 1-year immutable cache for CSS/JS/icons via Vercel edge CDN, service worker always revalidated
 - **Template Caching**: Disabled auto-reload in production for faster Vercel cold starts
+- **API Response Caching**: Added Cache-Control headers to GET routes for reduced Turso DB calls, uses private caching to respect RBAC
+- **Vercel Deployment**: Deployed to Vercel with proper Flask app integration
 
 ### Changed
 - **Tailwind CDN**: Changed from link to script tag for proper loading
