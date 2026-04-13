@@ -8,14 +8,7 @@
       }
     }
   ],
-  "output": {
-    "originCommand": "vercel dev",
-    "framework": null
-  },
   "routes": [
-    {
-      "handle": "filesystem"
-    },
     {
       "src": "/static/(.*)",
       "dest": "public/static/$1"
