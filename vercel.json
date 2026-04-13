@@ -7,19 +7,5 @@
         "installCommand": "pip install -r backend/requirements.txt"
       }
     }
-  ],
-  "routes": [
-    {
-      "src": "/static/(.*)",
-      "dest": "public/static/$1"
-    },
-    {
-      "src": "/manifest.json",
-      "dest": "public/manifest.json"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/api/app.py"
-    }
   ]
 }
