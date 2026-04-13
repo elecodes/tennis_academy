@@ -11,17 +11,11 @@
   "routes": [
     {
       "src": "/static/(.*)",
-      "dest": "/frontend/static/$1",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      }
+      "dest": "public/static/$1"
     },
     {
-      "src": "/static/sw.js",
-      "dest": "/frontend/static/sw.js",
-      "headers": {
-        "cache-control": "public, max-age=0, must-revalidate"
-      }
+      "src": "/(manifest.json)",
+      "dest": "public/manifest.json"
     },
     {
       "src": "/(.*)",
