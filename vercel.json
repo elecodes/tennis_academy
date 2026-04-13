@@ -8,13 +8,20 @@
       }
     }
   ],
+  "output": {
+    "originCommand": "vercel dev",
+    "framework": null
+  },
   "routes": [
+    {
+      "handle": "filesystem"
+    },
     {
       "src": "/static/(.*)",
       "dest": "public/static/$1"
     },
     {
-      "src": "/(manifest.json)",
+      "src": "/manifest.json",
       "dest": "public/manifest.json"
     },
     {
