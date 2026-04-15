@@ -18,6 +18,7 @@
 - **Template Caching**: Disabled auto-reload in production
 
 ### Fixed
+- **Vercel Deployment**: Fixed 404 error by adding explicit route to api/app.py in vercel.json
 - **Day Filter**: Server-side rendering (JS had CSS/grid issues)
 - **Time AM/PM**: Fixed format_time for 12h DB format
 - **Quick-Login Passwords**: coach/family now use admin123
