@@ -229,6 +229,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-021](docs/ADR-021:%20Agent%20Persistent%20Memory%20with%20Engram.md)** - Agent Persistent Memory with Engram
 - **[ADR-022](docs/ADR-022:%20Mobile%20UI%20Refinements%20and%20Space%20Optimization.md)** - Mobile UI Refinements
 - **[ADR-023](docs/ADR-023:%20Mobile%20Schedule%20Display%20Improvements.md)** - Mobile Schedule Pills
+- **[ADR-024](docs/ADR-024:%20Vercel%20Production%20Cache%20Headers%20Fix.md)** - Vercel Production Cache Headers Fix
 - **[MCP Configuration](docs/mcp-configuration.md)** - Google Sheets Agent Integration
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles

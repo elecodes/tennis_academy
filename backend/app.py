@@ -18,6 +18,7 @@ from flask import (
     flash,
     session,
     send_file,
+    make_response,
 )
 from functools import wraps
 from datetime import datetime
@@ -190,6 +191,7 @@ def cache_response(max_age=300):
         def wrapper(*args, **kwargs):
             resp = f(*args, **kwargs)
             if not app.debug and request.method == "GET":
+                resp = make_response(resp)
                 resp.headers["Cache-Control"] = f"private, max-age={max_age}"
             return resp
 

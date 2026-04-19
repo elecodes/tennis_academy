@@ -393,6 +393,13 @@ netstat -ano | findstr :5001   # Windows
 2. The application uses a **Custom HTTP Connector** in `backend/database.py` to bypass this.
 3. Ensure `TURSO_URL` starts with `https://` (or the connector will convert it).
 
+### Issue: 500 Internal Server Error (Vercel)
+**Symptoms**: After login or accessing protected pages, the server returns 500 Internal Server Error ONLY in production (Vercel).
+**Solution**:
+1. Check if the error is `AttributeError: 'str' object has no attribute 'headers'` in your logs.
+2. This happens because decorators (like `@cache_response`) attempt to manipulate `.headers` on the returned template string.
+3. Ensure the return value is wrapped in `make_response()` before altering headers: `response = make_response(f(*args, **kwargs))`.
+
 ### Issue: CSP Blocking Resources
 **Symptoms**: Images, fonts, or scripts fail to load; Sentry errors about "Content Security Policy".
 **Solution**:
