@@ -230,6 +230,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-022](docs/ADR-022:%20Mobile%20UI%20Refinements%20and%20Space%20Optimization.md)** - Mobile UI Refinements
 - **[ADR-023](docs/ADR-023:%20Mobile%20Schedule%20Display%20Improvements.md)** - Mobile Schedule Pills
 - **[ADR-024](docs/ADR-024:%20Vercel%20Production%20Cache%20Headers%20Fix.md)** - Vercel Production Cache Headers Fix
+- **[ADR-025](docs/ADR-025:%20PWA%20Icon%20Fix%20for%20Android%20Home%20Screen.md)** - PWA Icon Fix for Android
 - **[MCP Configuration](docs/mcp-configuration.md)** - Google Sheets Agent Integration
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
@@ -461,10 +462,11 @@ MIT License - Free to use and modify!
 ✅ Docker Support:  Containerized deployment with docker-compose (v1.16.0)
 ✅ Vercel Caching:  Static asset CDN caching + template caching for cold starts (v1.16.0)
 ✅ Vercel Deploy:   Production deployment on Vercel (v1.16.0)
+✅ PWA Icons:       Android home screen icon fix (v1.17.0)
 ```
 
-**Last Updated**: 2026-04-15
-**Version**: 1.16.0
+**Last Updated**: 2026-04-25
+**Version**: 1.17.0
 **Status**: Production Ready ✅
 
 ---

@@ -400,6 +400,15 @@ netstat -ano | findstr :5001   # Windows
 2. This happens because decorators (like `@cache_response`) attempt to manipulate `.headers` on the returned template string.
 3. Ensure the return value is wrapped in `make_response()` before altering headers: `response = make_response(f(*args, **kwargs))`.
 
+### Issue: PWA Icon Not Showing on Android Home Screen
+**Symptoms**: Adding the app to Android home screen shows a generic letter instead of the app icon.
+**Solution**:
+1. **Verify icon format**: Run `file frontend/static/icons/icon-192.png` — it must say `PNG image data`, NOT `JPEG`.
+2. **Validate manifest**: Check `manifest.json` uses separate entries for `"purpose": "any"` and `"purpose": "maskable"` (not combined `"any maskable"`).
+3. **Check Vercel routing**: Ensure `vercel.json` does NOT have a `/static/:path*` route that could 404 on icon requests.
+4. **Cache bust**: Bump the `?v=` query parameter in `base.html` on manifest and icon links.
+5. **User action**: Remove existing home screen shortcut, then re-add via browser menu (⋮ → "Add to Home Screen").
+
 ### Issue: CSP Blocking Resources
 **Symptoms**: Images, fonts, or scripts fail to load; Sentry errors about "Content Security Policy".
 **Solution**:
@@ -727,8 +736,8 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-03-23
-**Version**: 1.15.0
+**Last Updated**: 2026-04-25
+**Version**: 1.17.0
 
 ---
 

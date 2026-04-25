@@ -20,12 +20,13 @@
 ### Fixed
 - **Vercel Deployment**: Fixed 500 Internal Server Error in production by wrapping decorator responses with `make_response`.
 - **Vercel Deployment**: Fixed 404 error by adding explicit route to api/app.py in vercel.json
+- **PWA Icon (Android)**: Fixed home screen icon showing generic letter instead of app logo — converted corrupt JPEG-as-PNG icons to valid PNG, split manifest `"any maskable"` into separate entries, and removed erroneous `/static/` Vercel route.
 - **Day Filter**: Server-side rendering (JS had CSS/grid issues)
 - **Time AM/PM**: Fixed format_time for 12h DB format
 - **Quick-Login Passwords**: coach/family now use admin123
 - **JavaScript Errors**: Syntax fixes in timetable
 
-## [1.15.0] - 2026-03-23
+## [1.16.0] - 2026-04-15
 - Coach dashboard roster by schedule
 - Spreadsheet sync continuation rows
 - Time normalization
@@ -36,5 +37,5 @@
 
 ---
 
-**Last Updated**: 2026-04-13
-**Version**: 1.16.0
+**Last Updated**: 2026-04-25
+**Version**: 1.17.0
