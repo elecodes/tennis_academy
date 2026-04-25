@@ -1,7 +1,7 @@
 {
   "name": "SF TENNIS KIDS Club",
   "short_name": "SF Tennis Kids",
-  "description": "SF TENNIS KIDS Club - Manage tennis sessions, groups, communications",
+  "description": "SF TENNIS KIDS Club - Manage your tennis sessions, groups, and communications",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F8F9FA",
