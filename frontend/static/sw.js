@@ -1,11 +1,12 @@
-const CACHE_NAME = 'sf-tennis-v1';
+const CACHE_NAME = 'sf-tennis-v3';
 const STATIC_ASSETS = [
   '/',
   '/login',
   '/dashboard',
   '/static/css/main.css',
-  '/static/js/tailwind.js',
-  '/manifest.json'
+  '/static/icons/icon-192.png?v=3',
+  '/static/icons/icon-512.png?v=3',
+  '/manifest.json?v=3'
 ];
 
 // Install event - cache static assets

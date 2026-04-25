@@ -8,8 +8,11 @@
       }
     }
   ],
-  "public": "public",
   "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "frontend/static/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "api/app.py"

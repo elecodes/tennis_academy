@@ -9,8 +9,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="SF Tennis Kids">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/static/icons/icon.svg">
+  <link rel="manifest" href="/manifest.json?v=3">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png?v=3">
+  <link rel="icon" type="image/png" href="/static/icons/icon-192.png?v=3">
   <title>{% block title %}SF TENNIS KIDS Club{% endblock %}</title>
 
   <!-- Design System: Fonts & Icons -->
@@ -475,7 +476,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/static/sw.js')
+        navigator.serviceWorker.register('/sw.js')
           .then((reg) => console.log('SW registered:', reg.scope))
           .catch((err) => console.log('SW registration failed:', err));
       });

@@ -18,6 +18,7 @@ from flask import (
     flash,
     session,
     send_file,
+    send_from_directory,
     make_response,
 )
 from functools import wraps
@@ -439,6 +440,36 @@ def index():
     if "user_id" in session:
         return redirect(url_for("dashboard"))
     return render_template("index.html")
+
+
+@app.route("/manifest.json")
+def manifest():
+    try:
+        # Use an absolute path that works both locally and on Vercel
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        path = os.path.join(base_dir, "..", "frontend", "static", "manifest.json")
+        return send_file(path)
+    except Exception:
+        return send_from_directory(app.static_folder, "manifest.json")
+
+
+@app.route("/sw.js")
+def sw():
+    try:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        path = os.path.join(base_dir, "..", "frontend", "static", "sw.js")
+        response = make_response(send_file(path))
+        response.headers["Content-Type"] = "application/javascript"
+        return response
+    except Exception:
+        response = make_response(send_from_directory(app.static_folder, "sw.js"))
+        response.headers["Content-Type"] = "application/javascript"
+        return response
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(os.path.join(app.static_folder, "icons"), "icon-192.png")
 
 
 @app.route("/login", methods=["GET", "POST"])
