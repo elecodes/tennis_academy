@@ -134,7 +134,7 @@
         magicBtn.disabled = true;
 
         try {
-          const response = await fetch('/admin/api/draft-message', {
+          const response = await fetch('/api/draft-message', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -151,7 +151,14 @@
             subjectInput.value = data.subject || subjectInput.value;
             contentTextarea.value = data.content || contentTextarea.value;
           } else {
-            alert('Error: ' + (data.error || 'Failed to generate draft'));
+            const status = response.status;
+            if (status === 503) {
+              alert(data.error || 'Magic Draft is unavailable right now. Please ask admin to verify Gemini API key settings.');
+            } else if (status === 502) {
+              alert(data.error || 'Magic Draft provider is temporarily unavailable. Please try again in a moment.');
+            } else {
+              alert('Error: ' + (data.error || 'Failed to generate draft'));
+            }
           }
         } catch (error) {
           console.error('Error drafting message:', error);

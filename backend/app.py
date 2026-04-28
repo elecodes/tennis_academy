@@ -46,7 +46,11 @@ warnings.filterwarnings(
     message='Field name "schema" in .* shadows an attribute in parent "BaseModel"',
 )
 
-from services.ai.magic_draft import generate_email_draft
+from services.ai.magic_draft import (
+    generate_email_draft,
+    AIDraftUnavailableError,
+    AIDraftProviderError,
+)
 
 from routes.timetables import timetables_bp
 import secrets
@@ -1131,9 +1135,10 @@ def admin_delete_enrollment(enrollment_id):
     return redirect(url_for("admin_enrollments"))
 
 
+@app.route("/api/draft-message", methods=["POST"])
 @app.route("/admin/api/draft-message", methods=["POST"])
-@admin_required
-def admin_draft_message():
+@coach_required
+def api_draft_message():
     try:
         data = request.get_json()
         if not data:
@@ -1148,6 +1153,12 @@ def admin_draft_message():
         # Call the refactored AI service
         result = generate_email_draft(message_type, notes)
         return result
+    except AIDraftUnavailableError as e:
+        app.logger.warning(f"AI draft unavailable: {e}")
+        return {"error": str(e)}, 503
+    except AIDraftProviderError as e:
+        app.logger.error(f"AI provider error while drafting message: {e}")
+        return {"error": "AI service temporarily unavailable. Please try again."}, 502
     except Exception as e:
         app.logger.error(f"Error drafting message: {e}")
         return {"error": "An internal error occurred"}, 500

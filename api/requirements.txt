@@ -1,0 +1,10 @@
+Flask==3.0.0
+Werkzeug==3.0.1
+python-dotenv==1.0.0
+sentry-sdk[flask]
+flask-talisman==1.1.0
+requests
+pydantic
+asgiref
+genkit==0.5.1
+genkit-plugin-google-genai==0.5.1
