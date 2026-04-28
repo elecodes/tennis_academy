@@ -1,20 +1,10 @@
-Use these credentials to log in:
+# Test Credentials for SF TENNIS KIDS
 
-Administrator Account:
-Email: admin@tennis.com
-Password: admin123
+The following credentials are for sandbox and testing access.
+Do not use these in a public production environment without changing passwords.
 
-Coach Demo Account:
-Email: coach1@tennis.com
-Password: password123
-
-Family Demo Account:
-Email: family1@email.com
-Password: password123
-
-Coach RC Account:
-Email: rc@tennis.com
-Password: password123
-
-Tennis Academy
-jpss htxt sssz raqm
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| Administrator | admin@tennis.com | admin123 |
+| Coach | coach1@tennis.com | admin123 |
+| Family | family1@email.com | admin123 |

@@ -11,3 +11,5 @@ requests
 pydantic
 google-generativeai
 asgiref
+genkit
+genkit-plugin-google-genai
