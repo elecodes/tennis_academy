@@ -147,6 +147,7 @@ vercel --prod
 | `TURSO_TOKEN` | Your Turso auth token |
 | `SENDER_EMAIL` | Gmail address for notifications |
 | `SENDER_PASSWORD` | Gmail app password |
+| `GEMINI_API_KEY` | Gemini API key used by Magic Draft |
 | `SECRET_KEY` | Random string for Flask sessions |
 
 ### Caching Strategy
@@ -399,6 +400,15 @@ netstat -ano | findstr :5001   # Windows
 1. Check if the error is `AttributeError: 'str' object has no attribute 'headers'` in your logs.
 2. This happens because decorators (like `@cache_response`) attempt to manipulate `.headers` on the returned template string.
 3. Ensure the return value is wrapped in `make_response()` before altering headers: `response = make_response(f(*args, **kwargs))`.
+
+### Issue: Magic Draft returns 500 in Vercel
+**Symptoms**: Console shows `POST /api/draft-message` or `/admin/api/draft-message` with 500, and logs include `AI draft feature not available - genkit not installed`.
+**Solution**:
+1. Confirm Vercel installs runtime dependencies from `api/requirements.txt`.
+2. Verify `genkit==0.5.1` and `genkit-plugin-google-genai==0.5.1` are present in that file.
+3. Set `GEMINI_API_KEY` in Vercel Production environment variables.
+4. Redeploy with "Clear build cache" to force a clean install.
+5. If users are on stale frontend assets, keep both endpoints enabled: `/api/draft-message` and `/admin/api/draft-message`.
 
 ### Issue: PWA Icon Not Showing on Android Home Screen
 **Symptoms**: Adding the app to Android home screen shows a generic letter instead of the app icon, or the icon has an ugly default grey/white background.
@@ -737,8 +747,8 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-04-25
-**Version**: 1.17.0
+**Last Updated**: 2026-04-28
+**Version**: 1.19.0
 
 ---
 

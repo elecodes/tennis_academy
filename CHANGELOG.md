@@ -11,11 +11,13 @@
 - **Docker Support**: Dockerfile, docker-compose.yml
 - **Vercel Deployment**: Full Vercel deployment with caching
 - **API Response Caching**: Cache-Control headers for GET routes (private for RBAC)
+- **Magic Draft Vercel Runtime Requirements**: Added `api/requirements.txt` for serverless dependency installation.
 
 ### Changed
 - **Color Palette V2**: Royal Blue (#163E85) + Golden Yellow (#E6C200)
 - **UI Readability**: Larger day headers and time text
 - **Template Caching**: Disabled auto-reload in production
+- **Vercel Python Install Source**: Switched install command to `pip install -r api/requirements.txt` for `api/app.py` runtime alignment.
 
 ### Fixed
 - **Vercel Deployment**: Fixed 500 Internal Server Error in production by wrapping decorator responses with `make_response`.
@@ -28,6 +30,8 @@
 - **Time AM/PM**: Fixed format_time for 12h DB format
 - **Quick-Login Passwords**: coach/family now use admin123
 - **JavaScript Errors**: Syntax fixes in timetable
+- **Magic Draft Endpoint Reliability**: Added compatibility route for `/admin/api/draft-message` and improved status mapping for AI failures (`502` provider, `503` unavailable).
+- **Magic Draft Error Handling**: Hardened malformed AI response parsing to avoid generic 500 fallthrough.
 
 ## [1.16.0] - 2026-04-15
 - Coach dashboard roster by schedule
@@ -41,4 +45,4 @@
 ---
 
 **Last Updated**: 2026-04-28
-**Version**: 1.18.0
+**Version**: 1.19.0

@@ -231,6 +231,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-023](docs/ADR-023:%20Mobile%20Schedule%20Display%20Improvements.md)** - Mobile Schedule Pills
 - **[ADR-024](docs/ADR-024:%20Vercel%20Production%20Cache%20Headers%20Fix.md)** - Vercel Production Cache Headers Fix
 - **[ADR-025](docs/ADR-025:%20PWA%20Icon%20Fix%20for%20Android%20Home%20Screen.md)** - PWA Icon Fix for Android
+- **[ADR-026](docs/ADR-026:%20Magic%20Draft%20Reliability%20and%20Vercel%20Dependency%20Alignment.md)** - Magic Draft reliability and Vercel dependency alignment
 - **[MCP Configuration](docs/mcp-configuration.md)** - Google Sheets Agent Integration
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
@@ -341,6 +342,7 @@ App runs at **http://localhost:5001** with hot reload via volume mounts.
    - `TURSO_TOKEN` - Your Turso token
    - `SENDER_EMAIL` - Your Gmail address
    - `SENDER_PASSWORD` - Your Gmail app password
+   - `GEMINI_API_KEY` - Gemini API key for Magic Draft
    - `SECRET_KEY` - Random string
 4. Deploy:
 ```bash
@@ -464,10 +466,11 @@ MIT License - Free to use and modify!
 ✅ Vercel Deploy:   Production deployment on Vercel (v1.16.0)
 ✅ PWA Icons:       Android home screen icon fix (v1.17.0)
 ✅ PWA Maskable:    Solid navy blue backgrounds for adaptive icons (v1.18.0)
+✅ Magic Draft:     Robust AI error handling and Vercel runtime dependency alignment (v1.19.0)
 ```
 
 **Last Updated**: 2026-04-28
-**Version**: 1.18.0
+**Version**: 1.19.0
 **Status**: Production Ready ✅
 
 ---
