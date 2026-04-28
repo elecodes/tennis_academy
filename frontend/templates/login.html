@@ -65,33 +65,10 @@
         </div>
       </form>
 
-      <!-- Demo Info -->
-      <div class="mt-10 p-6 bg-navy/[0.03] rounded-2xl border border-navy/5">
-        <div class="flex items-center gap-3 mb-4 opacity-40">
-          <span class="w-8 h-[1px] bg-navy"></span>
-          <span class="text-[9px] font-black text-navy uppercase tracking-widest">Sandbox Access</span>
-          <span class="w-8 h-[1px] bg-navy"></span>
-        </div>
-        <div class="space-y-3">
-          <div class="flex justify-between items-center group cursor-pointer"
-            onclick="const e = document.getElementById('email'); const p = document.getElementById('password'); e.value='admin@tennis.com'; p.value='admin123'; e.dispatchEvent(new Event('input')); p.dispatchEvent(new Event('input'));">
-            <span class="text-[10px] font-bold text-obsidian/40 italic">Administrator:</span>
-            <span
-              class="text-[10px] font-black text-navy group-hover:text-accent transition-colors">admin@tennis.com</span>
-          </div>
-          <div class="flex justify-between items-center group cursor-pointer"
-            onclick="const e = document.getElementById('email'); const p = document.getElementById('password'); e.value='coach1@tennis.com'; p.value='admin123'; e.dispatchEvent(new Event('input')); p.dispatchEvent(new Event('input'));">
-            <span class="text-[10px] font-bold text-obsidian/40 italic">Coach:</span>
-            <span
-              class="text-[10px] font-black text-navy group-hover:text-accent transition-colors">coach1@tennis.com</span>
-          </div>
-          <div class="flex justify-between items-center group cursor-pointer"
-            onclick="const e = document.getElementById('email'); const p = document.getElementById('password'); e.value='family1@email.com'; p.value='admin123'; e.dispatchEvent(new Event('input')); p.dispatchEvent(new Event('input'));">
-            <span class="text-[10px] font-bold text-obsidian/40 italic">Family:</span>
-            <span
-              class="text-[10px] font-black text-navy group-hover:text-accent transition-colors">family1@email.com</span>
-          </div>
-        </div>
+      <!-- Security Notice -->
+      <div class="mt-10 p-6 bg-navy/[0.03] rounded-2xl border border-navy/5 text-center">
+        <p class="text-[9px] font-black text-navy uppercase tracking-widest opacity-40">Secure Access Portal</p>
+        <p class="text-[10px] font-bold text-obsidian/40 italic mt-2">Authorized personnel only. For test credentials, please refer to the project documentation.</p>
       </div>
     </div>
 
