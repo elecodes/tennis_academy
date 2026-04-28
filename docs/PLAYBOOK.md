@@ -401,13 +401,14 @@ netstat -ano | findstr :5001   # Windows
 3. Ensure the return value is wrapped in `make_response()` before altering headers: `response = make_response(f(*args, **kwargs))`.
 
 ### Issue: PWA Icon Not Showing on Android Home Screen
-**Symptoms**: Adding the app to Android home screen shows a generic letter instead of the app icon.
+**Symptoms**: Adding the app to Android home screen shows a generic letter instead of the app icon, or the icon has an ugly default grey/white background.
 **Solution**:
 1. **Verify icon format**: Run `file frontend/static/icons/icon-192.png` — it must say `PNG image data`, NOT `JPEG`.
 2. **Validate manifest**: Check `manifest.json` uses separate entries for `"purpose": "any"` and `"purpose": "maskable"` (not combined `"any maskable"`).
-3. **Check Vercel routing**: Ensure `vercel.json` does NOT have a `/static/:path*` route that could 404 on icon requests.
-4. **Cache bust**: Bump the `?v=` query parameter in `base.html` on manifest and icon links.
-5. **User action**: Remove existing home screen shortcut, then re-add via browser menu (⋮ → "Add to Home Screen").
+3. **Solid Backgrounds for Maskable Icons**: Android adaptive icons *require* a solid background. If your source image is transparent, the OS will fill the background with a random color (usually grey or white). Ensure `icon-192-maskable.png` and `icon-512-maskable.png` have a solid brand color (e.g., `#163E85` Navy Blue) behind the logo.
+4. **Check Vercel routing**: Ensure `vercel.json` does NOT have a `/static/:path*` route that could 404 on icon requests.
+5. **Cache bust**: Bump the `?v=` query parameter in `base.html` on manifest and icon links. ALSO, increment the `CACHE_NAME` in `sw.js` (both in `frontend/static/sw.js` and `public/sw.js`) to force a fresh install of the service worker.
+6. **User action**: Remove existing home screen shortcut, then re-add via browser menu (⋮ → "Add to Home Screen").
 
 ### Issue: CSP Blocking Resources
 **Symptoms**: Images, fonts, or scripts fail to load; Sentry errors about "Content Security Policy".

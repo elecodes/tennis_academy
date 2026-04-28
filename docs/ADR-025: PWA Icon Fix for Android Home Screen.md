@@ -39,12 +39,18 @@ Updated `manifest.json` to declare separate icon entries for `"any"` (standard d
 ### 3. Simplify Vercel Routing
 Removed the erroneous `/static/:path*` rewrite rule from `vercel.json`. All requests now fall through to the Flask backend catch-all route, which correctly serves static files via Flask's built-in static handler.
 
-### 4. Cache Busting
-Bumped the version query parameter on manifest, favicon, and apple-touch-icon links in `base.html` from `v3` to `v6` to force Android browsers to bypass cached broken icons.
+### 4. Maskable Icon Solid Backgrounds
+After the initial fix, it was discovered that Android adaptive icons (used when installed as a PWA) still rendered with a grey/white background around the logo. Android's maskable icon specification requires a solid background to properly adapt to device icon shapes (circles, squarcles, etc.).
+
+We regenerated the `icon-192-maskable.png` and `icon-512-maskable.png` assets with a solid Navy Blue (`#163E85`) background to match the application's V2 color palette. 
+
+### 5. Aggressive Cache Busting
+Bumped the version query parameter on manifest, favicon, and apple-touch-icon links in `base.html` from `v3`/`v6` to `v8`. Additionally, incremented the `CACHE_NAME` in `frontend/static/sw.js` and `public/sw.js` to `v8` to force the service worker to bypass old cached assets and fetch the newly generated solid-background icons.
 
 ## Consequences
-- **Positive**: Android home screen icons now display the tennis ball logo correctly.
+- **Positive**: Android home screen icons now display the tennis ball logo correctly with a professional navy blue background, adapting seamlessly to any system icon shape.
 - **Positive**: Static assets are reliably served in production via Flask's static handler.
 - **Positive**: Manifest follows current PWA best practices with separated icon purposes.
 - **Negative**: Users who previously added the app to their home screen must remove and re-add the shortcut to see the updated icon.
 - **Lesson**: Always validate that image files match their declared format (use `file` command or magic byte inspection) before deployment.
+- **Lesson**: Transparent backgrounds in maskable icons will be filled with unpredictable colors by the OS. Always provide a solid background for maskable icons.

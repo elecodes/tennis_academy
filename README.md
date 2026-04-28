@@ -463,10 +463,11 @@ MIT License - Free to use and modify!
 ✅ Vercel Caching:  Static asset CDN caching + template caching for cold starts (v1.16.0)
 ✅ Vercel Deploy:   Production deployment on Vercel (v1.16.0)
 ✅ PWA Icons:       Android home screen icon fix (v1.17.0)
+✅ PWA Maskable:    Solid navy blue backgrounds for adaptive icons (v1.18.0)
 ```
 
-**Last Updated**: 2026-04-25
-**Version**: 1.17.0
+**Last Updated**: 2026-04-28
+**Version**: 1.18.0
 **Status**: Production Ready ✅
 
 ---
