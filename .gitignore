@@ -10,3 +10,5 @@ google-sheets-key.json
 *.json.key
 mcp_config.json
 .vercel
+# Local Pi runtime state
+.atl/

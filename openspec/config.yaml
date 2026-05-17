@@ -1,0 +1,58 @@
+strict_tdd: true
+context: |
+  tennis_academy is a Node.js/TypeScript, Python project.
+  Detected markers: package.json, npm package manager, requirements.txt, GitHub Actions.
+  Package managers: npm.
+  Additional evidence: Test-like files detected (239); examples: .pi/agents/sdd-spec.md, backend/tests/test_ai_service.py, specs/001-groups-weekly-timetable/spec.md, specs/001-groups-weekly-timetable/test-cases.md, tests/test_security_headers.py.
+  Primary test command: npm test.
+  Unit tests: package script (npm test); pytest (pytest).
+  Integration tests: none.
+  E2E tests: none.
+rules:
+  proposal:
+    require_problem_statement: true
+  spec:
+    require_acceptance_criteria: true
+  design:
+    require_tradeoffs: true
+  tasks:
+    protect_review_workload: true
+  apply:
+    test_command: "npm test"
+  verify:
+    test_command: "npm test"
+testing:
+  detected: "2026-05-17"
+  runner:
+    command: "npm test"
+    framework: "package script"
+  layers:
+    unit: "package script, pytest"
+    integration: ""
+    e2e: ""
+  commands:
+    unit:
+      - scope: "."
+        command: "npm test"
+        framework: "package script"
+      - scope: "."
+        command: "pytest"
+        framework: "pytest"
+    integration:
+      []
+    e2e:
+      []
+  coverage:
+    command: ""
+    commands:
+      []
+quality:
+  lint: ""
+  lint_commands:
+    []
+  typecheck: ""
+  typecheck_commands:
+    []
+  format: ""
+  format_commands:
+    []

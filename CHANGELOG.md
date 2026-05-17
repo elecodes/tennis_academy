@@ -20,12 +20,8 @@
 - **Vercel Python Install Source**: Switched install command to `pip install -r api/requirements.txt` for `api/app.py` runtime alignment.
 
 ### Fixed
-- **Vercel Deployment**: Fixed 500 Internal Server Error in production by wrapping decorator responses with `make_response`.
 - **Vercel Deployment**: Fixed 404 error by adding explicit route to api/app.py in vercel.json
-- **PWA Icon (Android)**: Fixed home screen icon showing generic letter instead of app logo — converted corrupt JPEG-as-PNG icons to valid PNG, split manifest `"any maskable"` into separate entries, and removed erroneous `/static/` Vercel route.
-- **PWA Maskable Icons**: Added solid navy blue background to maskable icons to prevent Android from defaulting to grey/white background.
-- **Login Security**: Removed plaintext sandbox credentials from the login page and moved them to a gitignored `test_credentials.md` file.
-- **Service Worker Caching**: Bumped cache-busting `?v=8` parameter and SW `CACHE_NAME` to ensure PWA icon updates are fetched by devices.
+- **PWA Icons**: Now displaying correctly on Vercel
 - **Day Filter**: Server-side rendering (JS had CSS/grid issues)
 - **Time AM/PM**: Fixed format_time for 12h DB format
 - **Quick-Login Passwords**: coach/family now use admin123
