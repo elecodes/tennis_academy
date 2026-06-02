@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 import sys
 import os
@@ -36,7 +37,9 @@ class TestAIServiceRefactor(unittest.TestCase):
         self.assertEqual(result["content"], "Test Content")
 
     @patch("services.ai.magic_draft.ai.generate")
-    def test_generate_email_draft_raises_provider_error_on_invalid_json(self, mock_generate):
+    def test_generate_email_draft_raises_provider_error_on_invalid_json(
+        self, mock_generate
+    ):
         mock_result = MagicMock()
         mock_result.text = "not-json-response"
 

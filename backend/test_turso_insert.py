@@ -9,6 +9,6 @@ hashed = generate_password_hash(password)
 
 conn.execute(
     "INSERT INTO users (email, password, full_name, role, phone, is_active) VALUES (?, ?, ?, ?, ?, ?)",
-    (test_email, hashed, "Test Admin", "admin", "123", 1)
+    (test_email, hashed, "Test Admin", "admin", "123", 1),
 )
 print(f"Created user {test_email} with password {password}")

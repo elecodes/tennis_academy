@@ -53,7 +53,6 @@ from services.ai.magic_draft import (
 )
 
 from routes.timetables import timetables_bp
-import secrets
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from flask_talisman import Talisman
@@ -114,7 +113,10 @@ def format_schedule_compact(schedule_text):
 
     # Pattern to match "Day time" pairs - captures day and time together
     # Handles: "Mon 4pm", "Tue 4:30pm", "Mon 2:40pm"
-    pair_pattern = r"\b((?:mon|tue[sday]*|wednesday|thu(?:rsday)?|fri|sat(?:urday)?|sun(?:day)?))\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\b"
+    pair_pattern = (
+        r"\b((?:mon|tue[sday]*|wednesday|thu(?:rsday)?|fri|sat(?:urday)?|sun(?:day)?))"
+        r"\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\b"
+    )
 
     matches = re.findall(pair_pattern, schedule_text, re.IGNORECASE)
 
@@ -176,7 +178,7 @@ def format_time(time_str):
             return f"{hour - 12}:{minute}pm"
         else:
             return f"{hour}:{minute}am" if minute != "00" else f"{hour}am"
-    except:
+    except Exception:
         return time_str
 
 
@@ -233,14 +235,12 @@ csp = {
     ],
 }
 
-# Enable Talisman only if not in test mode
-if os.environ.get("ENABLE_TALISMAN", "false").lower() == "true":
-    Talisman(
-        app,
-        content_security_policy=csp,
-        force_https=False,
-        frame_options="DENY",
-    )
+Talisman(
+    app,
+    content_security_policy=csp,
+    force_https=False,
+    frame_options="DENY",
+)
 
 app.register_blueprint(timetables_bp)
 
@@ -950,7 +950,9 @@ def admin_repair_timetable():
             # Clear existing structured schedules for this group
             # First, clear schedule_id references to avoid FK constraint
             conn.execute(
-                "UPDATE group_members SET schedule_id = NULL WHERE group_id = ? AND schedule_id IN (SELECT id FROM group_schedules WHERE group_id = ?)",
+                "UPDATE group_members SET schedule_id = NULL"
+                " WHERE group_id = ? AND schedule_id IN"
+                " (SELECT id FROM group_schedules WHERE group_id = ?)",
                 (group["id"], group["id"]),
             )
             conn.execute(

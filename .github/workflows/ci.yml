@@ -48,6 +48,3 @@ jobs:
           
       - name: Install dependencies
         run: npm install
-        
-      - name: Build JS
-        run: npm run build:js

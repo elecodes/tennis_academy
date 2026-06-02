@@ -100,9 +100,11 @@ def get_or_create_group(group_name, coach_id):
         "INSERT INTO groups (name, coach_id, schedule) VALUES (?, ?, '')",
         [
             {"type": "text", "value": group_name},
-            {"type": "integer", "value": str(coach_id)}
-            if coach_id
-            else {"type": "null"},
+            (
+                {"type": "integer", "value": str(coach_id)}
+                if coach_id
+                else {"type": "null"}
+            ),
         ],
     )
     result = turso_query("SELECT last_insert_rowid()")
@@ -111,7 +113,6 @@ def get_or_create_group(group_name, coach_id):
 
 def get_or_create_family(email, name, phone=None, kid_name=None):
     """Find or create a family user by email, name, or kid_name"""
-    family_id = None
 
     # Try email first if available
     if email and "@" in email:
@@ -148,9 +149,11 @@ def get_or_create_family(email, name, phone=None, kid_name=None):
             [
                 {"type": "text", "value": family_email},
                 {"type": "text", "value": family_name},
-                {"type": "text", "value": phone}
-                if phone
-                else {"type": "null", "value": None},
+                (
+                    {"type": "text", "value": phone}
+                    if phone
+                    else {"type": "null", "value": None}
+                ),
             ],
         )
         result = turso_query("SELECT last_insert_rowid()")
@@ -164,9 +167,6 @@ def add_schedule(group_id, day_of_week, start_time, coach_id):
     if not coach_id:
         return
     # Check if schedule already exists
-    normalized_time = (
-        start_time.lower().replace(" ", "").replace(":00", "").replace(":", "")
-    )
     result = turso_query(
         "SELECT id FROM group_schedules WHERE group_id = ? AND day_of_week = ? AND start_time = ?",
         [
@@ -179,7 +179,9 @@ def add_schedule(group_id, day_of_week, start_time, coach_id):
     if rows:
         return  # Already exists, don't duplicate
     turso_query(
-        "INSERT INTO group_schedules (group_id, day_of_week, start_time, end_time, court) VALUES (?, ?, ?, ?, 'Court 1')",
+        "INSERT INTO group_schedules"
+        " (group_id, day_of_week, start_time, end_time, court)"
+        " VALUES (?, ?, ?, ?, 'Court 1')",
         [
             {"type": "integer", "value": str(group_id)},
             {"type": "integer", "value": str(day_of_week)},
@@ -268,24 +270,16 @@ def clean_time(time_str):
 
 def update_group_schedule_summaries():
     """Build schedule summaries from group_schedules and update groups.schedule"""
-    DAYS = [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-    ]
-
     # Get all groups with their schedules
-    result = turso_query("""
+    result = turso_query(
+        """
         SELECT g.id, g.name, gs.day_of_week, gs.start_time
         FROM groups g
         JOIN group_schedules gs ON g.id = gs.group_id
         WHERE g.coach_id IS NOT NULL
         ORDER BY g.id, gs.day_of_week, gs.start_time
-    """)
+    """
+    )
 
     rows = result["results"][0]["response"]["result"]["rows"]
 
@@ -466,7 +460,7 @@ def sync():
     print("\n  Updating group schedule summaries...")
     update_group_schedule_summaries()
 
-    print(f"\n✅ Sync complete!")
+    print("\n✅ Sync complete!")
     print(f"   Sessions: {total_sessions}")
     print(f"   Enrollments: {total_enrollments}")
 

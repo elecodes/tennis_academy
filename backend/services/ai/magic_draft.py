@@ -17,6 +17,7 @@ class AIDraftUnavailableError(AIDraftError):
 class AIDraftProviderError(AIDraftError):
     """Raised when upstream AI provider call fails."""
 
+
 try:
     from genkit.ai import Genkit
     from genkit.plugins.google_genai import GoogleAI
@@ -61,7 +62,7 @@ def generate_email_draft(message_type: str, notes: str):
 
     prompt = f"""Act as a professional administrator for SF TENNIS KIDS Club.
 You are writing an email of type: {message_type}.
-Take these rough notes and write a VERY CONCISE email. 
+Take these rough notes and write a VERY CONCISE email.
 Notes: {notes}
 STRICT RULE: Maximum 2-3 sentences. Be direct, warm, and professional. Avoid any fluff or filler."""
 
@@ -72,7 +73,9 @@ STRICT RULE: Maximum 2-3 sentences. Be direct, warm, and professional. Avoid any
             output={"schema": DraftOutput.model_json_schema(), "format": "json"},
         )
     except Exception as e:
-        raise AIDraftProviderError("Failed to generate message draft from AI provider.") from e
+        raise AIDraftProviderError(
+            "Failed to generate message draft from AI provider."
+        ) from e
 
     if not result.text:
         raise AIDraftProviderError("Failed to generate draft text from AI.")
