@@ -233,7 +233,7 @@ function syncAllData() {
     var sheet = ss.getSheetByName(sheetName);
     if (!sheet) continue;
 
-    var data = sheet.getDataRange().getValues();
+    var data = sheet.getDataRange().getDisplayValues();
     if (data.length < 2) continue;
 
     // Map columns by header
