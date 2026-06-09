@@ -161,6 +161,45 @@ class TursoConnection:
         pass
 
 
+def _ensure_app_config_table(db=None):
+    """Create app_config table if it doesn't exist."""
+    if db is None:
+        db = get_db()
+    try:
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS app_config ("
+            "  key TEXT PRIMARY KEY,"
+            "  value TEXT NOT NULL,"
+            "  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+            ")"
+        )
+        db.commit()
+    except Exception:
+        pass
+
+
+def get_config(key: str) -> str | None:
+    """Read a config value from app_config table."""
+    try:
+        db = get_db()
+        cursor = db.execute("SELECT value FROM app_config WHERE key = ?", (key,))
+        row = cursor.fetchone()
+        return row["value"] if row else None
+    except Exception:
+        return None
+
+
+def set_config(key: str, value: str) -> None:
+    """Write a config value to app_config table (upsert)."""
+    db = get_db()
+    _ensure_app_config_table(db)
+    db.execute(
+        "INSERT OR REPLACE INTO app_config (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
+        (key, value),
+    )
+    db.commit()
+
+
 def get_db():
     url = os.environ.get("TURSO_URL", "libsql://sfchat-gelenmp.aws-eu-west-1.turso.io")
     token = os.environ.get(

@@ -20,10 +20,12 @@ from flask import (
     send_file,
     send_from_directory,
     make_response,
+    jsonify,
 )
+import time
 from functools import wraps
 from datetime import datetime
-from database import get_db
+from database import get_db, get_config, set_config
 import sqlite3
 from sync_webhook import sync_kid_update, sync_group_update
 import requests
@@ -191,6 +193,9 @@ def cache_response(max_age=300):
 
     Uses 'private' so each browser caches separately (respects RBAC).
     Only active in production (not debug mode).
+
+    If a sync happened within the last 60 seconds, reduces max-age to 30
+    so users see fresh data sooner after spreadsheet updates.
     """
 
     def decorator(f):
@@ -199,7 +204,13 @@ def cache_response(max_age=300):
             resp = f(*args, **kwargs)
             if not app.debug and request.method == "GET":
                 resp = make_response(resp)
-                resp.headers["Cache-Control"] = f"private, max-age={max_age}"
+                try:
+                    last_sync = int(get_config("last_sync_at") or "0")
+                    elapsed = time.time() - last_sync
+                    effective_max = 30 if elapsed < 60 else max_age
+                except Exception:
+                    effective_max = max_age
+                resp.headers["Cache-Control"] = f"private, max-age={effective_max}"
             return resp
 
         return wrapper
@@ -376,6 +387,25 @@ def init_db():
     """
     )
 
+    # App config (key-value store for sync metadata, cache versions, etc.)
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS app_config (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """
+    )
+
+    conn.commit()
+    conn.close()
+
+    # Initialize app_config defaults
+    conn = get_db()
+    conn.execute(
+        "INSERT OR IGNORE INTO app_config (key, value) VALUES ('last_sync_at', '0')"
+    )
     conn.commit()
     conn.close()
 
@@ -930,6 +960,36 @@ def admin_sync_spreadsheet():
         flash(f"Error triggering sync: {e}", "danger")
 
     return redirect(url_for("admin_groups"))
+
+
+@app.route("/api/webhook/sheets-sync", methods=["POST"])
+def sheets_sync_webhook():
+    """Receive sync notifications from Google Apps Script.
+
+    Called automatically by GAS onEdit trigger and hourly timer.
+    GAS already writes to Turso directly — this endpoint just
+    records the sync timestamp for adaptive cache invalidation.
+    """
+    sync_key = os.environ.get("SYNC_API_KEY")
+    if not sync_key:
+        return jsonify({"status": "error", "message": "Server not configured"}), 500
+
+    if request.headers.get("X-Sync-Key") != sync_key:
+        return jsonify({"status": "error", "message": "Invalid sync key"}), 401
+
+    data = request.get_json(silent=True) or {}
+    action = data.get("action")
+
+    if action in ("sync_all", "sync_row"):
+        set_config("last_sync_at", str(int(time.time())))
+        return jsonify(
+            {
+                "status": "ok",
+                "rows_processed": data.get("rows_processed", 0),
+            }
+        )
+
+    return jsonify({"status": "error", "message": f"Unknown action: {action}"}), 400
 
 
 @app.route("/admin/repair-timetable", methods=["POST"])
