@@ -295,6 +295,15 @@ function syncAllData() {
 
       if (groupRows.length > 0) {
         groupId = parseInt(groupRows[0][0].value);
+        // Update schedule and coach in case they changed
+        tursoQuery(
+          "UPDATE groups SET schedule = ?, coach_id = ? WHERE id = ?",
+          [
+            { type: "text", value: dayIndex + " " + timeVal },
+            { type: "integer", value: coachId ? String(coachId) : "null" },
+            { type: "integer", value: String(groupId) },
+          ]
+        );
       } else {
         var insertGroup = tursoQuery(
           "INSERT INTO groups (name, schedule, coach_id) VALUES (?, ?, ?)",
@@ -385,6 +394,9 @@ function syncAllData() {
       }
     }
   }
+
+  // Cleanup: remove groups that no longer have any schedules
+  tursoQuery("DELETE FROM groups WHERE id NOT IN (SELECT DISTINCT group_id FROM group_schedules)");
 
   return {
     status: "success",
