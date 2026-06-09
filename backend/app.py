@@ -962,7 +962,7 @@ def admin_sync_spreadsheet():
     return redirect(url_for("admin_groups"))
 
 
-@app.route("/api/webhook/sheets-sync", methods=["POST"])
+@app.route("/api/webhook/sheets-sync", methods=["GET", "POST"])
 def sheets_sync_webhook():
     """Receive sync notifications from Google Apps Script.
 
@@ -970,6 +970,13 @@ def sheets_sync_webhook():
     GAS already writes to Turso directly — this endpoint just
     records the sync timestamp for adaptive cache invalidation.
     """
+    if request.method == "GET":
+        return jsonify({
+            "status": "alive",
+            "version": "auto-sync-v1",
+            "last_sync_at": get_config("last_sync_at"),
+        })
+
     sync_key = os.environ.get("SYNC_API_KEY")
     if not sync_key:
         return jsonify({"status": "error", "message": "Server not configured"}), 500
