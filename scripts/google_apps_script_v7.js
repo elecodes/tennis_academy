@@ -35,13 +35,14 @@ var DAYS_MAP = {
 
 var lastSyncTime = 0;
 
-// ---- Simple Triggers ----
+// ---- Installable Triggers (must be installed via install* functions) ----
 
 /**
- * onEdit — fires automatically on any cell edit (simple trigger).
+ * onSheetEdit — fires on any cell edit (installable trigger).
  * Debounces to avoid flooding on rapid typing.
+ * NOTE: Must be installed via installOnEditTrigger() — simple onEdit() can't do HTTP.
  */
-function onEdit(e) {
+function onSheetEdit(e) {
   var now = Date.now();
   if (now - lastSyncTime < CONFIG.debounceMs) return;
   lastSyncTime = now;
@@ -51,14 +52,14 @@ function onEdit(e) {
   var row = range.getRow();
   if (row < 2) return; // skip header row
 
-  Logger.log("onEdit: sheet=" + sheetName + " row=" + row);
+  Logger.log("onSheetEdit: sheet=" + sheetName + " row=" + row);
 
   try {
     var result = syncAllData();
     notifyFlask("sync_all", result.rows_processed || 0);
-    Logger.log("onEdit sync complete: " + JSON.stringify(result));
+    Logger.log("onSheetEdit sync complete: " + JSON.stringify(result));
   } catch (error) {
-    Logger.log("onEdit sync error: " + error.toString());
+    Logger.log("onSheetEdit sync error: " + error.toString());
   }
 }
 
@@ -79,11 +80,32 @@ function syncAll() {
 }
 
 /**
+ * Install the onEdit installable trigger.
+ * Run this ONCE from the editor after deploying.
+ * This is REQUIRED for the auto-sync to work (simple onEdit can't do HTTP).
+ */
+function installOnEditTrigger() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(function (t) {
+    if (t.getHandlerFunction() === "onSheetEdit") {
+      ScriptApp.deleteTrigger(t);
+    }
+  });
+
+  ScriptApp.newTrigger("onSheetEdit")
+    .forSpreadsheet(ss)
+    .onEdit()
+    .create();
+
+  Logger.log("onEdit trigger installed for: " + ss.getName());
+}
+
+/**
  * Install the hourly time-based trigger.
  * Run this ONCE from the editor after deploying.
  */
 function installHourlyTrigger() {
-  // Remove existing triggers to avoid duplicates
   var triggers = ScriptApp.getProjectTriggers();
   triggers.forEach(function (t) {
     if (t.getHandlerFunction() === "syncAll") {
