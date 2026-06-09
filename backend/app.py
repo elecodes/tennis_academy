@@ -978,6 +978,36 @@ def sheets_sync_webhook():
             "last_sync_at": get_config("last_sync_at"),
         })
 
+
+@app.route("/api/debug/sync-status")
+def debug_sync_status():
+    """Debug endpoint to verify Turso data after sync."""
+    import json as _json
+
+    try:
+        db = get_db()
+        groups = db.execute(
+            "SELECT id, name, schedule, coach_id FROM groups ORDER BY id DESC LIMIT 5"
+        ).fetchall()
+        schedules = db.execute(
+            "SELECT id, group_id, day_of_week, start_time, end_time FROM group_schedules ORDER BY group_id, day_of_week LIMIT 10"
+        ).fetchall()
+        members = db.execute(
+            "SELECT id, group_id, kid_name FROM group_members ORDER BY id DESC LIMIT 5"
+        ).fetchall()
+
+        return jsonify({
+            "last_sync_at": get_config("last_sync_at"),
+            "groups_count": len(groups),
+            "schedules_count": len(schedules),
+            "members_count": len(members),
+            "groups": [dict(g) for g in groups],
+            "schedules": [dict(s) for s in schedules],
+            "members": [dict(m) for m in members],
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
     sync_key = os.environ.get("SYNC_API_KEY")
     if not sync_key:
         return jsonify({"status": "error", "message": "Server not configured"}), 500
