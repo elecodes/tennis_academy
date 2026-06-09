@@ -194,8 +194,9 @@ def cache_response(max_age=300):
     Uses 'private' so each browser caches separately (respects RBAC).
     Only active in production (not debug mode).
 
-    If a sync happened within the last 60 seconds, reduces max-age to 30
-    so users see fresh data sooner after spreadsheet updates.
+    If a sync happened within the last 60 seconds, reduces max-age to 10
+    so users see fresh data almost immediately after spreadsheet updates.
+    After 60s without sync, caches for 60s (not the full default).
     """
 
     def decorator(f):
@@ -207,9 +208,9 @@ def cache_response(max_age=300):
                 try:
                     last_sync = int(get_config("last_sync_at") or "0")
                     elapsed = time.time() - last_sync
-                    effective_max = 30 if elapsed < 60 else max_age
+                    effective_max = 10 if elapsed < 60 else 60
                 except Exception:
-                    effective_max = max_age
+                    effective_max = 60
                 resp.headers["Cache-Control"] = f"private, max-age={effective_max}"
             return resp
 

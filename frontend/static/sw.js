@@ -1,8 +1,11 @@
-const CACHE_NAME = 'sf-tennis-v8';
+const CACHE_NAME = 'sf-tennis-v9';
 const STATIC_ASSETS = [
   '/',
   '/login',
   '/dashboard',
+  '/timetable',
+  '/admin/groups',
+  '/coach/my-groups',
   '/static/css/main.css',
   '/static/icons/icon-192.png?v=8',
   '/static/icons/icon-192-maskable.png?v=8',
@@ -47,7 +50,8 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    fetch(event.request)
+    // Bypass browser HTTP cache so SW always gets fresh data
+    fetch(event.request, { cache: 'no-cache' })
       .then((response) => {
         // Clone and cache successful responses
         if (response.ok) {
