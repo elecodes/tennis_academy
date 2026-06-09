@@ -32,6 +32,7 @@ The project is currently transitioning from a monolithic structure to a more mod
 ### 4.2. Recent Features
 - **Weekly Timetable**: A structured representation of the club's schedule, filtered by user role.
 - **Refined UI**: A premium, mobile-responsive interface across all dashboards.
+- **Auto-Sync Pipeline**: Google Sheets → GAS installable triggers → Turso pipeline → Flask webhook → cache invalidation. See [ADR-027](docs/ADR-027:%20Auto-Sync%20Webhook%20and%20Cache%20Invalidation.md).
 
 ## 5. Data Model
 Key tables in the [academy.db](file:///Users/elena/Developer/tennis_academy/academy.db) database:
@@ -42,6 +43,7 @@ Key tables in the [academy.db](file:///Users/elena/Developer/tennis_academy/acad
 - **`group_schedules`**: Structured weekly slots (Day, Start/End Time, Court).
 - **`messages`**: Records sent communications.
 - **`message_recipients`**: Tracks delivery status for individual users.
+- **`app_config`**: Key-value store for sync metadata (`last_sync_at`, `sync_version`).
 
 ## 6. Request/Response Lifecycle
 1. **Request**: Browser hits a route (e.g., `/dashboard`).

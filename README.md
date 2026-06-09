@@ -36,6 +36,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - ✅ Weekly timetable view with RBAC
 - ✅ **Turso Cloud Database** (Edge SQLite for real-time sync)
 - ✅ **Google Spreadsheet Integration** (Sync schedules automatically)
+- ✅ **Auto-Sync** (Sheets edits sync to Turso in seconds via installable GAS triggers)
 - ✅ Simple web interface for all roles
 - ✅ 100% free (Python, Flask, Gmail SMTP)
 
@@ -232,6 +233,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-024](docs/ADR-024:%20Vercel%20Production%20Cache%20Headers%20Fix.md)** - Vercel Production Cache Headers Fix
 - **[ADR-025](docs/ADR-025:%20PWA%20Icon%20Fix%20for%20Android%20Home%20Screen.md)** - PWA Icon Fix for Android
 - **[ADR-026](docs/ADR-026:%20Magic%20Draft%20Reliability%20and%20Vercel%20Dependency%20Alignment.md)** - Magic Draft reliability and Vercel dependency alignment
+- **[ADR-027](docs/ADR-027:%20Auto-Sync%20Webhook%20and%20Cache%20Invalidation.md)** - Auto-Sync webhook architecture and cache invalidation
 - **[MCP Configuration](docs/mcp-configuration.md)** - Google Sheets Agent Integration
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
@@ -344,6 +346,7 @@ App runs at **http://localhost:5001** with hot reload via volume mounts.
    - `SENDER_PASSWORD` - Your Gmail app password
    - `GEMINI_API_KEY` - Gemini API key for Magic Draft
    - `SECRET_KEY` - Random string
+   - `SYNC_API_KEY` - Shared secret for GAS webhook auth
 4. Deploy:
 ```bash
 vercel --prod
@@ -467,10 +470,11 @@ MIT License - Free to use and modify!
 ✅ PWA Icons:       Android home screen icon fix (v1.17.0)
 ✅ PWA Maskable:    Solid navy blue backgrounds for adaptive icons (v1.18.0)
 ✅ Magic Draft:     Robust AI error handling and Vercel runtime dependency alignment (v1.19.0)
+✅ Auto-Sync:       Google Sheets → Turso via installable GAS triggers + webhook (v1.20.0)
 ```
 
-**Last Updated**: 2026-04-28
-**Version**: 1.19.0
+**Last Updated**: 2026-06-09
+**Version**: 1.20.0
 **Status**: Production Ready ✅
 
 ---

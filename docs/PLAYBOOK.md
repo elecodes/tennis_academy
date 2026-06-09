@@ -10,7 +10,7 @@
 7. [Cloud Migration & Sync](#cloud-migration--sync)
 8. [Backup & Recovery](#backup--recovery)
 9. [Common Tasks](#common-tasks)
-8. [Agentic Workflow & Memory](#agentic-workflow--memory)
+10. [Agentic Workflow & Memory](#agentic-workflow--memory)
 
 ---
 
@@ -149,6 +149,7 @@ vercel --prod
 | `SENDER_PASSWORD` | Gmail app password |
 | `GEMINI_API_KEY` | Gemini API key used by Magic Draft |
 | `SECRET_KEY` | Random string for Flask sessions |
+| `SYNC_API_KEY` | Shared secret for GAS webhook auth |
 
 ### Caching Strategy
 
@@ -465,31 +466,92 @@ If you have data in `academy.db` and want to move it to the cloud:
    ```
 
 ### Google Spreadsheet Synchronization
-The application can sync groups and schedules directly from a Google Sheet.
 
-#### 1. Setup Google Apps Script
-1. Open your Google Sheet.
-2. Go to **Extensions** → **Apps Script**.
-3. Copy the content of `google_apps_script.js` from the repository into the editor.
-4. Update the `CONFIG` object at the top with your `TURSO_URL` and `TURSO_TOKEN`.
+The application syncs groups and schedules from a Google Sheet to the Turso database. There are two sync mechanisms:
+
+- **Auto-Sync (v7, recommended)**: Edits propagate within seconds via installable GAS triggers
+- **Manual Sync**: Admin dashboard button or GAS editor `testSync()`
+
+---
+
+#### 1. Auto-Sync Setup (GAS v7)
+
+1. Open your Google Sheet → **Extensions** → **Apps Script**.
+2. DELETE all existing code and paste the content of `scripts/google_apps_script_v7.js`.
+3. Update `CONFIG.webhookUrl` to your deployed app URL.
+4. Ensure `CONFIG.syncKey` matches `SYNC_API_KEY` in Vercel env vars.
+5. Save (Ctrl+S).
+6. In the editor, run `installOnEditTrigger()` once (creates the installable trigger for auto-sync on cell edits).
+7. Run `installHourlyTrigger()` once (creates a safety-net hourly timer).
+8. Run `testSync()` once to verify data syncs correctly.
+
+**Auto-Sync Flow:**
+```
+User edits a cell in Sheets
+        ↓
+onSheetEdit (installable trigger) fires
+        ↓
+syncAllData() reads all sheets via getValues()
+        ↓
+cleanTime() handles Date objects + parses time strings
+        ↓
+Turso pipeline: DELETE old data → INSERT new data → cleanup orphans
+        ↓
+notifyFlask() POST to /api/webhook/sheets-sync with X-Sync-Key
+        ↓
+Flask records last_sync_at → cache adaptivity kicks in
+        ↓
+Next browser request gets fresh data (cache bypass + 10s TTL)
+```
 
 #### 2. Spreadsheet Format
-- Each sheet name should be a day (e.g., "Monday", "Tue", "Wednesday").
-- Columns should include: `Time`, `Coach`, `Group`, `Tennis Kid Name`.
-- The script aggregates multiple kids into groups and multiple sessions into a combined schedule string.
+
+- Each sheet tab = day name (e.g., `MONDAY`, `TUESDAY`, `WEDNESDAYS`, `THURSDAY`, `FRIDAY`, `SATURDAY`, `SUNDAY`).
+- Columns (detected by header text):
+  | Column | Header examples | Required |
+  |--------|----------------|----------|
+  | Time | `Time`, `Hora` | Yes |
+  | Coach | `Coach`, `Entrenador` | Yes |
+  | Group | `Group`, `Grupo` | Yes |
+  | Kid Name | `Kid`, `Niño`, `Alumno` | Yes |
+  | Parent Email | `Parent Email`, `Parent Mail` | No |
+  | Parent Name | `Parent Name`, `Parent Nombre` | No |
+  | Phone | `Phone`, `Teléfono`, `Celular` | No |
+- Row 1 = headers. Rows 2+ = data.
+- Blank rows are skipped automatically.
 
 #### 3. Running Sync
-- Manually run the `syncDataToTurso` function in the Apps Script editor.
-- Or set up a **Trigger** (clock icon) to run every hour.
 
-#### 4. Manual Sync (from Dashboard)
-If you have configured the `GOOGLE_SHEETS_WEBHOOK_URL` in your `.env`, you can trigger a full sync directly from the Admin Dashboard:
-1. Go to **Admin Panel** → **Groups**.
-2. Click **Sync Sheets**.
-3. The app will call the Apps Script webhook and pull all current data from the spreadsheet.
-4. Check the "Last Updated" timestamp to verify completion.
+- **Auto**: Every cell edit triggers `onSheetEdit` (debounced 30s).
+- **Safety net**: Every hour via `syncAll` time-based trigger.
+- **Manual (editor)**: Run `testSync()` from the GAS editor.
+- **Manual (dashboard)**: Admin Panel → Groups → **Sync Sheets** (calls GAS web app).
 
-#### 5. Repairing the Weekly Timetable
+#### 4. Cache Invalidation
+
+The app uses an adaptive cache strategy to ensure users see fresh data quickly:
+
+| Layer | Behavior |
+|-------|----------|
+| **Flask API** | `@cache_response` sets `max-age=10` if sync <60s ago, else `max-age=60` |
+| **Service Worker** | v10+ uses `{cache: 'no-cache'}` on timetable requests |
+| **Vercel CDN** | Dynamic routes are not cached (serverless) |
+| **Browser** | Navigation requests bypass HTTP cache via SW |
+
+**Flow after a Sheets edit:**
+1. GAS writes to Turso
+2. GAS calls `/api/webhook/sheets-sync` → Flask sets `last_sync_at`
+3. Flask returns `max-age=10` (10s TTL) for next 60s
+4. SW fetches timetable bypassing HTTP cache (`{cache: 'no-cache'}`)
+5. User sees fresh data within seconds
+
+#### 5. Debugging Sync
+
+- **Sync status**: `GET /api/debug/sync-status` (JSON with group/schedule counts, last sync time)
+- **GAS logs**: View → Logs in the Apps Script editor
+- **Flask logs**: Check Vercel deployment logs for `POST /api/webhook/sheets-sync`
+
+#### 6. Repairing the Weekly Timetable
 If you manually edit a group's schedule text in the admin dashboard, the structured session records (used for the weekly grid) might get out of sync.
 To fix this:
 1. Go to **Admin Panel** → **Groups**.
@@ -747,8 +809,8 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-04-28
-**Version**: 1.19.0
+**Last Updated**: 2026-06-09
+**Version**: 1.20.0
 
 ---
 

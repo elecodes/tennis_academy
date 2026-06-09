@@ -2,34 +2,29 @@
 
 ## [Unreleased]
 
-### Added
-- **PWA Support**: manifest.json, service worker, PWA meta tags for "Add to Home Screen"
-- **Mobile Bottom Navigation**: Fixed bottom nav bar for mobile
-- **Google Sheets Sync**: Schedules sync from Sheets to Turso
-- **Day Filter Buttons**: Filter schedule by day (Mon-Sun)
-- **V1/V2 Theme Toggle**: Palette button to switch color themes
-- **Docker Support**: Dockerfile, docker-compose.yml
-- **Vercel Deployment**: Full Vercel deployment with caching
-- **API Response Caching**: Cache-Control headers for GET routes (private for RBAC)
-- **Magic Draft Vercel Runtime Requirements**: Added `api/requirements.txt` for serverless dependency installation.
+## [1.20.0] - 2026-06-09
 
-### Changed
-- **Color Palette V2**: Royal Blue (#163E85) + Golden Yellow (#E6C200)
-- **UI Readability**: Larger day headers and time text
-- **Template Caching**: Disabled auto-reload in production
-- **Vercel Python Install Source**: Switched install command to `pip install -r api/requirements.txt` for `api/app.py` runtime alignment.
+### Added
+- **Auto-Sync Infrastructure**: Google Sheets edits sync to Turso within seconds via installable GAS triggers (`onSheetEdit`, `syncAll` hourly)
+- **Webhook Endpoint**: `POST /api/webhook/sheets-sync` with `X-Sync-Key` auth for cache invalidation
+- **Adaptive API Caching**: `@cache_response` decorator with 10s TTL when sync <60s ago, 60s otherwise
+- **Service Worker v10**: Cache bypass via `{cache: 'no-cache'}` for fresh data after sync
+- **Debug Endpoint**: `/api/debug/sync-status` for verifying Turso data integrity
+- **App Config Table**: `app_config` key-value store for sync metadata (`last_sync_at`, `sync_version`)
+- **GAS v7 Script**: Installable onEdit trigger + hourly timer, Turso pipeline writes, cleanTime with Date object handling
+- **getValues() + instanceof Date**: Robust time parsing that handles Google Sheets Date objects correctly
 
 ### Fixed
-- **Vercel Deployment**: Fixed 404 error by adding explicit route to api/app.py in vercel.json
-- **PWA Icons**: Now displaying correctly on Vercel
-- **Day Filter**: Server-side rendering (JS had CSS/grid issues)
-- **Time AM/PM**: Fixed format_time for 12h DB format
-- **Quick-Login Passwords**: coach/family now use admin123
-- **JavaScript Errors**: Syntax fixes in timetable
-- **Magic Draft Endpoint Reliability**: Added compatibility route for `/admin/api/draft-message` and improved status mapping for AI failures (`502` provider, `503` unavailable).
-- **Magic Draft Error Handling**: Hardened malformed AI response parsing to avoid generic 500 fallthrough.
+- **GAS simple onEdit → installable trigger**: Simple triggers can't do `UrlFetchApp.fetch()`
+- **Browser stale cache**: SW cache bypass + adaptive TTL prevents serving stale data after sync
+- **SW install failure**: Removed auth-protected routes from SW pre-cache (caused install to fail)
+- **Date.toString() corruption**: GAS `cleanTime()` checks `instanceof Date` and formats via `getHours()`/`getMinutes()` (v6 proven pattern)
+- **CleanTime regex**: Parses "4:00:00 PM" format correctly (handles seconds in displayed values)
+- **Group schedule update**: `syncAllData()` now updates existing group's `schedule` and `coach_id` fields when reusing
+- **Orphan cleanup**: Groups with no schedules are deleted after each sync
+- **Day name display**: Schedule field uses "Mon", "Tue" etc. instead of numeric dayIndex (0–6)
 
-## [1.16.0] - 2026-04-15
+## [1.19.0] - 2026-04-28
 - Coach dashboard roster by schedule
 - Spreadsheet sync continuation rows
 - Time normalization
@@ -40,5 +35,5 @@
 
 ---
 
-**Last Updated**: 2026-04-28
-**Version**: 1.19.0
+**Last Updated**: 2026-06-09
+**Version**: 1.20.0
