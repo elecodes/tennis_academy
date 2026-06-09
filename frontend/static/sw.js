@@ -1,17 +1,13 @@
-const CACHE_NAME = 'sf-tennis-v9';
+const CACHE_NAME = 'sf-tennis-v10';
 const STATIC_ASSETS = [
   '/',
   '/login',
-  '/dashboard',
-  '/timetable',
-  '/admin/groups',
-  '/coach/my-groups',
   '/static/css/main.css',
-  '/static/icons/icon-192.png?v=8',
-  '/static/icons/icon-192-maskable.png?v=8',
-  '/static/icons/icon-512.png?v=8',
-  '/static/icons/icon-512-maskable.png?v=8',
-  '/manifest.json?v=8'
+  '/static/icons/icon-192.png',
+  '/static/icons/icon-192-maskable.png',
+  '/static/icons/icon-512.png',
+  '/static/icons/icon-512-maskable.png',
+  '/manifest.json'
 ];
 
 // Install event - cache static assets
