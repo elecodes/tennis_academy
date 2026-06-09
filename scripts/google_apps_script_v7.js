@@ -32,6 +32,7 @@ var DAYS_MAP = {
   monday: 0, mon: 0, tuesday: 1, tue: 1, wednesday: 2, wed: 2,
   thursday: 3, thu: 3, friday: 4, fri: 4, saturday: 5, sat: 5, sunday: 6, sun: 6,
 };
+var DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 var lastSyncTime = 0;
 
@@ -299,7 +300,7 @@ function syncAllData() {
         tursoQuery(
           "UPDATE groups SET schedule = ?, coach_id = ? WHERE id = ?",
           [
-            { type: "text", value: dayIndex + " " + timeVal },
+            { type: "text", value: DAY_NAMES[dayIndex] + " " + timeVal },
             { type: "integer", value: coachId ? String(coachId) : "null" },
             { type: "integer", value: String(groupId) },
           ]
@@ -309,7 +310,7 @@ function syncAllData() {
           "INSERT INTO groups (name, schedule, coach_id) VALUES (?, ?, ?)",
           [
             { type: "text", value: groupName },
-            { type: "text", value: dayIndex + " " + timeVal },
+            { type: "text", value: DAY_NAMES[dayIndex] + " " + timeVal },
             { type: "integer", value: coachId ? String(coachId) : "null" },
           ]
         );
