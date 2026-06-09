@@ -178,10 +178,31 @@ function testSync() {
 
 function cleanTime(val) {
   if (!val) return "";
-  val = val.toString().toLowerCase().replace(/\s+/g, "");
-  val = val.replace(/\./g, "");
-  if (val === "0" || val === "12:00am" || val === "12am") return "";
-  return val;
+
+  if (val instanceof Date) {
+    var hours = val.getHours();
+    var minutes = val.getMinutes();
+    var ampm = hours >= 12 ? "pm" : "am";
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    return hours + ":" + minutes + " " + ampm;
+  }
+
+  var timeStr = String(val).trim().toLowerCase();
+  var match = timeStr.match(/(\d{1,2})[:.](\d{2})\s*(am|pm)?/);
+  if (match) {
+    var hours = parseInt(match[1]);
+    var minutes = match[2];
+    var ampm = match[3] || (hours >= 12 ? "pm" : "am");
+    if (ampm === "pm" && hours < 12) hours += 12;
+    if (ampm === "am" && hours === 12) hours = 0;
+    var h12 = hours % 12 || 12;
+    var finalAmpm = hours >= 12 ? "pm" : "am";
+    return h12 + ":" + minutes + " " + finalAmpm;
+  }
+
+  return "";
 }
 
 function getPreferredCoachId(coachName) {
