@@ -24,6 +24,12 @@
 - **Orphan cleanup**: Groups with no schedules are deleted after each sync
 - **Day name display**: Schedule field uses "Mon", "Tue" etc. instead of numeric dayIndex (0–6)
 
+### Changed
+- **Admin CRUD read-only**: Group and user create/edit/delete disabled (banner + disabled buttons). Manage via Google Sheets.
+- **Sync Sheets / Repair Timetable buttons removed**: Auto-sync handles data; manual buttons were redundant.
+- **Sync-spreadsheet route simplified**: Only updates `last_sync_at` for cache refresh (no more `GOOGLE_SHEETS_WEBHOOK_URL` dependency).
+- **Removed `requests` dependency**: No longer needed after sync-spreadsheet simplification.
+
 ## [1.19.0] - 2026-04-28
 - Coach dashboard roster by schedule
 - Spreadsheet sync continuation rows

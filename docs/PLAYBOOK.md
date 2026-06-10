@@ -525,7 +525,6 @@ Next browser request gets fresh data (cache bypass + 10s TTL)
 - **Auto**: Every cell edit triggers `onSheetEdit` (debounced 30s).
 - **Safety net**: Every hour via `syncAll` time-based trigger.
 - **Manual (editor)**: Run `testSync()` from the GAS editor.
-- **Manual (dashboard)**: Admin Panel → Groups → **Sync Sheets** (calls GAS web app).
 
 #### 4. Cache Invalidation
 
@@ -551,14 +550,6 @@ The app uses an adaptive cache strategy to ensure users see fresh data quickly:
 - **GAS logs**: View → Logs in the Apps Script editor
 - **Flask logs**: Check Vercel deployment logs for `POST /api/webhook/sheets-sync`
 
-#### 6. Repairing the Weekly Timetable
-If you manually edit a group's schedule text in the admin dashboard, the structured session records (used for the weekly grid) might get out of sync.
-To fix this:
-1. Go to **Admin Panel** → **Groups**.
-2. Click **Repair Timetable**.
-3. The app will read the text-based schedules of all groups, parse them, and rebuild the structured weekly grid records.
-4. **When to use**: If a group's schedule text looks correct but the sessions are missing or wrong in the weekly view.
-
 #### 6. Support for Duplicate Group Names
 As of version 1.12.1, the system supports multiple groups with the same name (e.g., "Private"), provided they have different coaches.
 - **Identity**: A group is uniquely identified by `(name, coach)`.
@@ -572,7 +563,6 @@ For transitioning legacy text-based schedules to structured records:
    python3 backend/migrate_schedules.py
    ```
 2. This will parse the `schedule` column in the `groups` table and populate `group_schedules`.
-3. **Repair Tool**: Alternatively, use the **Repair Timetable** button in the Admin Dashboard to trigger this logic remotely.
 
 #### 8. Google Sheets MCP Integration (AI Agents)
 For AI agents (like Antigravity) to interact with schedules:

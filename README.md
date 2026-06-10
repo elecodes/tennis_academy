@@ -471,6 +471,7 @@ MIT License - Free to use and modify!
 ✅ PWA Maskable:    Solid navy blue backgrounds for adaptive icons (v1.18.0)
 ✅ Magic Draft:     Robust AI error handling and Vercel runtime dependency alignment (v1.19.0)
 ✅ Auto-Sync:       Google Sheets → Turso via installable GAS triggers + webhook (v1.20.0)
+⏸️ Admin CRUD:     Groups/users read-only — manage via Google Sheets (v1.20.0)
 ```
 
 **Last Updated**: 2026-06-09
