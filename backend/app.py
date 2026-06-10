@@ -28,7 +28,6 @@ from datetime import datetime
 from database import get_db, get_config, set_config
 import sqlite3
 from sync_webhook import sync_kid_update, sync_group_update
-import requests
 from migrate_schedules import parse_schedule
 
 import smtplib
@@ -740,70 +739,19 @@ def admin_add_group():
 @admin_required
 def admin_edit_group():
     flash("Group editing is temporarily disabled. Manage groups via Google Sheets.", "warning")
-    return redirect(url_for("admin_groups"))
-            if coach_id:
-                coach = conn.execute(
-                    "SELECT full_name FROM users WHERE id = ?", (coach_id,)
-                ).fetchone()
-                if coach:
-                    new_coach_name = coach["full_name"]
-
-            sync_group_update(
-                original_group_name=old_group["name"],
-                original_coach_name=old_group["coach_name"],
-                new_group_name=name,
-                new_coach_name=new_coach_name,
-            )
-
-        msg = (
-            f'Group "{name}" updated successfully! Note: Timetable sessions are NOT automatically updated. '
-            f'Use "Repair Timetable" if needed.'
-        )
-        flash(msg, "success")
-    except sqlite3.IntegrityError:
-        flash("A group with this name already exists.", "danger")
-    finally:
-        conn.close()
-
-    return redirect(url_for("admin_groups"))
 
 
 @app.route("/admin/sync-spreadsheet", methods=["POST"])
 @admin_required
 def admin_sync_spreadsheet():
-    """Trigger a full sync from Google Sheets.
+    """Trigger a sync cycle — updates last_sync_at for cache refresh.
 
-    The GAS onSheetEdit trigger + hourly syncAll handle auto-sync.
-    This endpoint updates the cache invalidation timestamp so users
-    see fresh data immediately, and optionally calls the GAS web app
-    as a manual fallback trigger.
+    Actual data sync is handled automatically by GAS installable triggers
+    (onSheetEdit + hourly syncAll). This endpoint just tells the Flask
+    cache to refresh on next request.
     """
-    # Always update last_sync_at first (cache invalidation)
     set_config("last_sync_at", str(int(time.time())))
-
-    # Optionally try the GAS web app if configured
-    webhook_url = os.environ.get("GOOGLE_SHEETS_WEBHOOK_URL")
-    if webhook_url:
-        try:
-            response = requests.post(
-                webhook_url,
-                json={"action": "sync_all"},
-                timeout=120,
-            )
-            if response.status_code == 200:
-                res_data = response.json()
-                version = res_data.get("version", "LEGACY")
-                flash(
-                    f"Sync triggered! {res_data.get('rows_processed', 0)} rows processed (Script: {version}).",
-                    "success",
-                )
-            else:
-                flash(f"Sync requested. Web app responded: {response.status_code}. Data should refresh shortly.", "success")
-        except Exception as e:
-            flash(f"Web app unavailable ({e}). Sync timestamp updated — auto-sync will refresh data shortly.", "success")
-    else:
-        flash("Sync timestamp updated. Auto-sync triggers (onSheetEdit/hourly) will refresh data shortly.", "success")
-
+    flash("Sync requested. Auto-sync will refresh data shortly.", "success")
     return redirect(url_for("admin_groups"))
 
 
