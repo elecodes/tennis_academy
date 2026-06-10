@@ -686,117 +686,21 @@ def admin_users():
 @app.route("/admin/users/add", methods=["POST"])
 @admin_required
 def admin_add_user():
-    email = request.form.get("email", "").strip().lower()
-    full_name = request.form.get("full_name", "").strip()
-    role = request.form.get("role", "family")
-    phone = request.form.get("phone", "").strip()
-    password = request.form.get("password", "")
-
-    # Validation
-    if (
-        not email
-        or not full_name
-        or not password
-        or role not in ["admin", "coach", "family"]
-    ):
-        flash(
-            "All fields are required and role must be admin, coach or family.", "danger"
-        )
-        return redirect(url_for("admin_users"))
-
-    if len(password) < 6:
-        flash("Password must be at least 6 characters.", "danger")
-        return redirect(url_for("admin_users"))
-
-    conn = get_db()
-    try:
-        hashed_password = generate_password_hash(password)
-        conn.execute(
-            """
-            INSERT INTO users (email, password, full_name, role, phone)
-            VALUES (?, ?, ?, ?, ?)
-        """,
-            (email, hashed_password, full_name, role, phone),
-        )
-        conn.commit()
-        flash(f"User {full_name} added successfully!", "success")
-    except sqlite3.IntegrityError:
-        flash("Email already exists.", "danger")
+    flash("User creation is temporarily disabled. Manage users via the system setup or contact support.", "warning")
     return redirect(url_for("admin_users"))
 
 
 @app.route("/admin/users/edit", methods=["POST"])
 @admin_required
 def admin_edit_user():
-    user_id = request.form.get("user_id")
-    email = request.form.get("email", "").strip().lower()
-    full_name = request.form.get("full_name", "").strip()
-    role = request.form.get("role", "family")
-    phone = request.form.get("phone", "").strip()
-
-    if not all([user_id, email, full_name]) or role not in ["coach", "family"]:
-        flash("Email, name and valid role are required.", "danger")
-        return redirect(url_for("admin_users"))
-
-    conn = get_db()
-    try:
-        # Get old info for webhook
-        old_user = conn.execute(
-            "SELECT full_name, email FROM users WHERE id = ?", (user_id,)
-        ).fetchone()
-
-        conn.execute(
-            """
-            UPDATE users
-            SET email = ?, full_name = ?, role = ?, phone = ?
-            WHERE id = ?
-        """,
-            (email, full_name, role, phone, user_id),
-        )
-        conn.commit()
-
-        if old_user and role == "family":
-            # Just push the user update, Google Sheets will find the kidName and update the email if present
-            # We don't have the kidName here, just the family full_name and email
-            # This is tricky because the spreadsheet is kid-centric.
-            # If the family email changes, we need to update all kids for this family.
-            kids = conn.execute(
-                "SELECT kid_name, g.name FROM group_members gm JOIN groups g ON gm.group_id = g.id WHERE family_id = ?",
-                (user_id,),
-            ).fetchall()
-            for kid in kids:
-                sync_kid_update(
-                    original_kid_name=kid["kid_name"],
-                    parent_email=old_user["email"],
-                    new_parent_email=email,
-                )
-
-        flash(f"User {full_name} updated successfully!", "success")
-    except sqlite3.IntegrityError:
-        flash("Email already exists.", "danger")
-    finally:
-        conn.close()
-
+    flash("User editing is temporarily disabled. Manage users via Google Sheets.", "warning")
     return redirect(url_for("admin_users"))
 
 
 @app.route("/admin/users/delete/<int:user_id>", methods=["POST"])
 @admin_required
 def admin_delete_user(user_id):
-    if user_id == session.get("user_id"):
-        flash("You cannot delete your own administrative account.", "danger")
-        return redirect(url_for("admin_users"))
-
-    conn = get_db()
-    try:
-        conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
-        conn.commit()
-        flash("User deleted successfully!", "success")
-    except Exception as e:
-        flash(f"Error deleting user: {e}", "danger")
-    finally:
-        conn.close()
-
+    flash("User deletion is temporarily disabled. Manage users via Google Sheets.", "warning")
     return redirect(url_for("admin_users"))
 
 
@@ -828,84 +732,15 @@ def admin_groups():
 @app.route("/admin/groups/add", methods=["POST"])
 @admin_required
 def admin_add_group():
-    name = request.form.get("name", "").strip()
-    schedule = request.form.get("schedule", "").strip()
-    coach_id = request.form.get("coach_id")
-    description = request.form.get("description", "").strip()
-
-    # Validation
-    if not name or not schedule:
-        flash("Group name and schedule are required.", "danger")
-        return redirect(url_for("admin_groups"))
-
-    if coach_id and coach_id.strip() == "":
-        coach_id = None
-    else:
-        coach_id = int(coach_id) if coach_id else None
-
-    conn = get_db()
-    try:
-        conn.execute(
-            """
-            INSERT INTO groups (name, schedule, coach_id, description)
-            VALUES (?, ?, ?, ?)
-        """,
-            (name, schedule, coach_id, description),
-        )
-        conn.commit()
-        flash(f'Group "{name}" created successfully!', "success")
-    except sqlite3.IntegrityError:
-        flash("A group with this name already exists.", "danger")
-    finally:
-        conn.close()
-
+    flash("Group creation is temporarily disabled. Manage groups via Google Sheets.", "warning")
     return redirect(url_for("admin_groups"))
 
 
 @app.route("/admin/groups/edit", methods=["POST"])
 @admin_required
 def admin_edit_group():
-    group_id = request.form.get("group_id")
-    name = request.form.get("name", "").strip()
-    schedule = request.form.get("schedule", "").strip()
-    coach_id = request.form.get("coach_id")
-    description = request.form.get("description", "").strip()
-
-    if not all([group_id, name, schedule]):
-        flash("Group name and schedule are required.", "danger")
-        return redirect(url_for("admin_groups"))
-
-    if coach_id and coach_id.strip() == "":
-        coach_id = None
-    else:
-        coach_id = int(coach_id) if coach_id else None
-
-    conn = get_db()
-    try:
-        # Get old info for webhook
-        old_group = conn.execute(
-            """
-            SELECT g.name, u.full_name as coach_name
-            FROM groups g
-            LEFT JOIN users u ON g.coach_id = u.id
-            WHERE g.id = ?
-            """,
-            (group_id,),
-        ).fetchone()
-
-        conn.execute(
-            """
-            UPDATE groups
-            SET name = ?, schedule = ?, coach_id = ?, description = ?
-            WHERE id = ?
-        """,
-            (name, schedule, coach_id, description, group_id),
-        )
-        conn.commit()
-
-        if old_group:
-            # Current coach name for the webhook (newly selected)
-            new_coach_name = None
+    flash("Group editing is temporarily disabled. Manage groups via Google Sheets.", "warning")
+    return redirect(url_for("admin_groups"))
             if coach_id:
                 coach = conn.execute(
                     "SELECT full_name FROM users WHERE id = ?", (coach_id,)
@@ -936,29 +771,38 @@ def admin_edit_group():
 @app.route("/admin/sync-spreadsheet", methods=["POST"])
 @admin_required
 def admin_sync_spreadsheet():
-    """Trigger a full sync from Google Sheets via the Apps Script."""
-    webhook_url = os.environ.get("GOOGLE_SHEETS_WEBHOOK_URL")
-    if not webhook_url:
-        flash("Google Sheets webhook URL not configured.", "danger")
-        return redirect(url_for("admin_groups"))
+    """Trigger a full sync from Google Sheets.
 
-    try:
-        response = requests.post(
-            webhook_url,
-            json={"action": "sync_all"},
-            timeout=120,
-        )
-        if response.status_code == 200:
-            res_data = response.json()
-            version = res_data.get("version", "LEGACY")
-            flash(
-                f"Sync successful! {res_data.get('rows_processed', 0)} rows processed (Script: {version}).",
-                "success",
+    The GAS onSheetEdit trigger + hourly syncAll handle auto-sync.
+    This endpoint updates the cache invalidation timestamp so users
+    see fresh data immediately, and optionally calls the GAS web app
+    as a manual fallback trigger.
+    """
+    # Always update last_sync_at first (cache invalidation)
+    set_config("last_sync_at", str(int(time.time())))
+
+    # Optionally try the GAS web app if configured
+    webhook_url = os.environ.get("GOOGLE_SHEETS_WEBHOOK_URL")
+    if webhook_url:
+        try:
+            response = requests.post(
+                webhook_url,
+                json={"action": "sync_all"},
+                timeout=120,
             )
-        else:
-            flash(f"Sync failed: {response.text}", "danger")
-    except Exception as e:
-        flash(f"Error triggering sync: {e}", "danger")
+            if response.status_code == 200:
+                res_data = response.json()
+                version = res_data.get("version", "LEGACY")
+                flash(
+                    f"Sync triggered! {res_data.get('rows_processed', 0)} rows processed (Script: {version}).",
+                    "success",
+                )
+            else:
+                flash(f"Sync requested. Web app responded: {response.status_code}. Data should refresh shortly.", "success")
+        except Exception as e:
+            flash(f"Web app unavailable ({e}). Sync timestamp updated — auto-sync will refresh data shortly.", "success")
+    else:
+        flash("Sync timestamp updated. Auto-sync triggers (onSheetEdit/hourly) will refresh data shortly.", "success")
 
     return redirect(url_for("admin_groups"))
 
@@ -1080,16 +924,7 @@ def admin_repair_timetable():
 @app.route("/admin/groups/delete/<int:group_id>", methods=["POST"])
 @admin_required
 def admin_delete_group(group_id):
-    conn = get_db()
-    try:
-        conn.execute("DELETE FROM groups WHERE id = ?", (group_id,))
-        conn.commit()
-        flash("Group deleted successfully!", "success")
-    except Exception as e:
-        flash(f"Error deleting group: {e}", "danger")
-    finally:
-        conn.close()
-
+    flash("Group deletion is temporarily disabled. Manage groups via Google Sheets.", "warning")
     return redirect(url_for("admin_groups"))
 
 
