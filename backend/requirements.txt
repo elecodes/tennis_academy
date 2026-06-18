@@ -13,4 +13,4 @@ genkit==0.5.1
 genkit-plugin-google-genai==0.5.1
 asgiref
 sqlalchemy==2.0.31
-psycopg2-binary==2.9.9
+pg8000==1.31.2

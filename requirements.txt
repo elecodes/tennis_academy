@@ -12,7 +12,7 @@ pydantic
 google-generativeai
 asgiref
 sqlalchemy==2.0.31
-psycopg2-binary==2.9.9
+pg8000==1.31.2
 # genkit and genkit-plugin-google-genai removed - google-cloud-bigquery metadata
 # incompatible with pip>=24.1 causes Render build to hang. Magic Draft gracefully
 # falls back when genkit is not installed.
