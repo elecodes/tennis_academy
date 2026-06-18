@@ -1,40 +1,50 @@
 import os
-import ssl
-from urllib.parse import urlparse, urlencode, parse_qs
+import requests
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-DATABASE_URL = os.environ.get("DATABASE_URL_READONLY")
-
-connect_args = {}
-if DATABASE_URL:
-    # pg8000 doesn't support sslmode query param — handle it via connect_args
-    parsed = urlparse(DATABASE_URL)
-    qs = parse_qs(parsed.query)
-    if "sslmode" in qs:
-        sslmode = qs.pop("sslmode")[0]
-        # Rebuild URL without sslmode
-        query_string = urlencode(qs, doseq=True)
-        DATABASE_URL = DATABASE_URL.replace(f"?{parsed.query}", "")
-        if query_string:
-            DATABASE_URL += f"?{query_string}"
-        # sslmode=require → use SSL with default context (no cert verification)
-        if sslmode == "require":
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
-            connect_args["ssl_context"] = ctx
-
-    # Use pg8000 (pure Python) for Python 3.14 compatibility
-    if DATABASE_URL.startswith("postgresql://"):
-        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+pg8000://", 1)
-
-engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=connect_args) if DATABASE_URL else None
-Session = sessionmaker(bind=engine) if engine else None
+SUPABASE_URL = os.environ.get(
+    "SUPABASE_URL",
+    "https://ypbwlpeighgpafocauzp.supabase.co/rest/v1",
+)
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY")
 
 
-def get_supabase_db():
-    if Session is None:
+def _client():
+    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
         return None
-    return Session()
+    return {
+        "url": SUPABASE_URL.rstrip("/"),
+        "headers": {
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+            "Accept": "application/json",
+        },
+    }
+
+
+def _fetch(table, order=None):
+    client = _client()
+    if not client:
+        return None
+    params = {}
+    if order:
+        params["order"] = order
+    resp = requests.get(
+        f"{client['url']}/{table}",
+        headers=client["headers"],
+        params=params,
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def fetch_students():
+    return _fetch("students", order="name.asc")
+
+
+def fetch_coaches():
+    return _fetch("coaches", order="name.asc")
+
+
+def fetch_lessons():
+    return _fetch("lessons", order="day.asc,time.asc")

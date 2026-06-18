@@ -12,5 +12,3 @@ pydantic
 genkit==0.5.1
 genkit-plugin-google-genai==0.5.1
 asgiref
-sqlalchemy==2.0.31
-pg8000==1.31.2

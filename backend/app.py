@@ -1591,114 +1591,49 @@ def setup():
 @login_required
 @admin_required
 def supabase_students():
-    from supabase_db import get_supabase_db
-    from supabase_models import Student
+    from supabase_db import fetch_students
 
-    db = get_supabase_db()
-    if db is None:
+    data = fetch_students()
+    if data is None:
         return jsonify({"error": "Supabase not configured"}), 503
-    try:
-        students = db.query(Student).order_by(Student.name).all()
-        return jsonify(
-            [
-                {
-                    "id": s.id,
-                    "name": s.name,
-                    "day": s.day,
-                    "parent_name": s.parent_name,
-                    "parent_email": s.parent_email,
-                    "parent_phone": s.parent_phone,
-                    "age_level": s.age_level,
-                    "start_date": str(s.start_date) if s.start_date else None,
-                    "end_date": str(s.end_date) if s.end_date else None,
-                    "price": s.price,
-                    "payment_status": s.payment_status,
-                    "welcome_kit": s.welcome_kit,
-                    "status": s.status,
-                    "season_id": s.season_id,
-                }
-                for s in students
-            ]
-        )
-    finally:
-        db.close()
+    return jsonify(data)
 
 
 @app.route("/supabase/coaches")
 @login_required
 @admin_required
 def supabase_coaches():
-    from supabase_db import get_supabase_db
-    from supabase_models import Coach
+    from supabase_db import fetch_coaches
 
-    db = get_supabase_db()
-    if db is None:
+    data = fetch_coaches()
+    if data is None:
         return jsonify({"error": "Supabase not configured"}), 503
-    try:
-        coaches = db.query(Coach).order_by(Coach.name).all()
-        return jsonify(
-            [
-                {
-                    "id": c.id,
-                    "name": c.name,
-                    "email": c.email,
-                    "phone": c.phone,
-                    "season_id": c.season_id,
-                }
-                for c in coaches
-            ]
-        )
-    finally:
-        db.close()
+    return jsonify(data)
 
 
 @app.route("/supabase/lessons")
 @login_required
 @admin_required
 def supabase_lessons():
-    from supabase_db import get_supabase_db
-    from supabase_models import Lesson
+    from supabase_db import fetch_lessons
 
-    db = get_supabase_db()
-    if db is None:
+    data = fetch_lessons()
+    if data is None:
         return jsonify({"error": "Supabase not configured"}), 503
-    try:
-        lessons = db.query(Lesson).order_by(Lesson.day, Lesson.time).all()
-        return jsonify(
-            [
-                {
-                    "id": l.id,
-                    "title": l.title,
-                    "day": l.day,
-                    "time": str(l.time) if l.time else None,
-                    "lesson_type": l.lesson_type,
-                    "notes": l.notes,
-                    "coach_id": l.coach_id,
-                    "season_id": l.season_id,
-                }
-                for l in lessons
-            ]
-        )
-    finally:
-        db.close()
+    return jsonify(data)
 
 
 @app.route("/admin/students")
 @login_required
 @admin_required
 def admin_students():
-    from supabase_db import get_supabase_db
-    from supabase_models import Student
+    from supabase_db import fetch_students
 
-    db = get_supabase_db()
-    if db is None:
-        flash("Supabase not configured. Set DATABASE_URL_READONLY.", "danger")
+    students = fetch_students()
+    if students is None:
+        flash("Supabase not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY.", "danger")
         return redirect(url_for("dashboard"))
-    try:
-        students = db.query(Student).order_by(Student.name).all()
-        return render_template("admin/students.html", students=students)
-    finally:
-        db.close()
+    return render_template("admin/students.html", students=students)
 
 
 if __name__ == "__main__":
