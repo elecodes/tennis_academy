@@ -5,17 +5,18 @@ SUPABASE_URL = os.environ.get(
     "SUPABASE_URL",
     "https://ypbwlpeighgpafocauzp.supabase.co/rest/v1",
 )
-SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_ANON_KEY")
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY")
+SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 
 
 def _client():
-    if not SUPABASE_URL or not SUPABASE_KEY:
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY or not SUPABASE_ANON_KEY:
         return None
     return {
         "url": SUPABASE_URL.rstrip("/"),
         "headers": {
-            "apikey": SUPABASE_KEY,
-            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
             "Accept": "application/json",
         },
     }
