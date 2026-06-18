@@ -1631,7 +1631,7 @@ def admin_students():
 
     students = fetch_students()
     if students is None:
-        flash("Supabase not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY.", "danger")
+        flash("Supabase not configured. Set SUPABASE_URL and SUPABASE_SERVICE_KEY.", "danger")
         return redirect(url_for("dashboard"))
     return render_template("admin/students.html", students=students)
 
