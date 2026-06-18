@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Added
+- **Supabase REST API read layer**: New `supabase_db.py` client using Supabase REST API (PostgREST) via HTTPS
+- **Student list from Supabase**: `GET /admin/students` page with table of students, coaches, and lessons from Supabase
+- **JSON endpoints**: `GET /supabase/students`, `/supabase/coaches`, `/supabase/lessons` for raw data access
+- **Nav integration**: Admin dropdown "Students (Supabase)" + dashboard card
+
+### Changed
+- **Stack**: Removed `sqlalchemy`, `psycopg2-binary`, `pg8000` from requirements — Supabase accessed via `requests` + REST API (no native PostgreSQL driver needed)
+- **genkit** removed from root `requirements.txt` — caused Render build hang (google-cloud-bigquery metadata incompatible with pip≥24.1). Magic Draft gracefully falls back.
+
+### Fixed
+- **Render build**: Python 3.14 had no wheel for psycopg2-binary → switched to pg8000 → then to REST API entirely
+- **Supabase IPv6-only**: Database only had AAAA record, no IPv4. REST API works over HTTPS (IPv4-compatible)
+
 ## [1.20.0] - 2026-06-09
 
 ### Added
@@ -41,5 +55,5 @@
 
 ---
 
-**Last Updated**: 2026-06-09
-**Version**: 1.20.0
+**Last Updated**: 2026-06-18
+**Version**: 1.21.0

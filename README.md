@@ -35,6 +35,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - ✅ General announcements (admin can message all families)
 - ✅ Weekly timetable view with RBAC
 - ✅ **Turso Cloud Database** (Edge SQLite for real-time sync)
+- ✅ **Supabase Integration** (PostgreSQL read layer for student/coach/lesson data)
 - ✅ **Google Spreadsheet Integration** (Sync schedules automatically)
 - ✅ **Auto-Sync** (Sheets edits sync to Turso in seconds via installable GAS triggers)
 - ✅ Simple web interface for all roles
@@ -42,10 +43,11 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 
 ## 🛠 Tech Stack
 
-| Component | Technology | Cost |
-|-----------|------------|------|
+| Technology | Component | Cost |
+|-----------|-----------|------|
 | Backend | Python 3.8+ + Flask | Free |
-| Database | Turso Cloud (libSQL) | Free |
+| Database (primary) | Turso Cloud (libSQL) | Free |
+| Database (secondary) | Supabase (PostgreSQL) via REST API | Free |
 | Email | Python smtplib + Gmail | Free |
 | Frontend | HTML5 + CSS3 + Bootstrap 5 | Free |
 | Validation| **Zod** + esbuild | Free |
