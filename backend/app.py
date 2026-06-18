@@ -1683,6 +1683,24 @@ def supabase_lessons():
         db.close()
 
 
+@app.route("/admin/students")
+@login_required
+@admin_required
+def admin_students():
+    from supabase_db import get_supabase_db
+    from supabase_models import Student
+
+    db = get_supabase_db()
+    if db is None:
+        flash("Supabase not configured. Set DATABASE_URL_READONLY.", "danger")
+        return redirect(url_for("dashboard"))
+    try:
+        students = db.query(Student).order_by(Student.name).all()
+        return render_template("admin/students.html", students=students)
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True, host="0.0.0.0", port=5001)
