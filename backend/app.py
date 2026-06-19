@@ -1653,6 +1653,31 @@ def admin_enrollments_supabase():
     return render_template("admin/enrollments_supabase.html", enrollments=enrollments)
 
 
+@app.route("/admin/users-supabase")
+@login_required
+@admin_required
+def admin_users_supabase():
+    from database import get_db
+    from supabase_db import fetch_users_unified
+
+    conn = get_db()
+    turso_users = conn.execute(
+        """
+        SELECT u.*,
+               (SELECT COUNT(*) FROM group_members WHERE family_id = u.id) as enrollments
+        FROM users u
+        ORDER BY u.created_at DESC
+    """
+    ).fetchall()
+    conn.close()
+
+    users = fetch_users_unified(turso_users)
+    if users is None:
+        flash("Supabase not configured. Set SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_KEY.", "danger")
+        return redirect(url_for("dashboard"))
+    return render_template("admin/users_supabase.html", users=users)
+
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True, host="0.0.0.0", port=5001)

@@ -121,3 +121,51 @@ def fetch_enrollments():
                 })
 
     return enrollments
+
+
+def fetch_users_unified(turso_users):
+    coaches = _fetch("coaches", order="name.asc")
+    students = _fetch("students", order="name.asc")
+
+    if coaches is None or students is None:
+        return None
+
+    turso_emails = {u.get("email", "").lower() for u in turso_users if u.get("email")}
+
+    unified = []
+
+    for u in turso_users:
+        role = u.get("role", "")
+        unified.append({
+            "name": u.get("full_name", ""),
+            "email": u.get("email", ""),
+            "phone": u.get("phone", ""),
+            "type": role.capitalize(),
+            "source": "Login",
+            "status": "Active" if u.get("is_active") else "Inactive",
+        })
+
+    for c in coaches:
+        email = (c.get("email") or "").lower()
+        if email and email not in turso_emails:
+            unified.append({
+                "name": c.get("name", ""),
+                "email": email,
+                "phone": c.get("phone", ""),
+                "type": "Coach",
+                "source": "Supabase",
+                "status": "Active",
+            })
+
+    for s in students:
+        unified.append({
+            "name": s.get("name", ""),
+            "email": s.get("parent_email", ""),
+            "phone": s.get("parent_phone", ""),
+            "type": "Student",
+            "source": "Supabase",
+            "status": (s.get("status") or "ACTIVE").capitalize(),
+        })
+
+    unified.sort(key=lambda x: x["name"].lower())
+    return unified
