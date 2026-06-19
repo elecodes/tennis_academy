@@ -1657,21 +1657,9 @@ def admin_enrollments_supabase():
 @login_required
 @admin_required
 def admin_users_supabase():
-    from database import get_db
-    from supabase_db import fetch_users_unified
+    from supabase_db import fetch_supabase_users
 
-    conn = get_db()
-    turso_users = conn.execute(
-        """
-        SELECT u.*,
-               (SELECT COUNT(*) FROM group_members WHERE family_id = u.id) as enrollments
-        FROM users u
-        ORDER BY u.created_at DESC
-    """
-    ).fetchall()
-    conn.close()
-
-    users = fetch_users_unified(turso_users)
+    users = fetch_supabase_users()
     if users is None:
         flash("Supabase not configured. Set SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_KEY.", "danger")
         return redirect(url_for("dashboard"))
@@ -1680,7 +1668,7 @@ def admin_users_supabase():
 
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True, host="0.0.0.0", port=5001)
+    app.run(debug=True, host="0.0.0.0", port=5001, use_reloader=False)
 
 
 # Vercel deployment - added handler
