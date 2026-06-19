@@ -1584,6 +1584,58 @@ def setup():
     return render_template("setup.html")
 
 
+# ==================== SUPABASE ROUTES (READ-ONLY) ====================
+
+
+@app.route("/supabase/students")
+@login_required
+@admin_required
+def supabase_students():
+    from supabase_db import fetch_students
+
+    data = fetch_students()
+    if data is None:
+        return jsonify({"error": "Supabase not configured"}), 503
+    return jsonify(data)
+
+
+@app.route("/supabase/coaches")
+@login_required
+@admin_required
+def supabase_coaches():
+    from supabase_db import fetch_coaches
+
+    data = fetch_coaches()
+    if data is None:
+        return jsonify({"error": "Supabase not configured"}), 503
+    return jsonify(data)
+
+
+@app.route("/supabase/lessons")
+@login_required
+@admin_required
+def supabase_lessons():
+    from supabase_db import fetch_lessons
+
+    data = fetch_lessons()
+    if data is None:
+        return jsonify({"error": "Supabase not configured"}), 503
+    return jsonify(data)
+
+
+@app.route("/admin/students")
+@login_required
+@admin_required
+def admin_students():
+    from supabase_db import fetch_students
+
+    students = fetch_students()
+    if students is None:
+        flash("Supabase not configured. Set SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_KEY.", "danger")
+        return redirect(url_for("dashboard"))
+    return render_template("admin/students.html", students=students)
+
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True, host="0.0.0.0", port=5001)
