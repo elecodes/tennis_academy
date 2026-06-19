@@ -130,9 +130,14 @@ def fetch_supabase_users():
     if coaches is None or students is None:
         return None
 
+    seen = set()
     users = []
 
     for c in coaches:
+        key = c.get("email", "") or c.get("name", "")
+        if key in seen:
+            continue
+        seen.add(key)
         users.append({
             "name": c.get("name", ""),
             "email": c.get("email", ""),
@@ -143,6 +148,10 @@ def fetch_supabase_users():
         })
 
     for s in students:
+        key = s.get("parent_email", "") or s.get("name", "")
+        if key in seen:
+            continue
+        seen.add(key)
         users.append({
             "name": s.get("name", ""),
             "email": s.get("parent_email", ""),
