@@ -1,25 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}Students (Supabase) - SF TENNIS KIDS Club{% endblock %}
+{% block title %}Enrollments (Supabase) - SF TENNIS KIDS Club{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-10 pb-24">
   <div class="bg-blue-50 border border-blue-200 rounded-lg px-6 py-4 mb-8 flex items-center gap-3">
     <span class="material-symbols-outlined text-blue-600">cloud</span>
     <p class="text-sm font-semibold text-blue-800">
-      Data from Supabase. Read-only.
+      Enrollments from Supabase. Read-only.
     </p>
   </div>
   <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
     <div class="flex items-center gap-4">
       <span class="w-12 h-1 bg-accent rounded-full"></span>
-      <h1 class="text-4xl font-black text-navy font-serif tracking-tight">Students</h1>
+      <h1 class="text-4xl font-black text-navy font-serif tracking-tight">Enrollments</h1>
     </div>
   </div>
 
   <div class="card-premium p-0 overflow-hidden border border-navy/10 shadow-xl">
     <div class="p-8 border-b border-navy/5 bg-navy/5 flex items-center justify-between">
-      <h3 class="text-2xl font-black text-navy font-serif">{{ students|length }} Total Students</h3>
+      <h3 class="text-2xl font-black text-navy font-serif">{{ enrollments|length }} Enrollments</h3>
       <span class="px-4 py-1.5 bg-navy/5 rounded-full text-[10px] font-black text-navy uppercase tracking-widest">Supabase
       </span>
     </div>
@@ -29,68 +29,77 @@
           <tr class="text-xs font-bold text-accent uppercase tracking-widest">
             <th class="px-8 py-5">Student</th>
             <th class="px-8 py-5">Parent</th>
-            <th class="px-8 py-5">Day / Age</th>
+            <th class="px-8 py-5">Lesson</th>
+            <th class="px-8 py-5">Day</th>
             <th class="px-8 py-5">Status</th>
             <th class="px-8 py-5">Payment</th>
             <th class="px-8 py-5">Season</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-navy/5">
-          {% if students %}
-          {% for s in students %}
+          {% if enrollments %}
+          {% for e in enrollments %}
           <tr class="hover:bg-navy/[0.02] transition-colors">
             <td class="px-8 py-6">
               <div class="flex items-center gap-4">
                 <div
                   class="w-10 h-10 rounded-full bg-navy/5 flex items-center justify-center text-xs font-black text-navy border border-navy/10">
-                  {{ s.name[:2].upper() }}
-                </div>
-                <div class="flex flex-col">
-                  <span class="font-bold text-navy leading-tight">{{ s.name }}</span>
-                  <span class="text-xs text-obsidian/40">{{ s.age_level or '—' }}</span>
-                </div>
+                  {{ e.student_name[:2].upper() }}</div>
+                <span class="font-bold text-navy leading-tight">{{ e.student_name }}</span>
               </div>
             </td>
             <td class="px-8 py-6">
               <div class="flex flex-col">
-                <span class="text-sm font-semibold text-obsidian/70">{{ s.parent_name or '—' }}</span>
-                <span class="text-xs text-obsidian/40">{{ s.parent_email or '—' }}</span>
+                <span class="text-sm font-semibold text-obsidian/70">{{ e.parent.name or '—' }}</span>
+                <span class="text-xs text-obsidian/40">{{ e.parent.email or '—' }}</span>
               </div>
             </td>
             <td class="px-8 py-6">
-              <span class="text-sm font-semibold text-obsidian/70">{{ s.day or '—' }}</span>
+              <span
+                class="px-3 py-1 bg-navy/5 text-navy text-[10px] font-black uppercase rounded-full border border-navy/10 tracking-widest">
+                {{ e.lesson_title or 'No lesson' }}
+              </span>
+              {% if e.coach_name %}
+              <div class="mt-1 text-[10px] text-obsidian/40">{{ e.coach_name }}</div>
+              {% endif %}
             </td>
             <td class="px-8 py-6">
-              {% if s.status == 'active' %}
+              <span class="text-sm font-semibold text-obsidian/70">{{ e.lesson_day or '—' }}</span>
+              {% if e.lesson_time %}
+              <div class="text-xs text-obsidian/40">{{ e.lesson_time[:5] if e.lesson_time else '' }}</div>
+              {% endif %}
+            </td>
+            <td class="px-8 py-6">
+              {% if e.status == 'ACTIVE' %}
               <span
                 class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase rounded-full border border-emerald-100 tracking-widest">Active</span>
-              {% elif s.status == 'inactive' %}
+              {% elif e.status == 'INACTIVE' %}
               <span
                 class="px-3 py-1 bg-clay/10 text-clay text-[10px] font-black uppercase rounded-full border border-clay/10 tracking-widest">Inactive</span>
               {% else %}
               <span
-                class="px-3 py-1 bg-navy/5 text-navy text-[10px] font-black uppercase rounded-full border border-navy/10 tracking-widest">{{ s.status or '—' }}</span>
+                class="px-3 py-1 bg-navy/5 text-navy text-[10px] font-black uppercase rounded-full border border-navy/10 tracking-widest">{{ e.status or '—' }}</span>
               {% endif %}
             </td>
             <td class="px-8 py-6">
               <div class="flex flex-col">
-                {% if s.price %}
-                <span class="text-sm font-bold text-navy">${{ "%.2f"|format(s.price) }}</span>
+                {% if e.price %}
+                <span class="text-sm font-bold text-navy">${{ "%.2f"|format(e.price) }}</span>
                 {% endif %}
-                <span class="text-xs text-obsidian/40">{{ s.payment_status or '—' }}</span>
+                <span class="text-xs text-obsidian/40">{{ e.payment_status or '—' }}</span>
               </div>
             </td>
             <td class="px-8 py-6">
-              <span class="text-sm font-semibold text-obsidian/70">{{ s.season_name or s.season_id or '—' }}</span>
+              <span class="text-sm font-semibold text-obsidian/70">{{ e.season_name or '—' }}</span>
             </td>
           </tr>
           {% endfor %}
           {% else %}
           <tr>
-            <td colspan="6" class="px-8 py-20 text-center">
+            <td colspan="7" class="px-8 py-20 text-center">
               <div class="flex flex-col items-center gap-4 opacity-20">
                 <span class="material-symbols-outlined text-6xl">person_off</span>
-                <p class="font-black uppercase tracking-[0.3em] text-xs">No students found in Supabase</p>
+                <p class="font-black uppercase tracking-[0.3em] text-xs">No enrollments found</p>
               </div>
             </td>
           </tr>

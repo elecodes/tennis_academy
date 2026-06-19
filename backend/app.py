@@ -1627,13 +1627,30 @@ def supabase_lessons():
 @login_required
 @admin_required
 def admin_students():
-    from supabase_db import fetch_students
+    from supabase_db import fetch_students, fetch_seasons
 
     students = fetch_students()
     if students is None:
         flash("Supabase not configured. Set SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_KEY.", "danger")
         return redirect(url_for("dashboard"))
+    seasons = fetch_seasons() or []
+    season_map = {s["id"]: s["name"] for s in seasons}
+    for s in students:
+        s["season_name"] = season_map.get(s.get("season_id"), s.get("season_id"))
     return render_template("admin/students.html", students=students)
+
+
+@app.route("/admin/enrollments-supabase")
+@login_required
+@admin_required
+def admin_enrollments_supabase():
+    from supabase_db import fetch_enrollments
+
+    enrollments = fetch_enrollments()
+    if enrollments is None:
+        flash("Supabase not configured. Set SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_KEY.", "danger")
+        return redirect(url_for("dashboard"))
+    return render_template("admin/enrollments_supabase.html", enrollments=enrollments)
 
 
 if __name__ == "__main__":
