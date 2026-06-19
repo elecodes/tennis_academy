@@ -4,9 +4,12 @@
 
 ### Added
 - **Supabase REST API read layer**: New `supabase_db.py` client using Supabase REST API (PostgREST) via HTTPS
-- **Student list from Supabase**: `GET /admin/students` page with table of students, coaches, and lessons from Supabase
+- **Student list from Supabase**: `GET /admin/students` page with table of students from Supabase
+- **Supabase enrollment list**: `GET /admin/enrollments-supabase` joining students + student_lessons + lessons + seasons + coaches, with season name mapping
+- **Supabase unified users page**: `GET /admin/users-supabase` showing coaches + students from Supabase with type filter tabs (Coach/Student), source badges, deduplication by email
 - **JSON endpoints**: `GET /supabase/students`, `/supabase/coaches`, `/supabase/lessons` for raw data access
-- **Nav integration**: Admin dropdown "Students (Supabase)" + dashboard card
+- **`fetch_seasons`, `fetch_enrollments`, `fetch_supabase_users`**: New functions in `supabase_db.py`
+- **Nav integration**: Admin dropdown "Students (Supabase)", "Enrollments (Supabase)", "Users (Supabase)" + dashboard cards
 
 ### Changed
 - **Stack**: Removed `sqlalchemy`, `psycopg2-binary`, `pg8000` from requirements — Supabase accessed via `requests` + REST API (no native PostgreSQL driver needed)
