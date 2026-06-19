@@ -121,3 +121,45 @@ def fetch_enrollments():
                 })
 
     return enrollments
+
+
+def fetch_supabase_users():
+    coaches = _fetch("coaches", order="name.asc")
+    students = _fetch("students", order="name.asc")
+
+    if coaches is None or students is None:
+        return None
+
+    seen = set()
+    users = []
+
+    for c in coaches:
+        key = c.get("email", "") or c.get("name", "")
+        if key in seen:
+            continue
+        seen.add(key)
+        users.append({
+            "name": c.get("name", ""),
+            "email": c.get("email", ""),
+            "phone": c.get("phone", ""),
+            "type": "Coach",
+            "source": "Supabase",
+            "status": "Active",
+        })
+
+    for s in students:
+        key = s.get("parent_email", "") or s.get("name", "")
+        if key in seen:
+            continue
+        seen.add(key)
+        users.append({
+            "name": s.get("name", ""),
+            "email": s.get("parent_email", ""),
+            "phone": s.get("parent_phone", ""),
+            "type": "Student",
+            "source": "Supabase",
+            "status": (s.get("status") or "ACTIVE").capitalize(),
+        })
+
+    users.sort(key=lambda x: x["name"].lower())
+    return users

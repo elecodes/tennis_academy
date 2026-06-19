@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Users (Unified) - SF TENNIS KIDS Club{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-10 pb-24">
+  <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
+    <div class="flex items-center gap-4">
+      <span class="w-12 h-1 bg-accent rounded-full"></span>
+      <h1 class="text-4xl font-black text-navy font-serif tracking-tight">Users</h1>
+    </div>
+    <div class="flex items-center gap-3" id="filter-buttons">
+      <button data-filter="all"
+        class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-navy text-white transition-colors">All</button>
+      <button data-filter="admin"
+        class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-navy/10 text-navy hover:bg-navy/20 transition-colors">Admins</button>
+      <button data-filter="coach"
+        class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-navy/10 text-navy hover:bg-navy/20 transition-colors">Coaches</button>
+      <button data-filter="family"
+        class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-navy/10 text-navy hover:bg-navy/20 transition-colors">Families</button>
+      <button data-filter="student"
+        class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-navy/10 text-navy hover:bg-navy/20 transition-colors">Students</button>
+    </div>
+  </div>
+
+  <div class="card-premium p-0 overflow-hidden border border-navy/10 shadow-xl">
+    <div class="p-8 border-b border-navy/5 bg-navy/5 flex items-center justify-between">
+      <h3 class="text-2xl font-black text-navy font-serif">{{ users|length }} Total</h3>
+      <div class="flex items-center gap-3">
+        <span class="px-4 py-1.5 bg-navy/5 rounded-full text-[10px] font-black text-navy uppercase tracking-widest flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-navy"></span> Login
+        </span>
+        <span class="px-4 py-1.5 bg-blue-50 rounded-full text-[10px] font-black text-blue-700 uppercase tracking-widest flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-blue-500"></span> Supabase
+        </span>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left premium-table">
+        <thead>
+          <tr class="text-xs font-bold text-accent uppercase tracking-widest">
+            <th class="px-8 py-5">Name</th>
+            <th class="px-8 py-5">Contact</th>
+            <th class="px-8 py-5">Type</th>
+            <th class="px-8 py-5">Source</th>
+            <th class="px-8 py-5">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-navy/5">
+          {% if users %}
+          {% for u in users %}
+          <tr class="hover:bg-navy/[0.02] transition-colors
+            {% if u.source == 'Supabase' %} bg-blue-50/30 {% endif %}"
+            data-type="{{ u.type.lower() }}">
+            <td class="px-8 py-6">
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-10 h-10 rounded-full bg-navy/5 flex items-center justify-center text-xs font-black text-navy border border-navy/10">
+                  {{ u.name[:2].upper() }}
+                </div>
+                <span class="font-bold text-navy leading-tight">{{ u.name }}</span>
+              </div>
+            </td>
+            <td class="px-8 py-6">
+              <div class="flex flex-col">
+                <span class="text-sm font-semibold text-obsidian/70">{{ u.email or '—' }}</span>
+                {% if u.phone %}
+                <span class="text-xs text-obsidian/40">{{ u.phone }}</span>
+                {% endif %}
+              </div>
+            </td>
+            <td class="px-8 py-6">
+              {% if u.type == 'Admin' %}
+              <span
+                class="px-3 py-1 bg-navy/10 text-navy text-[10px] font-black uppercase rounded-full border border-navy/10 tracking-widest">Admin</span>
+              {% elif u.type == 'Coach' %}
+              <span
+                class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase rounded-full border border-blue-100 tracking-widest">Coach</span>
+              {% elif u.type == 'Family' %}
+              <span
+                class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase rounded-full border border-emerald-100 tracking-widest">Family</span>
+              {% elif u.type == 'Student' %}
+              <span
+                class="px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-black uppercase rounded-full border border-amber-100 tracking-widest">Student</span>
+              {% endif %}
+            </td>
+            <td class="px-8 py-6">
+              {% if u.source == 'Supabase' %}
+              <span
+                class="px-3 py-1 bg-blue-50 text-blue-700 text-[10px] font-black uppercase rounded-full border border-blue-200 tracking-widest">Supabase</span>
+              {% else %}
+              <span
+                class="px-3 py-1 bg-navy/5 text-navy text-[10px] font-black uppercase rounded-full border border-navy/10 tracking-widest">Login</span>
+              {% endif %}
+            </td>
+            <td class="px-8 py-6">
+              {% if u.status == 'Active' %}
+              <span
+                class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase rounded-full border border-emerald-100 tracking-widest">Active</span>
+              {% else %}
+              <span
+                class="px-3 py-1 bg-clay/10 text-clay text-[10px] font-black uppercase rounded-full border border-clay/10 tracking-widest">{{ u.status }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+          {% else %}
+          <tr>
+            <td colspan="5" class="px-8 py-20 text-center">
+              <div class="flex flex-col items-center gap-4 opacity-20">
+                <span class="material-symbols-outlined text-6xl">group_off</span>
+                <p class="font-black uppercase tracking-[0.3em] text-xs">No users found</p>
+              </div>
+            </td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const filterBtns = document.querySelectorAll('[data-filter]');
+    const rows = document.querySelectorAll('tbody tr[data-type]');
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', function () {
+        filterBtns.forEach(b => {
+          b.className = 'px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-navy/10 text-navy hover:bg-navy/20 transition-colors';
+        });
+        this.className = 'px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-navy text-white transition-colors';
+
+        const filter = this.getAttribute('data-filter');
+        rows.forEach(row => {
+          if (filter === 'all' || row.getAttribute('data-type') === filter) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    });
+  });
+</script>
+{% endblock %}
