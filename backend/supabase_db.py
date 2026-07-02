@@ -163,3 +163,54 @@ def fetch_supabase_users():
 
     users.sort(key=lambda x: x["name"].lower())
     return users
+
+
+def fetch_coach_groups(coach_name):
+    coaches = _fetch("coaches")
+    lessons = _fetch("lessons")
+    students = _fetch("students")
+    student_lessons = _fetch("student_lessons")
+
+    if not all([coaches, lessons, students, student_lessons]):
+        return None
+
+    coach_ids = {c["id"] for c in coaches if c.get("name", "").lower() == coach_name.lower()}
+    if not coach_ids:
+        return []
+
+    student_map = {s["id"]: s for s in students}
+
+    sl_by_lesson = {}
+    for sl in student_lessons:
+        sl_by_lesson.setdefault(sl.get("lesson_id"), []).append(sl)
+
+    seen_lessons = set()
+    groups = []
+    for l in lessons:
+        if l.get("coach_id") not in coach_ids:
+            continue
+        key = (l.get("day"), l.get("time"))
+        if key in seen_lessons:
+            continue
+        seen_lessons.add(key)
+
+        lesson_students = []
+        for sl in sl_by_lesson.get(l["id"], []):
+            s = student_map.get(sl.get("student_id"))
+            if s:
+                lesson_students.append({
+                    "name": s.get("name", ""),
+                    "parent": s.get("parent_name", ""),
+                })
+
+        groups.append({
+            "day": l.get("day", "").capitalize(),
+            "time": l.get("time", ""),
+            "title": l.get("title", ""),
+            "students": lesson_students,
+            "student_count": len(lesson_students),
+        })
+
+    DAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    groups.sort(key=lambda g: (DAY_ORDER.index(g["day"]) if g["day"] in DAY_ORDER else 99, g["time"]))
+    return groups

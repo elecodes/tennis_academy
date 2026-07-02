@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}My Groups (Supabase) - SF TENNIS KIDS Club{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-10 pb-24">
+  <div class="flex items-center justify-between mb-10">
+    <div>
+      <h1 class="text-4xl font-display font-bold text-navy mb-2">My Groups <span class="text-accent">(Supabase)</span></h1>
+      <p class="text-navy/60">Your lessons and students from Supabase.</p>
+    </div>
+  </div>
+
+  {% if groups %}
+  <div class="space-y-6">
+    {% for g in groups %}
+    <div class="card-premium border border-navy/10 shadow-xl p-0 overflow-hidden bg-white">
+      <div class="bg-blue-600 p-6 text-white flex items-center justify-between">
+        <div>
+          <h3 class="text-xl font-bold text-white flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-blue-300"></span>
+            {{ g.day }}
+          </h3>
+          <p class="text-blue-100 text-lg font-semibold mt-1">{{ g.time }}</p>
+        </div>
+        <span class="text-blue-100 text-sm font-semibold">({{ g.student_count }} student{{ 's' if g.student_count != 1 else '' }})</span>
+      </div>
+      <div class="p-6">
+        <p class="text-sm font-bold text-navy/50 uppercase tracking-wider mb-4">{{ g.title }}</p>
+        {% if g.students %}
+        <div class="divide-y divide-navy/5">
+          {% for s in g.students %}
+          <div class="flex items-center gap-4 py-3">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <span class="text-sm font-black text-blue-600">{{ s.name[:2].upper() }}</span>
+            </div>
+            <div>
+              <span class="font-semibold text-navy">{{ s.name }}</span>
+              {% if s.parent %}
+              <span class="text-xs text-navy/50 block">{{ s.parent }}</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-navy/40 text-sm italic">No students enrolled.</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card-premium p-16 text-center shadow-xl border border-navy/10">
+    <div class="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
+      <span class="material-symbols-rounded text-4xl text-amber-500">warning</span>
+    </div>
+    <h2 class="text-2xl font-display font-bold text-navy mb-4">No Groups Found</h2>
+    <p class="text-navy/60 max-w-md mx-auto">
+      No Supabase lessons found for <strong>{{ coach_name }}</strong>.
+    </p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

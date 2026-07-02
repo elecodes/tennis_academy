@@ -1492,6 +1492,28 @@ def coach_my_groups():
     )
 
 
+@app.route("/coach/my-groups-supabase")
+@login_required
+@coach_required
+def coach_my_groups_supabase():
+    from supabase_db import fetch_coach_groups
+
+    conn = get_db()
+    coach = conn.execute("SELECT full_name FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+    conn.close()
+
+    if not coach:
+        flash("Coach not found.", "danger")
+        return redirect(url_for("dashboard"))
+
+    groups = fetch_coach_groups(coach["full_name"])
+    if groups is None:
+        flash("Supabase not configured.", "danger")
+        return redirect(url_for("dashboard"))
+
+    return render_template("coach/my_groups_supabase.html", groups=groups, coach_name=coach["full_name"])
+
+
 # ==================== FAMILY ROUTES ====================
 
 
