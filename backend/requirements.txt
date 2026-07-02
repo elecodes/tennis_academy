@@ -9,6 +9,7 @@ sentry-sdk[flask]
 flask-talisman==1.1.0
 requests
 pydantic
-genkit==0.5.1
-genkit-plugin-google-genai==0.5.1
+gunicorn
+# genkit==0.5.1
+# genkit-plugin-google-genai==0.5.1
 asgiref

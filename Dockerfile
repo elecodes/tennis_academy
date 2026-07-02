@@ -18,7 +18,12 @@ COPY frontend/ ./frontend/
 # Set environment variables
 ENV FLASK_APP=backend/app.py
 ENV PYTHONUNBUFFERED=1
+# Override these at runtime:
+# SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY
+# TURSO_URL, TURSO_TOKEN
+# SENDER_EMAIL, SENDER_PASSWORD
+# SECRET_KEY
 
 EXPOSE 5001
 
-CMD ["python", "backend/app.py"]
+CMD ["gunicorn", "backend.app:app", "-w", "4", "-b", "0.0.0.0:5001"]
