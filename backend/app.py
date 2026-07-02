@@ -1404,6 +1404,18 @@ def coach_my_groups():
     group_schedules = {}
     group_members = {}
 
+    def _clean_kid_name(raw):
+        import re
+        from datetime import datetime
+        if not raw or not re.match(r'\w{3} \w{3} \d{2} \d{4}', raw):
+            return raw
+        try:
+            parts = raw.split()
+            dt = datetime.strptime(f'{parts[0]} {parts[1]} {parts[2]} {parts[3]}', '%a %b %d %Y')
+            return dt.strftime('%a %b %-d')
+        except (ValueError, IndexError):
+            return raw
+
     DAYS = [
         "Monday",
         "Tuesday",
@@ -1448,7 +1460,10 @@ def coach_my_groups():
                 (group["id"], schedule["id"]),
             ).fetchall()
             if members:
-                members_by_schedule[schedule["id"]] = members
+                cleaned = [dict(m) for m in members]
+                for m in cleaned:
+                    m["kid_name"] = _clean_kid_name(m["kid_name"])
+                members_by_schedule[schedule["id"]] = cleaned
 
         # Also get members without a specific schedule
         unscheduled = conn.execute(
@@ -1461,7 +1476,10 @@ def coach_my_groups():
             (group["id"],),
         ).fetchall()
         if unscheduled:
-            members_by_schedule[None] = unscheduled
+            cleaned = [dict(m) for m in unscheduled]
+            for m in cleaned:
+                m["kid_name"] = _clean_kid_name(m["kid_name"])
+            members_by_schedule[None] = cleaned
 
         group_members[group["id"]] = members_by_schedule
 
