@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Message Auditor - SF TENNIS KIDS Club{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-10 pb-24">
+  <div class="flex items-center justify-between mb-10">
+    <div>
+      <h1 class="text-4xl font-display font-bold text-navy mb-2">Message Auditor</h1>
+      <p class="text-navy/60">All club messages — broadcast and family alerts.</p>
+    </div>
+    <span class="text-[10px] font-black text-accent uppercase tracking-widest">{{ messages|length }} messages</span>
+  </div>
+
+  {% if messages %}
+  <div class="card-premium overflow-hidden p-0 border border-navy/10 shadow-2xl">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left premium-table">
+        <thead class="bg-navy/[0.02]">
+          <tr class="text-[10px] font-black text-navy/40 uppercase tracking-[0.2em]">
+            <th class="px-6 py-4">Sent</th>
+            <th class="px-6 py-4">From</th>
+            <th class="px-6 py-4">Type</th>
+            <th class="px-6 py-4">Subject</th>
+            <th class="px-6 py-4">Content</th>
+            <th class="px-6 py-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-navy/5">
+          {% for msg in messages %}
+          <tr class="group hover:bg-navy/[0.02] transition-colors duration-300">
+            <td class="px-6 py-4 text-[10px] font-bold text-obsidian/40 whitespace-nowrap">{{ msg.sent_at }}</td>
+            <td class="px-6 py-4">
+              <span class="text-sm font-bold text-navy">{{ msg.sender_name }}</span>
+              <span class="text-[9px] font-black text-obsidian/30 uppercase tracking-wider ml-2">
+                {% if msg.source == 'family_note' %}Family{% else %}Broadcast{% endif %}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              {% if msg.source == 'family_note' %}
+              <span class="px-2 py-1 bg-purple-50 text-purple-700 text-[9px] font-black uppercase rounded-md border border-purple-200">
+                {{ msg.preset|replace('_', ' ') }}
+              </span>
+              {% else %}
+              <span class="px-2 py-1 bg-navy/5 text-navy text-[9px] font-black uppercase rounded-md border border-navy/10">
+                {{ msg.message_type|replace('_', ' ') }}
+              </span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4">
+              <span class="text-sm font-bold text-navy {% if '[deleted]' in msg.subject %}line-through text-obsidian/40{% endif %}">
+                {{ msg.subject }}
+              </span>
+            </td>
+            <td class="px-6 py-4 max-w-xs">
+              <span class="text-xs text-obsidian/60 line-clamp-2 {% if '[deleted' in (msg.content or '') %}line-through text-obsidian/30{% endif %}">
+                {{ msg.content }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onclick="openEdit({{ msg.id }}, '{{ msg.subject|e }}', '{{ msg.content|e }}', '{{ msg.source }}')"
+                  class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-all">
+                  Edit
+                </button>
+                <form method="POST" action="{{ url_for('admin_delete_message', message_id=msg.id) }}"
+                  onsubmit="return confirm('Delete this message?')">
+                  <input type="hidden" name="source" value="{{ msg.source }}">
+                  <button type="submit"
+                    class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-all">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden">
+      <form method="POST" action="" id="editForm" class="space-y-0">
+        <input type="hidden" name="source" id="editSource">
+        <div class="p-8 space-y-6">
+          <h3 class="text-2xl font-black text-navy font-serif">Edit Message</h3>
+          <div>
+            <label class="text-[10px] font-black text-accent uppercase tracking-[0.2em] pl-1">Subject</label>
+            <input type="text" name="subject" id="editSubject" required
+              class="form-input mt-2">
+          </div>
+          <div>
+            <label class="text-[10px] font-black text-accent uppercase tracking-[0.2em] pl-1">Content</label>
+            <textarea name="content" id="editContent" rows="4" required
+              class="form-input mt-2"></textarea>
+          </div>
+        </div>
+        <div class="p-8 bg-mist flex gap-4">
+          <button type="button" onclick="closeEdit()"
+            class="btn-outline flex-1 justify-center !h-14">Cancel</button>
+          <button type="submit" class="btn-primary flex-1 justify-center !h-14 shadow-xl">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openEdit(id, subject, content, source) {
+      document.getElementById('editForm').action = "/admin/messages/" + id + "/edit";
+      document.getElementById('editSubject').value = subject;
+      document.getElementById('editContent').value = content;
+      document.getElementById('editSource').value = source;
+      document.getElementById('editModal').classList.remove('hidden');
+    }
+    function closeEdit() {
+      document.getElementById('editModal').classList.add('hidden');
+    }
+  </script>
+  {% else %}
+  <div class="card-premium p-16 text-center">
+    <div class="w-20 h-20 bg-navy/5 rounded-full flex items-center justify-center mx-auto mb-6">
+      <span class="material-symbols-rounded text-4xl text-navy/30">mail</span>
+    </div>
+    <h2 class="text-2xl font-display font-bold text-navy mb-4">No Messages Yet</h2>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

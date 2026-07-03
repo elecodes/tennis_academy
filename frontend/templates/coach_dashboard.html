@@ -89,6 +89,43 @@
     {% endif %}
   </div>
 
+  <!-- Family Alerts -->
+  {% if stats.family_alerts %}
+  <div class="mb-20">
+    <div class="flex items-center gap-4 mb-10">
+      <span class="w-12 h-1 bg-accent rounded-full"></span>
+      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Messages from Families</h2>
+    </div>
+    <div class="space-y-4">
+      {% for alert in stats.family_alerts %}
+      <div class="card-premium flex items-start gap-5 p-6 border border-navy/5 hover:border-accent/30 transition-all">
+        <div class="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0">
+          {% if alert.preset == 'running_late' %}🕐
+          {% elif alert.preset == 'will_miss' %}❌
+          {% elif alert.preset == 'on_my_way' %}✅
+          {% elif alert.preset == 'early_pickup' %}🚗
+          {% endif %}
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="text-sm font-black text-navy">{{ alert.subject }}</span>
+            {% if alert.is_read == 0 %}
+            <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+            {% endif %}
+          </div>
+          <p class="text-sm text-obsidian/60 mb-2">{{ alert.content }}</p>
+          <div class="flex items-center gap-3 text-[10px] font-bold text-obsidian/40 uppercase tracking-wider">
+            <span>{{ alert.family_name }}</span>
+            <span>•</span>
+            <span>{{ alert.sent_at }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Recent Alerts Send -->
   {% if stats.recent_messages %}
   <div class="card-premium overflow-hidden p-0 border border-navy/10 shadow-2xl">
@@ -103,6 +140,7 @@
             <th class="px-8 py-4">Subject</th>
             <th class="px-8 py-4">Target Group</th>
             <th class="px-8 py-4">Classification</th>
+            <th class="px-8 py-4">Acknowledgments</th>
             <th class="px-8 py-4 text-right">Timestamp</th>
           </tr>
         </thead>
@@ -132,6 +170,16 @@
                 <div class="w-2 h-2 rounded-full bg-navy/20"></div>
                 <span class="text-navy/60 font-black text-[10px] uppercase tracking-widest">Announcement</span>
               </div>
+              {% endif %}
+            </td>
+            <td class="px-8 py-6">
+              {% if msg.sender_id == session.user_id %}
+              <span class="text-[10px] font-bold
+                {% if 'ok' in msg.ack_display %}text-green-600
+                {% elif 'received' in msg.ack_display %}text-blue-600
+                {% else %}text-obsidian/40{% endif %}">
+                {{ msg.ack_display }}
+              </span>
               {% endif %}
             </td>
             <td class="px-8 py-6 text-obsidian/40 text-[10px] font-bold text-right italic">{{ msg.sent_at }}</td>

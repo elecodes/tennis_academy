@@ -44,6 +44,62 @@
     {% endif %}
   </div>
 
+  <!-- Notify Your Coach -->
+  {% if turso_enrollments %}
+  <div class="mb-20">
+    <div class="flex items-center gap-4 mb-10">
+      <span class="w-12 h-1 bg-accent rounded-full"></span>
+      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Notify Your Coach</h2>
+    </div>
+    <div class="card-premium p-8 border border-navy/10 shadow-2xl">
+      <form method="POST" action="{{ url_for('family_quick_message') }}" class="space-y-6">
+        <div>
+          <label class="text-[10px] font-black text-accent uppercase tracking-[0.2em] pl-1">Child</label>
+          <select name="kid_name" required
+            class="form-input mt-2">
+            {% for e in turso_enrollments %}
+            <option value="{{ e.kid_name }}">{{ e.kid_name }} — {{ e.coach_name or 'Assignment Pending' }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-black text-accent uppercase tracking-[0.2em] pl-1">Quick Notice</label>
+          <div class="grid grid-cols-2 gap-3 mt-2">
+            <button type="submit" name="preset" value="running_late"
+              class="flex items-center gap-3 p-4 rounded-2xl border border-navy/10 hover:border-accent hover:bg-accent/5 transition-all text-left">
+              <span class="text-xl">🕐</span>
+              <div>
+                <div class="text-sm font-bold text-navy">Running Late</div>
+              </div>
+            </button>
+            <button type="submit" name="preset" value="will_miss"
+              class="flex items-center gap-3 p-4 rounded-2xl border border-navy/10 hover:border-accent hover:bg-accent/5 transition-all text-left">
+              <span class="text-xl">❌</span>
+              <div>
+                <div class="text-sm font-bold text-navy">Will Miss Class</div>
+              </div>
+            </button>
+            <button type="submit" name="preset" value="on_my_way"
+              class="flex items-center gap-3 p-4 rounded-2xl border border-navy/10 hover:border-accent hover:bg-accent/5 transition-all text-left">
+              <span class="text-xl">✅</span>
+              <div>
+                <div class="text-sm font-bold text-navy">On My Way</div>
+              </div>
+            </button>
+            <button type="submit" name="preset" value="early_pickup"
+              class="flex items-center gap-3 p-4 rounded-2xl border border-navy/10 hover:border-accent hover:bg-accent/5 transition-all text-left">
+              <span class="text-xl">🚗</span>
+              <div>
+                <div class="text-sm font-bold text-navy">Early Pickup</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Quick Access -->
   <div class="mb-20">
     <div class="flex items-center gap-4 mb-10">
