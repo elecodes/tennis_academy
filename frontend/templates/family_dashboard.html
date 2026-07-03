@@ -45,7 +45,7 @@
   </div>
 
   <!-- Notify Your Coach -->
-  {% if turso_enrollments %}
+  {% if quick_enrollments %}
   <div class="mb-20">
     <div class="flex items-center gap-4 mb-10">
       <span class="w-12 h-1 bg-accent rounded-full"></span>
@@ -57,7 +57,7 @@
           <label class="text-[10px] font-black text-accent uppercase tracking-[0.2em] pl-1">Child</label>
           <select name="kid_name" required
             class="form-input mt-2">
-            {% for e in turso_enrollments %}
+            {% for e in quick_enrollments %}
             <option value="{{ e.kid_name }}">{{ e.kid_name }} — {{ e.coach_name or 'Assignment Pending' }}</option>
             {% endfor %}
           </select>

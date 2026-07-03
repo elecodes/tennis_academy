@@ -391,6 +391,7 @@ def init_db():
             user_id INTEGER NOT NULL,
             group_id INTEGER,
             kid_name TEXT NOT NULL,
+            coach_name TEXT,
             preset TEXT NOT NULL,
             subject TEXT NOT NULL,
             content TEXT NOT NULL,
@@ -402,6 +403,10 @@ def init_db():
         )
     """
     )
+    try:
+        cursor.execute("ALTER TABLE family_quick_messages ADD COLUMN coach_name TEXT")
+    except Exception:
+        pass
 
     # Group schedules table
     cursor.execute(
@@ -695,14 +700,16 @@ def dashboard():
         ).fetchall()
 
         # Family alerts for coach's groups
+        coach_full_name = session.get("full_name")
         family_alerts = conn.execute(
             """SELECT fqm.*, u.full_name as family_name
                FROM family_quick_messages fqm
                JOIN users u ON fqm.user_id = u.id
-               WHERE fqm.group_id IN (SELECT id FROM groups WHERE coach_id = ?)
+               WHERE (fqm.group_id IN (SELECT id FROM groups WHERE coach_id = ?)
+                  OR (fqm.coach_name IS NOT NULL AND fqm.coach_name = ?))
                  AND fqm.deleted_at IS NULL
                ORDER BY fqm.sent_at DESC LIMIT 5""",
-            (user_id,),
+            (user_id, coach_full_name),
         ).fetchall()
 
         # Append ack info to coach's own sent messages
@@ -777,6 +784,7 @@ def dashboard():
         turso_enrollments = [
             e for e in my_enrollments if not e.get("_supabase")
         ]
+        quick_enrollments = [e for e in my_enrollments if e.get("coach_name")]
 
         messages = conn.execute(
             """
@@ -798,7 +806,7 @@ def dashboard():
         template = "family_dashboard.html"
 
     conn.close()
-    return render_template(template, stats=stats, sb_lessons=sb_lessons_list, turso_enrollments=turso_enrollments)
+    return render_template(template, stats=stats, sb_lessons=sb_lessons_list, turso_enrollments=turso_enrollments, quick_enrollments=quick_enrollments)
 
 
 # ==================== ADMIN ROUTES ====================
@@ -2092,15 +2100,32 @@ def family_quick_message():
             conn.close()
             return redirect(url_for("dashboard"))
 
-    # Find group for this kid
+    # Find group for this kid (check Turso first, then Supabase)
     enrollment = conn.execute(
-        """SELECT g.id, gm.kid_name FROM group_members gm
+        """SELECT g.id, gm.kid_name, u.full_name as coach_name FROM group_members gm
            JOIN groups g ON gm.group_id = g.id
+           LEFT JOIN users u ON g.coach_id = u.id
            WHERE gm.family_id = ? AND LOWER(gm.kid_name) = LOWER(?)""",
         (user_id, kid_name),
     ).fetchone()
 
-    if not enrollment:
+    coach_name = None
+    group_id = None
+    if enrollment:
+        group_id = enrollment["id"]
+        coach_name = enrollment["coach_name"]
+    else:
+        # Check Supabase enrollments by parent_email + kid_name
+        from supabase_db import fetch_family_enrollments
+        family_email = session.get("email")
+        if family_email:
+            sb = fetch_family_enrollments(family_email) or []
+            for e in sb:
+                if e.get("kid_name", "").lower() == kid_name.lower():
+                    coach_name = e.get("coach_name")
+                    break
+
+    if not coach_name:
         flash("Could not find enrollment for that child.", "danger")
         conn.close()
         return redirect(url_for("dashboard"))
@@ -2110,9 +2135,9 @@ def family_quick_message():
     content = preset_data["content"].format(kid=kid_name)
 
     conn.execute(
-        """INSERT INTO family_quick_messages (user_id, group_id, kid_name, preset, subject, content)
-           VALUES (?, ?, ?, ?, ?, ?)""",
-        (user_id, enrollment["id"], kid_name, preset, subject, content),
+        """INSERT INTO family_quick_messages (user_id, group_id, kid_name, coach_name, preset, subject, content)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (user_id, group_id, kid_name, coach_name, preset, subject, content),
     )
     conn.commit()
     conn.close()
