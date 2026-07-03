@@ -364,11 +364,16 @@ def init_db():
             user_id INTEGER NOT NULL,
             email_sent INTEGER DEFAULT 0,
             sent_at TIMESTAMP,
+            is_read INTEGER DEFAULT 0,
             FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
     """
     )
+    try:
+        cursor.execute("ALTER TABLE message_recipients ADD COLUMN is_read INTEGER DEFAULT 0")
+    except Exception:
+        pass  # column already exists
 
     # Group schedules table
     cursor.execute(
@@ -717,13 +722,14 @@ def dashboard():
             FROM messages m
             JOIN users u ON m.sender_id = u.id
             LEFT JOIN groups g ON m.group_id = g.id
-            LEFT JOIN message_recipients mr ON m.id = mr.message_id
-            WHERE m.group_id IN (SELECT group_id FROM group_members WHERE family_id = ?)
+            LEFT JOIN message_recipients mr ON m.id = mr.message_id AND mr.user_id = ?
+            WHERE (m.group_id IN (SELECT group_id FROM group_members WHERE family_id = ?)
                OR mr.user_id = ?
-               OR m.is_general = 1
+               OR m.is_general = 1)
+              AND (mr.id IS NULL OR mr.is_read = 0)
             ORDER BY m.sent_at DESC
         """,
-            (user_id, user_id),
+            (user_id, user_id, user_id),
         ).fetchall()
 
         stats = {"my_enrollments": my_enrollments, "messages": messages}
@@ -1863,6 +1869,13 @@ def family_messages():
     """,
         (user_id, user_id),
     ).fetchall()
+
+    # Mark all as read
+    conn.execute(
+        "UPDATE message_recipients SET is_read = 1 WHERE user_id = ? AND is_read = 0",
+        (user_id,),
+    )
+    conn.commit()
 
     conn.close()
     return render_template("family/messages.html", messages=messages)
