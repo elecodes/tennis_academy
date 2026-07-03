@@ -872,5 +872,12 @@ The app uses Supabase (PostgreSQL) as a secondary read layer alongside Turso, sy
 | `fetch_coach_lessons(coach_name)` | Flat list of coach's lessons for message form |
 | `fetch_lesson_parents(lesson_id)` | Parent contacts via student_lessons → students |
 
+### Keeping Supabase Alive
+
+Supabase free tier pauses projects after 7 days of inactivity. GitHub Actions cron job `.github/workflows/keep-supabase-alive.yml` pings the REST API every 3 days to prevent this. Requires these **GitHub secrets**:
+
+- `SUPABASE_URL` — `https://ypbwlpeighgpafocauzp.supabase.co/rest/v1`
+- `SUPABASE_ANON_KEY` — your Supabase anon/public key
+
 **Last Updated**: 2026-07-02
 **Version**: 1.23.0
