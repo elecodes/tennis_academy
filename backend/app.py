@@ -1758,16 +1758,33 @@ def family_enrollments():
     conn = get_db()
     user_id = session["user_id"]
 
-    enrollments = conn.execute(
-        """
-        SELECT g.*, gm.kid_name, u.full_name as coach_name
-        FROM group_members gm
-        JOIN groups g ON gm.group_id = g.id
-        LEFT JOIN users u ON g.coach_id = u.id
-        WHERE gm.family_id = ?
-    """,
-        (user_id,),
-    ).fetchall()
+    enrollments = list(
+        conn.execute(
+            """
+            SELECT g.*, gm.kid_name, u.full_name as coach_name
+            FROM group_members gm
+            JOIN groups g ON gm.group_id = g.id
+            LEFT JOIN users u ON g.coach_id = u.id
+            WHERE gm.family_id = ?
+        """,
+            (user_id,),
+        ).fetchall()
+    )
+
+    # Append Supabase enrollments
+    from supabase_db import fetch_family_enrollments
+
+    family_email = session.get("email")
+    if family_email:
+        sb_enrollments = fetch_family_enrollments(family_email)
+        if sb_enrollments:
+            if not enrollments:
+                enrollments = sb_enrollments
+            else:
+                enrollment_ids = {e["kid_name"] for e in enrollments}
+                for e in sb_enrollments:
+                    if e["kid_name"] not in enrollment_ids:
+                        enrollments.append(e)
 
     conn.close()
     return render_template("family/enrollments.html", enrollments=enrollments)
