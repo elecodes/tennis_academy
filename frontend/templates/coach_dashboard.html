@@ -120,10 +120,54 @@
             <span>{{ alert.sent_at }}</span>
           </div>
         </div>
+        <button onclick="openReply({{ alert.id }}, '{{ alert.family_name|e }}', '{{ alert.subject|e }}')"
+          class="px-4 py-2 rounded-xl text-xs font-bold bg-navy/5 text-navy border border-navy/10 hover:bg-navy hover:text-white transition-all flex-shrink-0 self-center">
+          Reply
+        </button>
       </div>
       {% endfor %}
     </div>
   </div>
+
+  <!-- Reply Modal -->
+  <div id="replyModal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden">
+      <form method="POST" action="" id="replyForm" class="space-y-0">
+        <div class="p-8 space-y-6">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center text-xl">
+              <span class="material-symbols-outlined text-accent">reply</span>
+            </div>
+            <div>
+              <h3 class="text-xl font-black text-navy font-serif">Reply to Family</h3>
+              <p class="text-xs text-obsidian/40" id="replyContext"></p>
+            </div>
+          </div>
+          <div>
+            <label class="text-[10px] font-black text-accent uppercase tracking-[0.2em] pl-1">Your Reply</label>
+            <textarea name="content" rows="4" required
+              class="form-input mt-2" placeholder="Type your reply..."></textarea>
+          </div>
+        </div>
+        <div class="p-8 bg-mist flex gap-4">
+          <button type="button" onclick="closeReply()"
+            class="btn-outline flex-1 justify-center !h-14">Cancel</button>
+          <button type="submit" class="btn-primary flex-1 justify-center !h-14 shadow-xl">Send Reply</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openReply(id, familyName, subject) {
+      document.getElementById('replyForm').action = "/coach/reply-family/" + id;
+      document.getElementById('replyContext').textContent = "To: " + familyName + " — Re: " + subject;
+      document.getElementById('replyModal').classList.remove('hidden');
+    }
+    function closeReply() {
+      document.getElementById('replyModal').classList.add('hidden');
+    }
+  </script>
   {% endif %}
 
   <!-- Recent Alerts Send -->

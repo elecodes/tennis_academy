@@ -1556,6 +1556,62 @@ def admin_delete_message(message_id):
     return redirect(url_for("admin_message_auditor"))
 
 
+# ==================== COACH REPLY TO FAMILY ====================
+
+
+@app.route("/coach/reply-family/<int:quick_msg_id>", methods=["POST"])
+@coach_required
+def coach_reply_family(quick_msg_id):
+    content = request.form.get("content", "").strip()
+    if not content:
+        flash("Reply cannot be empty.", "danger")
+        return redirect(url_for("dashboard"))
+
+    conn = get_db()
+    coach_id = session["user_id"]
+    coach_name = session["full_name"]
+    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Get the original quick message
+    qm = conn.execute(
+        "SELECT * FROM family_quick_messages WHERE id = ? AND deleted_at IS NULL",
+        (quick_msg_id,),
+    ).fetchone()
+    if not qm:
+        flash("Message not found.", "danger")
+        conn.close()
+        return redirect(url_for("dashboard"))
+
+    family_user_id = qm["user_id"]
+    kid_name = qm["kid_name"]
+    subject = f"Reply re: {qm['subject']}"
+
+    # Create message in main messages table
+    conn.execute(
+        """INSERT INTO messages (sender_id, group_id, message_type, subject, content, sent_at, is_general)
+           VALUES (?, NULL, 'announcement', ?, ?, ?, 0)""",
+        (coach_id, subject, content, now),
+    )
+    msg_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+    # Add message_recipients for the family user
+    conn.execute(
+        "INSERT INTO message_recipients (message_id, user_id, sent_at) VALUES (?, ?, ?)",
+        (msg_id, family_user_id, now),
+    )
+
+    # Mark the original quick message as read
+    conn.execute(
+        "UPDATE family_quick_messages SET is_read = 1 WHERE id = ?",
+        (quick_msg_id,),
+    )
+
+    conn.commit()
+    conn.close()
+    flash("Reply sent to family.", "success")
+    return redirect(url_for("dashboard"))
+
+
 # ==================== COACH ROUTES ====================
 
 
