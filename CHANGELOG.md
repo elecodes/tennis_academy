@@ -1,6 +1,29 @@
 # Changelog
 
-## [Unreleased]
+## [1.24.0] - 2026-07-03
+
+### Added
+- **Admin Supabase broadcast route**: `GET/POST /admin/send-message-supabase` — admin selects a Supabase lesson, sends email to enrolled families, stores message + `message_recipients` in Turso so families see it in inbox
+- **Unread message tracking**: `is_read` column on `message_recipients` (ALTER TABLE migration). Family dashboard counts only unread messages via `LEFT JOIN + mr.is_read = 0`. "Mark All Read" button on messages page (`POST /family/mark-all-read`).
+- **Read/unread visual styling**: Unread messages show accent left border, red pulse dot, bold subject. Read messages show muted opacity/color.
+- **Unread Alerts card**: Clickable link to `/family/messages` when `stats.messages|length > 0`; static card showing "0" otherwise.
+- **Family timetable from Supabase**: `fetch_timetable()` now accepts `user_email` parameter. For `role="family"`, filters lessons by `students.parent_email`. Family dashboard "Weekly Timetable" link now points to `/timetable-supabase`.
+- **Family enrollments from Supabase**: New `fetch_family_enrollments(parent_email)` in `supabase_db.py` — returns enrollment dicts (kid_name, lesson title, coach, schedule) for students matching `parent_email`. Appended to Turso enrollments on family dashboard.
+- **Nav bar "Broadcast (Supabase)" link**: Admin dropdown shows new route alongside existing Broadcast Alert.
+- **Family enrollments page**: Replaced `sports_tennis` icon with SF TENNIS KIDS Club text badge.
+
+### Changed
+- **Coach dashboard**: "Send Message" link now points to `/coach/send-message-supabase` instead of Turso route.
+- **Coach message type labels**: Aligned with admin form — `"Weather"` → `"Rain Cancellation"`, `"Delay"` → `"Coach Delay"`, `"Schedule"` → `"Schedule Change"`.
+- **Coach Supabase messaging**: Now stores sent messages in Turso (`messages` + `message_recipients`) so families see them in their inbox (previously email-only).
+- **Timetable week navigation**: Conditional URL (`timetable_supabase` vs Turso `get_timetable_page`) based on `supabase` template flag.
+- **Family dashboard messages query**: Now joins `message_recipients` with `is_read = 0` filter for accurate unread count.
+
+### Fixed
+- **Family timetable**: Now correctly filters to only enrolled lessons (previous behavior was always showing "no sessions" — `role="family"` was skipped in `fetch_timetable` with a TODO comment).
+- **Family unread count**: Previous query didn't account for `message_recipients`, showing all messages as unread even after viewing.
+
+## [1.23.0] - 2026-06-20
 
 ### Added
 - **Admin dashboard Supabase lessons grid**: 9 cards showing title, type badge, coach, and time from Supabase `lessons` table (filters to current season)
@@ -26,14 +49,6 @@
 - **Render build**: Python 3.14 had no wheel for psycopg2-binary → switched to pg8000 → then to REST API entirely
 - **Supabase IPv6-only**: Database only had AAAA record, no IPv4. REST API works over HTTPS (IPv4-compatible)
 - **`@cache_response` decorator**: `render_template()` returns a string, not a Response object — wrapped with `make_response()` to avoid `AttributeError: 'str' object has no attribute 'headers'`
-
-### Changed
-- **Stack**: Removed `sqlalchemy`, `psycopg2-binary`, `pg8000` from requirements — Supabase accessed via `requests` + REST API (no native PostgreSQL driver needed)
-- **genkit** removed from root `requirements.txt` — caused Render build hang (google-cloud-bigquery metadata incompatible with pip≥24.1). Magic Draft gracefully falls back.
-
-### Fixed
-- **Render build**: Python 3.14 had no wheel for psycopg2-binary → switched to pg8000 → then to REST API entirely
-- **Supabase IPv6-only**: Database only had AAAA record, no IPv4. REST API works over HTTPS (IPv4-compatible)
 
 ## [1.20.0] - 2026-06-09
 
@@ -74,5 +89,5 @@
 
 ---
 
-**Last Updated**: 2026-07-02
-**Version**: 1.22.0
+**Last Updated**: 2026-07-03
+**Version**: 1.24.0

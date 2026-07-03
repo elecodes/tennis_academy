@@ -715,14 +715,14 @@ sqlite3 academy.db ".mode csv" ".headers on" \
 
 ```
 As COACH:
-1. Dashboard → Send Message
-2. Message Type: announcement (or rain_cancellation, coach_delay)
-3. Group: Select your group (or specific schedule slot)
+1. Dashboard → Send Message (now points to Supabase route)
+2. Message Type: announcement (or Rain Cancellation, Coach Delay, Schedule Change)
+3. Lesson: Select your Supabase lesson
 4. Subject: "Session Update"
-5. Content: Your message
+5. Content: Your message (or use Magic Draft)
 6. Send
 
-✅ All families get email immediately
+✅ All enrolled families get email + message appears in their Turso inbox
 ```
 
 **Schedule-Specific Messaging (Admin)**: Admins can target messages to specific time slots like "Beginners — Mon 5:15pm" instead of the entire group. Select the desired slot from the dropdown when sending.
@@ -825,6 +825,42 @@ This ensures coaches can manage their groups without accessing family personal d
 
 ---
 
+## Family Dashboard Features (v1.24.0+)
+
+### Unread Message Tracking
+
+Messages now track read status per recipient:
+
+- **Schema**: `message_recipients.is_read` column (0 = unread, 1 = read)
+- **Dashboard unread count**: Only counts messages where `mr.is_read = 0`
+- **Messages page**: Unread messages show accent border + red pulse dot; read messages show muted opacity
+- **Mark All Read**: "Mark All Read" button on `/family/messages` — POST to `/family/mark-all-read`
+- **Unread Alerts card**: Clickable link when unread > 0, static when 0
+
+### Admin Supabase Broadcast
+
+Admin can send messages via Supabase lessons:
+
+1. Login as **ADMIN**
+2. Nav → Broadcast (Supabase)
+3. Select a Supabase lesson, message type, subject, and content
+4. Click Send
+5. Emails sent to enrolled families AND message stored in Turso with `message_recipients` so families see it in inbox
+
+### Family Timetable from Supabase
+
+- Family dashboard "Weekly Timetable" link now points to `/timetable-supabase`
+- Supabase timetable filters lessons by `students.parent_email` matching the logged-in family
+- Week nav links conditionally use Supabase or Turso URLs based on the `supabase` flag
+
+### Family Enrollments from Supabase
+
+- Family dashboard shows enrollments from both Turso and Supabase
+- `fetch_family_enrollments(parent_email)` returns Supabase students' lessons for the family
+- If no Turso enrollments exist, Supabase-only content is shown
+
+---
+
 ## Supabase Integration (v1.22.0+)
 
 The app uses Supabase (PostgreSQL) as a secondary read layer alongside Turso, synced from Google Sheets via GAS v7.
@@ -838,7 +874,10 @@ The app uses Supabase (PostgreSQL) as a secondary read layer alongside Turso, sy
 | Users | `GET /admin/users-supabase` | Unified view of Supabase coaches + students |
 | Coach Groups | `GET /coach/my-groups-supabase` | Coach's lessons with student rosters |
 | Timetable | `GET /timetable-supabase` | Weekly schedule from Supabase with RBAC |
-| Send Message | `GET/POST /coach/send-message-supabase` | Email parents via Supabase (Magic Draft supported) |
+| Send Message (Coach) | `GET/POST /coach/send-message-supabase` | Email parents via Supabase (Magic Draft supported), stored in Turso |
+| Send Message (Admin) | `GET/POST /admin/send-message-supabase` | Admin broadcasts to Supabase lesson families, stored in Turso |
+| Family Enrollments | `fetch_family_enrollments(email)` | Appends Supabase enrollments to family dashboard |
+| Mark All Read | `POST /family/mark-all-read` | Marks all unread messages as read for family user |
 
 ### Dashboard Integration
 
@@ -879,5 +918,5 @@ Supabase free tier pauses projects after 7 days of inactivity. GitHub Actions cr
 - `SUPABASE_URL` — `https://ypbwlpeighgpafocauzp.supabase.co/rest/v1`
 - `SUPABASE_ANON_KEY` — your Supabase anon/public key
 
-**Last Updated**: 2026-07-02
-**Version**: 1.23.0
+**Last Updated**: 2026-07-03
+**Version**: 1.24.0

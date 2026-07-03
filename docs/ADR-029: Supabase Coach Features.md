@@ -1,7 +1,7 @@
 # ADR-029: Supabase Coach Features
 
 ## Status
-Accepted (Updated 2026-07-02)
+Accepted (Updated 2026-07-03)
 
 ## Context
 The app has data in two places:
@@ -87,3 +87,65 @@ The admin dashboard now displays all Supabase lessons as a visual card grid:
 |-----------|-------------|-------|
 | Admin (`/dashboard`) | Turso stats + Supabase `fetch_lessons()`, `fetch_coaches()`, `fetch_students()` | 4 stat cards + Supabase lessons card grid |
 | Coach (`/dashboard`) | Turso `my_groups` + Supabase `fetch_coach_lessons()` | Supabase lessons replace Turso groups if present; fallback to Turso otherwise |
+| Family (`/dashboard`) | Turso `group_members` + Supabase `fetch_family_enrollments()` | Supabase enrollments appended to Turso enrollments; family timetable link points to Supabase |
+
+---
+
+## Extension: Family Dashboard + Unread Tracking (2026-07-03)
+
+### 8. Admin Supabase Broadcast Route
+`GET/POST /admin/send-message-supabase` — admin selects a Supabase lesson, writes a message, emails are sent to enrolled families, and the message is **also stored in Turso** with `message_recipients` entries so families see it in their inbox. This addresses the previous negative consequence where Supabase messages weren't visible in the family dashboard.
+
+### 9. Coach Message Label Alignment
+The coach Supabase message form's message type dropdown labels were aligned with the admin form:
+- `"Weather"` → `"Rain Cancellation"`
+- `"Delay"` → `"Coach Delay"`
+- `"Schedule"` → `"Schedule Change"`
+
+### 10. Coach Dashboard Supabase-First Link
+The coach dashboard "Send Message" button now points to `/coach/send-message-supabase` instead of the Turso route.
+
+### 11. Family Timetable from Supabase
+`fetch_timetable()` now accepts a third `user_email` parameter. For `role="family"`, it filters lessons by `students.parent_email` matching the session email. The family dashboard "Weekly Timetable" link points to `/timetable-supabase`. The timetable week navigation uses conditional URLs (Supabase vs Turso) based on the `supabase` template flag.
+
+### 12. Family Enrollments from Supabase
+New `fetch_family_enrollments(parent_email)` function in `supabase_db.py` returns enrollment dicts (kid_name, lesson title, coach, schedule) for students whose `parent_email` matches. The family dashboard appends these to Turso enrollments — if no Turso enrollments exist, Supabase-only content is shown.
+
+### 13. Unread Message Tracking
+- **Schema**: `message_recipients.is_read` column (INTEGER DEFAULT 0) with ALTER TABLE migration (try/except for idempotency)
+- **Unread count**: Family dashboard query uses `LEFT JOIN message_recipients` + `mr.is_read = 0` to count only unread messages
+- **Family messages page**: Shows `is_read` status per message with visual styling:
+  - **Unread**: accent left border, shadow, ring, red pulse dot next to type badge, bold subject
+  - **Read**: muted left border, 70% opacity, no pulse dot, muted subject
+- **Mark All Read**: `POST /family/mark-all-read` updates all `is_read = 1` for the logged-in family user
+- **Unread Alerts card**: Clickable link to `/family/messages` when count > 0, static card with "0" otherwise
+
+### Consequences
+
+#### Positive
+- Families see Supabase-based messages in their Turso inbox (cross-database bridge)
+- Unread tracking gives families clear visual distinction between new and read messages
+- Family timetable now works correctly (only shows enrolled lessons)
+- One-click "Mark All Read" improves UX for families with many messages
+
+#### Negative
+- `fetch_timetable` family filtering requires fetching all students/lessons first (no server-side filtering via Supabase REST — O(n) over full dataset)
+- Message storage in Turso from Supabase routes is best-effort (wrapped in try/except — if Turso write fails, email is still sent)
+
+#### Neutral
+- `is_read` migration uses ALTER TABLE with try/except — safe for both fresh installs and upgrades
+- Message storage pattern (INSERT into `messages` + `message_recipients`) is identical for admin and coach Supabase routes
+
+### Key Functions Added
+
+| Function | Purpose |
+|----------|---------|
+| `fetch_family_enrollments(parent_email)` | Enrollments from Supabase filtered by `students.parent_email` |
+| `fetch_timetable(role, user_name, user_email)` | Now supports `role="family"` with lesson filtering by parent_email |
+
+### Routes Added
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/admin/send-message-supabase` | GET, POST | Admin broadcasts to Supabase lesson families, stores in Turso |
+| `/family/mark-all-read` | POST | Marks all unread messages as read for the logged-in family |

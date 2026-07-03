@@ -35,7 +35,9 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - ✅ General announcements (admin can message all families)
 - ✅ Weekly timetable view with RBAC
 - ✅ **Turso Cloud Database** (Edge SQLite for real-time sync)
-- ✅ **Supabase Integration** (PostgreSQL read layer for students, enrollments, users, coach dashboard, admin dashboard, timetable, and messaging)
+- ✅ **Supabase Integration** (PostgreSQL read layer for students, enrollments, users, coach dashboard, admin dashboard, timetable, family enrollments, and messaging)
+- ✅ **Unread message tracking** (`is_read` column + unread count on dashboard + visual read/unread styling)
+- ✅ **Mark All Read** — one-click bulk marking on family messages page
 - ✅ **Google Spreadsheet Integration** (Sync schedules automatically)
 - ✅ **Auto-Sync** (Sheets edits sync to Turso in seconds via installable GAS triggers)
 - ✅ Simple web interface for all roles
@@ -475,10 +477,13 @@ MIT License - Free to use and modify!
 ✅ Auto-Sync:       Google Sheets → Turso via installable GAS triggers + webhook (v1.20.0)
 ✅ Supabase Layer:  Coach groups, timetable, messaging, coach dashboard, admin dashboard via REST API (v1.23.0)
 ⏸️ Admin CRUD:     Groups/users read-only — manage via Google Sheets (v1.20.0)
+✅ Family Dashboard: Supabase enrollments + Supabase timetable (v1.24.0)
+✅ Unread Tracking:  is_read per recipient, read/unread styling, Mark All Read, clickable alert card (v1.24.0)
+✅ Admin Broadcast:  Supabase lesson-based messaging with Turso storage (v1.24.0)
 ```
 
-**Last Updated**: 2026-07-02
-**Version**: 1.23.0
+**Last Updated**: 2026-07-03
+**Version**: 1.24.0
 **Status**: Production Ready ✅
 
 ---
