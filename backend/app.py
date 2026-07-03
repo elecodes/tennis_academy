@@ -596,6 +596,7 @@ def dashboard():
     role = session["role"]
     sb_lessons_list = []
     turso_enrollments = []
+    quick_enrollments = []
 
     if role == "admin":
         # Admin sees everything
