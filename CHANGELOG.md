@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Added
+- **Admin dashboard Supabase lessons grid**: 9 cards showing title, type badge, coach, and time from Supabase `lessons` table (filters to current season)
+- **Coach dashboard Supabase-first logic**: Coaches with Supabase lessons see ONLY Supabase groups (replaces Turso groups). Coaches without Supabase data fall back to Turso.
 - **Supabase REST API read layer**: New `supabase_db.py` client using Supabase REST API (PostgREST) via HTTPS
 - **Student list from Supabase**: `GET /admin/students` page with table of students from Supabase
 - **Supabase enrollment list**: `GET /admin/enrollments-supabase` joining students + student_lessons + lessons + seasons + coaches, with season name mapping

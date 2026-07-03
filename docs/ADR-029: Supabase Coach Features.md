@@ -1,7 +1,7 @@
 # ADR-029: Supabase Coach Features
 
 ## Status
-Accepted
+Accepted (Updated 2026-07-02)
 
 ## Context
 The app has data in two places:
@@ -9,6 +9,8 @@ The app has data in two places:
 2. **Supabase (secondary)**: `lessons`, `students`, `student_lessons`, `coaches`, `seasons` — synced from Google Sheets via GAS v7.
 
 Coaches needed to see their assigned lessons and communicate with enrolled families using Supabase data, which has richer lesson metadata (titles, types, structured day/time) compared to Turso's generic group names.
+
+Later, it was decided that **coaches with Supabase data should see ONLY their Supabase lessons** (replacing Turso groups entirely) and the **admin dashboard should display Supabase lessons directly** rather than just a count.
 
 ## Decision
 
@@ -35,6 +37,20 @@ Turso auth users and Supabase coaches share names but not IDs. Coach routes matc
 ### 5. Email-Only Messaging (No Storage)
 The Supabase messaging route sends emails directly to `students.parent_email` addresses without storing messages in Turso's `messages` table. This simplifies the flow and avoids cross-database message tracking. Future iterations can add logging if needed.
 
+### 6. Coach Dashboard: Supabase-First Replacement
+The coach dashboard (`/dashboard`) now replaces Turso groups with Supabase groups when the coach has Supabase data:
+- **Has Supabase lessons?** → Show ONLY Supabase groups (filter out Turso `my_groups` from DB)
+- **No Supabase lessons?** → Fall back to Turso groups as before
+- This avoids duplicate cards and keeps the coach focused on the Supabase view which has richer data
+- Implemented with a single `if sb_groups: my_groups = sb_groups` assignment in the dashboard route
+
+### 7. Admin Dashboard: Supabase Lessons Grid
+The admin dashboard now displays all Supabase lessons as a visual card grid:
+- 3-column responsive grid (cards) showing title, lesson type badge, coach name, and time
+- Placed between the stats snapshot and the Club Command Center
+- Also shows a "9 total" badge in the section header
+- `sb_lessons` is fetched in the same `fetch_lessons()` call already used for the Supabase Sync stat card, then passed to the template
+
 ## Consequences
 
 ### Positive
@@ -42,6 +58,8 @@ The Supabase messaging route sends emails directly to `students.parent_email` ad
 - Clean separation: no cross-database joins or message sync
 - Existing Turso routes remain untouched and fully operational
 - Template reuse minimizes duplication
+- Coaches with Supabase data see a clean, deduplicated view (no Turso/Supabase mixup)
+- Admin can inspect all Supabase lessons directly from the dashboard without navigating to a separate page
 
 ### Negative
 - Supabase-only: features don't appear in Turso until GAS sync populates them
@@ -62,3 +80,10 @@ The Supabase messaging route sends emails directly to `students.parent_email` ad
 | `fetch_timetable(role, user_name)` | Dict `{groups: [...]}` compatible with `timetable.html` |
 | `fetch_coach_lessons(coach_name)` | Flat list of coach's lessons for message form |
 | `fetch_lesson_parents(lesson_id)` | Parent contacts from `student_lessons` → `students` |
+
+### Dashboard Integration Points
+
+| Dashboard | Data Source | Logic |
+|-----------|-------------|-------|
+| Admin (`/dashboard`) | Turso stats + Supabase `fetch_lessons()`, `fetch_coaches()`, `fetch_students()` | 4 stat cards + Supabase lessons card grid |
+| Coach (`/dashboard`) | Turso `my_groups` + Supabase `fetch_coach_lessons()` | Supabase lessons replace Turso groups if present; fallback to Turso otherwise |
