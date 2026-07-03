@@ -312,13 +312,14 @@ def fetch_lesson_parents(lesson_id):
     return parents
 
 
-def fetch_timetable(role, user_name=None):
+def fetch_timetable(role, user_name=None, user_email=None):
     """
     Fetch weekly timetable from Supabase, compatible with timetable.html.
 
     Args:
         role: 'admin', 'coach', or 'family'
         user_name: session full_name (for coach role filtering)
+        user_email: session email (for family role filtering by parent_email)
 
     Returns:
         dict {groups: [...]} matching timetable template structure, or None on error
@@ -342,6 +343,14 @@ def fetch_timetable(role, user_name=None):
     if role == "coach" and user_name:
         coach_ids = {c["id"] for c in coaches if c.get("name", "").lower() == user_name.lower()}
 
+    family_lesson_ids = set()
+    if role == "family" and user_email:
+        family_students = [s for s in students if s.get("parent_email", "").lower() == user_email.lower()]
+        family_student_ids = {s["id"] for s in family_students}
+        for sl in (student_lessons or []):
+            if sl["student_id"] in family_student_ids:
+                family_lesson_ids.add(sl["lesson_id"])
+
     DAY_MAP = {
         "monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
         "friday": 4, "saturday": 5, "sunday": 6,
@@ -352,8 +361,8 @@ def fetch_timetable(role, user_name=None):
     for l in lessons:
         if role == "coach" and l["coach_id"] not in coach_ids:
             continue
-        if role == "family":
-            continue  # TODO: family filtering by parent_email
+        if role == "family" and l["id"] not in family_lesson_ids:
+            continue
 
         coach = coach_map.get(l["coach_id"], {})
         coach_name = coach.get("name", "Unknown")

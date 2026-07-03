@@ -1689,6 +1689,7 @@ def timetable_supabase():
 
     user_role = session.get("role", "family")
     user_name = session.get("full_name")
+    user_email = session.get("email")
 
     date_str = request.args.get("date")
     if date_str:
@@ -1703,7 +1704,7 @@ def timetable_supabase():
     prev_week = (week_start - timedelta(days=7)).strftime("%Y-%m-%d")
     next_week = (week_start + timedelta(days=7)).strftime("%Y-%m-%d")
 
-    result = fetch_timetable(user_role, user_name)
+    result = fetch_timetable(user_role, user_name, user_email)
     if result is None:
         flash("Supabase no está configurado.", "danger")
         return redirect(url_for("dashboard"))
