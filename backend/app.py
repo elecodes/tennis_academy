@@ -559,6 +559,12 @@ def dashboard():
 
     if role == "admin":
         # Admin sees everything
+        from supabase_db import fetch_lessons, fetch_coaches, fetch_students
+
+        sb_lessons = fetch_lessons()
+        sb_coaches = fetch_coaches()
+        sb_students = fetch_students()
+
         stats = {
             "total_users": conn.execute(
                 "SELECT COUNT(*) FROM users WHERE role != 'admin'"
@@ -567,6 +573,9 @@ def dashboard():
             "total_messages": conn.execute("SELECT COUNT(*) FROM messages").fetchone()[
                 0
             ],
+            "sb_total_lessons": len(sb_lessons) if sb_lessons else 0,
+            "sb_total_coaches": len(sb_coaches) if sb_coaches else 0,
+            "sb_total_students": len(sb_students) if sb_students else 0,
             "recent_messages": conn.execute(
                 """
                 SELECT m.*, u.full_name as sender_name, g.name as group_name
@@ -577,20 +586,62 @@ def dashboard():
             """
             ).fetchall(),
         }
+        sb_lessons_list = sb_lessons if sb_lessons else []
         template = "admin_dashboard.html"
 
     elif role == "coach":
         # Coach sees their groups and messages
-        my_groups = conn.execute(
-            """
-            SELECT g.*, COUNT(DISTINCT gm.family_id) as member_count
-            FROM groups g
-            LEFT JOIN group_members gm ON g.id = gm.group_id
-            WHERE g.coach_id = ?
-            GROUP BY g.id
-        """,
-            (user_id,),
-        ).fetchall()
+        my_groups = list(
+            conn.execute(
+                """
+                SELECT g.*, COUNT(DISTINCT gm.family_id) as member_count
+                FROM groups g
+                LEFT JOIN group_members gm ON g.id = gm.group_id
+                WHERE g.coach_id = ?
+                GROUP BY g.id
+            """,
+                (user_id,),
+            ).fetchall()
+        )
+
+        # Append Supabase lessons to my_groups
+        from supabase_db import fetch_coach_lessons, fetch_student_lessons
+
+        coach_name = session.get("full_name")
+        if coach_name:
+            sb_lessons = fetch_coach_lessons(coach_name)
+            if sb_lessons:
+                sl_all = fetch_student_lessons()
+                sl_by_lesson = {}
+                for sl in (sl_all or []):
+                    sl_by_lesson.setdefault(sl["lesson_id"], []).append(sl)
+
+                sb_groups = []
+                DAY_ABBR = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+                for l in sb_lessons:
+                    time_24 = l["time"]
+                    hour = int(time_24[:2])
+                    minute = time_24[3:]
+                    ampm = "am" if hour < 12 else "pm"
+                    hour_12 = hour if hour <= 12 else hour - 12
+                    if hour_12 == 0:
+                        hour_12 = 12
+                    time_formatted = f"{hour_12}:{minute}{ampm}"
+                    schedule_text = f"{DAY_ABBR[l['day']]} {time_formatted}"
+                    student_count = len(sl_by_lesson.get(l["id"], []))
+
+                    sb_groups.append({
+                        "id": f"sb_{l['id']}",
+                        "name": l["title"],
+                        "schedule": schedule_text,
+                        "member_count": student_count,
+                        "description": l.get("type", ""),
+                        "_supabase": True,
+                    })
+
+                # If coach has Supabase data, use ONLY Supabase (no Turso groups)
+                if sb_groups:
+                    my_groups = sb_groups
 
         recent_messages = conn.execute(
             """
@@ -618,6 +669,9 @@ def dashboard():
         """,
             (user_id,),
         ).fetchone()[0]
+        total_sessions += sum(
+            1 for g in my_groups if g.get("_supabase")
+        )
 
         stats = {
             "my_groups": my_groups,
@@ -659,7 +713,7 @@ def dashboard():
         template = "family_dashboard.html"
 
     conn.close()
-    return render_template(template, stats=stats)
+    return render_template(template, stats=stats, sb_lessons=sb_lessons_list)
 
 
 # ==================== ADMIN ROUTES ====================
@@ -1404,6 +1458,18 @@ def coach_my_groups():
     group_schedules = {}
     group_members = {}
 
+    def _clean_kid_name(raw):
+        import re
+        from datetime import datetime
+        if not raw or not re.match(r'\w{3} \w{3} \d{2} \d{4}', raw):
+            return raw
+        try:
+            parts = raw.split()
+            dt = datetime.strptime(f'{parts[0]} {parts[1]} {parts[2]} {parts[3]}', '%a %b %d %Y')
+            return dt.strftime('%a %b %-d')
+        except (ValueError, IndexError):
+            return raw
+
     DAYS = [
         "Monday",
         "Tuesday",
@@ -1448,7 +1514,10 @@ def coach_my_groups():
                 (group["id"], schedule["id"]),
             ).fetchall()
             if members:
-                members_by_schedule[schedule["id"]] = members
+                cleaned = [dict(m) for m in members]
+                for m in cleaned:
+                    m["kid_name"] = _clean_kid_name(m["kid_name"])
+                members_by_schedule[schedule["id"]] = cleaned
 
         # Also get members without a specific schedule
         unscheduled = conn.execute(
@@ -1461,7 +1530,10 @@ def coach_my_groups():
             (group["id"],),
         ).fetchall()
         if unscheduled:
-            members_by_schedule[None] = unscheduled
+            cleaned = [dict(m) for m in unscheduled]
+            for m in cleaned:
+                m["kid_name"] = _clean_kid_name(m["kid_name"])
+            members_by_schedule[None] = cleaned
 
         group_members[group["id"]] = members_by_schedule
 
@@ -1472,6 +1544,154 @@ def coach_my_groups():
         group_members=group_members,
         group_schedules=group_schedules,
     )
+
+
+@app.route("/coach/my-groups-supabase")
+@login_required
+@coach_required
+def coach_my_groups_supabase():
+    from supabase_db import fetch_coach_groups
+
+    conn = get_db()
+    coach = conn.execute("SELECT full_name FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+    conn.close()
+
+    if not coach:
+        flash("Coach not found.", "danger")
+        return redirect(url_for("dashboard"))
+
+    groups = fetch_coach_groups(coach["full_name"])
+    if groups is None:
+        flash("Supabase not configured.", "danger")
+        return redirect(url_for("dashboard"))
+
+    return render_template("coach/my_groups_supabase.html", groups=groups, coach_name=coach["full_name"])
+
+
+@app.route("/timetable-supabase")
+@login_required
+def timetable_supabase():
+    from datetime import timedelta
+    from supabase_db import fetch_timetable
+
+    user_role = session.get("role", "family")
+    user_name = session.get("full_name")
+
+    date_str = request.args.get("date")
+    if date_str:
+        try:
+            current_date = datetime.fromisoformat(date_str).date()
+        except ValueError:
+            current_date = datetime.now().date()
+    else:
+        current_date = datetime.now().date()
+
+    week_start = current_date - timedelta(days=current_date.weekday())
+    prev_week = (week_start - timedelta(days=7)).strftime("%Y-%m-%d")
+    next_week = (week_start + timedelta(days=7)).strftime("%Y-%m-%d")
+
+    result = fetch_timetable(user_role, user_name)
+    if result is None:
+        flash("Supabase no está configurado.", "danger")
+        return redirect(url_for("dashboard"))
+
+    day_filter = request.args.get("day")
+    if day_filter is not None:
+        try:
+            day_filter = int(day_filter)
+        except ValueError:
+            day_filter = None
+
+    return render_template(
+        "timetable.html",
+        groups=result["groups"],
+        week_start=week_start.strftime("%A, %B %d, %Y"),
+        week_end=(week_start + timedelta(days=6)).strftime("%A, %B %d, %Y"),
+        prev_week=prev_week,
+        next_week=next_week,
+        day_filter=day_filter,
+        supabase=True,
+    )
+
+
+@app.route("/coach/send-message-supabase", methods=["GET", "POST"])
+@coach_required
+def coach_send_message_supabase():
+    from supabase_db import fetch_coach_lessons, fetch_lesson_parents
+
+    conn = get_db()
+    coach_name = conn.execute(
+        "SELECT full_name FROM users WHERE id = ?", (session["user_id"],)
+    ).fetchone()
+    conn.close()
+
+    if not coach_name:
+        flash("Coach not found.", "danger")
+        return redirect(url_for("dashboard"))
+
+    coach_name = coach_name["full_name"]
+    lessons = fetch_coach_lessons(coach_name)
+    if lessons is None:
+        flash("Supabase not configured.", "danger")
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+        lesson_id = request.form.get("lesson_id")
+        message_type = request.form.get("message_type")
+        subject = request.form.get("subject", "").strip()
+        content = request.form.get("content", "").strip()
+
+        if not lesson_id or not message_type or not subject or not content:
+            flash("All fields are required.", "danger")
+            return render_template("coach/send_message_supabase.html", lessons=lessons)
+
+        lesson = next((l for l in lessons if str(l["id"]) == lesson_id), None)
+        if not lesson:
+            flash("Invalid lesson selected.", "danger")
+            return redirect(url_for("coach_send_message_supabase"))
+
+        lesson_id = int(lesson_id)
+        parents = fetch_lesson_parents(lesson_id)
+        if parents is None:
+            flash("Could not fetch enrolled families from Supabase.", "danger")
+            return redirect(url_for("coach_send_message_supabase"))
+
+        if not parents:
+            flash("No families enrolled in this lesson.", "warning")
+            return redirect(url_for("coach_send_message_supabase"))
+
+        email_body = f"""
+SF TENNIS KIDS Club Notification — Coach {session["full_name"]}
+
+Type: {message_type.replace("_", " ").title()}
+Lesson: {lesson["title"]}
+Subject: {subject}
+
+{content}
+
+---
+This message was sent from the SF TENNIS KIDS Club Communication System.
+"""
+
+        sent_count = 0
+        failed = []
+        for p in parents:
+            if send_email(p["email"], f"[SF TENNIS KIDS Club] {subject}", email_body):
+                sent_count += 1
+            else:
+                failed.append(p["email"])
+
+        if sent_count > 0:
+            msg = f"Message sent to {sent_count} families."
+            if failed:
+                msg += f" Failed: {', '.join(failed)}"
+            flash(msg, "success" if not failed else "warning")
+        else:
+            flash("Failed to send to any families.", "danger")
+
+        return redirect(url_for("dashboard"))
+
+    return render_template("coach/send_message_supabase.html", lessons=lessons)
 
 
 # ==================== FAMILY ROUTES ====================

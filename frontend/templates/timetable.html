@@ -149,7 +149,7 @@
                   class="text-[8px] md:text-[9px] font-bold text-obsidian/40 group-hover/entry:text-white/60 uppercase tracking-tighter transition-colors">
                   {{ sched.court }}</div>
 
-                {% if session.role == 'admin' %}
+                {% if session.role == 'admin' and not supabase %}
                 <div
                   class="absolute top-1 right-1 md:top-2 md:right-2 opacity-0 group-hover/entry:opacity-100 transition-opacity flex gap-1">
                   <button type="button"
@@ -181,7 +181,7 @@
           {% endfor %}
         </div>
         
-        {% if session.role == 'admin' %}
+        {% if session.role == 'admin' and not supabase %}
         <div class="mt-4 pt-4 border-t border-navy/5 text-center">
           <button type="button" class="text-xs font-bold text-navy/50 hover:text-navy transition-colors"
             onclick="openModal('newSessionModal'); document.getElementById('new_session_group_id').value = {{ group.id }}">
@@ -205,6 +205,7 @@
   </div>
 </div>
 
+{% if not supabase %}
 <!-- Edit Session Modal (only) -->
 <div class="modal-backdrop" id="editSessionModal">
   <div class="modal-dialog max-w-xl w-full">
@@ -263,6 +264,7 @@
     </div>
   </div>
 </div>
+{% endif %}
 
 <script>
   function setDayFilter(dayIndex) {
@@ -290,6 +292,7 @@
     }
   }
 
+{% if not supabase %}
   document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.edit-session-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -308,5 +311,6 @@
     document.getElementById('edit_court').value = court;
     openModal('editSessionModal');
   }
+{% endif %}
 </script>
 {% endblock %}

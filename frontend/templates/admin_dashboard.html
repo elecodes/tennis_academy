@@ -40,7 +40,50 @@
         <div class="text-4xl font-black text-navy">{{ stats.total_messages }}</div>
       </div>
     </div>
+
+    <div class="card-premium flex items-center gap-6 group">
+      <div
+        class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-navy group-hover:text-white transition-all duration-500 shadow-sm">
+        <span class="material-symbols-outlined text-3xl">cloud</span>
+      </div>
+      <div>
+        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">Supabase Sync</div>
+        <div class="text-4xl font-black text-navy">{{ stats.sb_total_lessons }}</div>
+        <div class="text-xs text-obsidian/40 font-bold mt-1">
+          {{ stats.sb_total_coaches }} coaches · {{ stats.sb_total_students }} students
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- Supabase Lessons -->
+  {% if sb_lessons %}
+  <div class="mb-20">
+    <div class="flex items-center gap-4 mb-10">
+      <span class="w-12 h-1 bg-accent rounded-full"></span>
+      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Supabase Lessons</h2>
+      <span class="px-4 py-1.5 bg-accent/10 rounded-full text-[10px] font-black text-accent uppercase tracking-widest ml-auto">{{ sb_lessons|length }} total</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for l in sb_lessons %}
+      <div class="card-premium p-6 border border-navy/5 hover:border-accent/30 transition-all duration-500">
+        <h4 class="font-black text-navy text-lg leading-tight mb-1">{{ l.title }}</h4>
+        <span class="inline-block px-2.5 py-0.5 bg-accent/10 rounded-full text-[10px] font-black text-accent uppercase tracking-widest mb-4">{{ l.lesson_type or l.type or '—' }}</span>
+        <div class="space-y-1.5 text-sm text-obsidian/70">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-navy/30">person</span>
+            <span class="font-semibold">{{ l.coach_name }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-navy/30">calendar_today</span>
+            <span>{{ l.time }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Quick Management -->
   <div class="mb-20">

@@ -799,11 +799,6 @@ For more details, see **[AGENTS.md](AGENTS.md)**.
 
 ---
 
-**Last Updated**: 2026-06-09
-**Version**: 1.20.0
-
----
-
 ## Coach Dashboard (v1.15.0+)
 Simplified coach experience - no family email exposure:
 
@@ -827,3 +822,62 @@ Simplified coach experience - no family email exposure:
 - Normalizes time formats to prevent duplicates
 
 This ensures coaches can manage their groups without accessing family personal data.
+
+---
+
+## Supabase Integration (v1.22.0+)
+
+The app uses Supabase (PostgreSQL) as a secondary read layer alongside Turso, synced from Google Sheets via GAS v7.
+
+### Available Supabase Features
+
+| Feature | Route | Description |
+|---------|-------|-------------|
+| Students | `GET /admin/students` | Student list from Supabase |
+| Enrollments | `GET /admin/enrollments-supabase` | Enrollments joining students + lessons + seasons + coaches |
+| Users | `GET /admin/users-supabase` | Unified view of Supabase coaches + students |
+| Coach Groups | `GET /coach/my-groups-supabase` | Coach's lessons with student rosters |
+| Timetable | `GET /timetable-supabase` | Weekly schedule from Supabase with RBAC |
+| Send Message | `GET/POST /coach/send-message-supabase` | Email parents via Supabase (Magic Draft supported) |
+
+### Dashboard Integration
+
+**Admin Dashboard** shows:
+- **Supabase Sync stat card**: lesson/coach/student counts alongside Turso stats
+- **Supabase Lessons grid**: 9 cards showing title, type badge, coach, and time (between stats and Club Command Center)
+
+**Coach Dashboard** (Supabase-first logic):
+- Coaches with Supabase lessons see ONLY Supabase groups (Turso groups hidden)
+- Coaches without Supabase data fall back to Turso groups
+- This avoids duplicate cards and keeps the coach focused on the richer Supabase data
+
+### Supabase URLs
+
+- **Supabase Project**: `ypbwlpeighgpafocauzp.supabase.co`
+- **API Endpoint**: `https://ypbwlpeighgpafocauzp.supabase.co/rest/v1`
+- **Tables**: `coaches`, `lessons`, `students`, `student_lessons`, `seasons`
+
+### Key Functions in `supabase_db.py`
+
+| Function | Purpose |
+|----------|---------|
+| `fetch_lessons()` | All lessons ordered by day, time |
+| `fetch_coaches()` | All coaches |
+| `fetch_students()` | All students ordered by name |
+| `fetch_seasons()` | All seasons ordered by name |
+| `fetch_enrollments()` | Joined data: students + lessons + seasons + coaches |
+| `fetch_supabase_users()` | Aggregated coach + student list for unified users page |
+| `fetch_coach_groups(coach_name)` | Coach's lessons deduped by (day, time) with student rosters |
+| `fetch_timetable(role, user_name)` | Weekly schedule dict compatible with `timetable.html` |
+| `fetch_coach_lessons(coach_name)` | Flat list of coach's lessons for message form |
+| `fetch_lesson_parents(lesson_id)` | Parent contacts via student_lessons → students |
+
+### Keeping Supabase Alive
+
+Supabase free tier pauses projects after 7 days of inactivity. GitHub Actions cron job `.github/workflows/keep-supabase-alive.yml` pings the REST API every 3 days to prevent this. Requires these **GitHub secrets**:
+
+- `SUPABASE_URL` — `https://ypbwlpeighgpafocauzp.supabase.co/rest/v1`
+- `SUPABASE_ANON_KEY` — your Supabase anon/public key
+
+**Last Updated**: 2026-07-02
+**Version**: 1.23.0

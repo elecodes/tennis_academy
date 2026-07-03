@@ -3,13 +3,29 @@
 ## [Unreleased]
 
 ### Added
+- **Admin dashboard Supabase lessons grid**: 9 cards showing title, type badge, coach, and time from Supabase `lessons` table (filters to current season)
+- **Coach dashboard Supabase-first logic**: Coaches with Supabase lessons see ONLY Supabase groups (replaces Turso groups). Coaches without Supabase data fall back to Turso.
 - **Supabase REST API read layer**: New `supabase_db.py` client using Supabase REST API (PostgREST) via HTTPS
 - **Student list from Supabase**: `GET /admin/students` page with table of students from Supabase
 - **Supabase enrollment list**: `GET /admin/enrollments-supabase` joining students + student_lessons + lessons + seasons + coaches, with season name mapping
 - **Supabase unified users page**: `GET /admin/users-supabase` showing coaches + students from Supabase with type filter tabs (Coach/Student), source badges, deduplication by email
+- **Coach groups from Supabase**: `GET /coach/my-groups-supabase` showing coach's lessons from Supabase with student rosters, deduplicated by (day, time)
+- **Supabase weekly timetable**: `GET /timetable-supabase` renders full weekly schedule using Supabase lessons with RBAC (admin sees all, coach sees own), deduplication by (day, time, coach)
+- **Supabase coach messaging**: `GET/POST /coach/send-message-supabase` — coach selects a Supabase lesson, writes message, Magic Draft supported, emails sent to parents enrolled via student_lessons
 - **JSON endpoints**: `GET /supabase/students`, `/supabase/coaches`, `/supabase/lessons` for raw data access
-- **`fetch_seasons`, `fetch_enrollments`, `fetch_supabase_users`**: New functions in `supabase_db.py`
-- **Nav integration**: Admin dropdown "Students (Supabase)", "Enrollments (Supabase)", "Users (Supabase)" + dashboard cards
+- **`fetch_seasons`, `fetch_enrollments`, `fetch_supabase_users`, `fetch_coach_groups`, `fetch_timetable`, `fetch_coach_lessons`, `fetch_lesson_parents`**: New functions in `supabase_db.py`
+- **Nav integration**: Admin dropdown (Students/Enrollments/Users Supabase) + Coach nav (My Groups/Send Message Supabase) + Schedules Supabase link for all roles
+- **`_clean_kid_name()`**: Parses corrupted JS Date strings ("Sat Mar 14 2026...") in kid_name display for coach groups
+
+### Changed
+- **Stack**: Removed `sqlalchemy`, `psycopg2-binary`, `pg8000` from requirements — Supabase accessed via `requests` + REST API (no native PostgreSQL driver needed)
+- **genkit** removed from root `requirements.txt` — caused Render build hang (google-cloud-bigquery metadata incompatible with pip≥24.1). Magic Draft gracefully falls back.
+- **`timetable.html`**: Supports `supabase=True` context flag to hide admin edit/delete/modals in Supabase read-only mode
+
+### Fixed
+- **Render build**: Python 3.14 had no wheel for psycopg2-binary → switched to pg8000 → then to REST API entirely
+- **Supabase IPv6-only**: Database only had AAAA record, no IPv4. REST API works over HTTPS (IPv4-compatible)
+- **`@cache_response` decorator**: `render_template()` returns a string, not a Response object — wrapped with `make_response()` to avoid `AttributeError: 'str' object has no attribute 'headers'`
 
 ### Changed
 - **Stack**: Removed `sqlalchemy`, `psycopg2-binary`, `pg8000` from requirements — Supabase accessed via `requests` + REST API (no native PostgreSQL driver needed)
@@ -58,5 +74,5 @@
 
 ---
 
-**Last Updated**: 2026-06-18
-**Version**: 1.21.0
+**Last Updated**: 2026-07-02
+**Version**: 1.22.0
