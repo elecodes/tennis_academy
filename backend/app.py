@@ -1857,28 +1857,38 @@ def family_messages():
 
     messages = conn.execute(
         """
-        SELECT DISTINCT m.*, u.full_name as sender_name, g.name as group_name
+        SELECT DISTINCT m.*, u.full_name as sender_name, g.name as group_name,
+               COALESCE(mr.is_read, 0) as is_read
         FROM messages m
         JOIN users u ON m.sender_id = u.id
         LEFT JOIN groups g ON m.group_id = g.id
-        LEFT JOIN message_recipients mr ON m.id = mr.message_id
+        LEFT JOIN message_recipients mr ON m.id = mr.message_id AND mr.user_id = ?
         WHERE m.is_general = 1
            OR m.group_id IN (SELECT group_id FROM group_members WHERE family_id = ?)
            OR mr.user_id = ?
         ORDER BY m.sent_at DESC
     """,
-        (user_id, user_id),
+        (user_id, user_id, user_id),
     ).fetchall()
-
-    # Mark all as read
-    conn.execute(
-        "UPDATE message_recipients SET is_read = 1 WHERE user_id = ? AND is_read = 0",
-        (user_id,),
-    )
-    conn.commit()
 
     conn.close()
     return render_template("family/messages.html", messages=messages)
+
+
+@app.route("/family/mark-all-read", methods=["POST"])
+@login_required
+def family_mark_all_read():
+    if session["role"] != "family":
+        return redirect(url_for("dashboard"))
+
+    conn = get_db()
+    conn.execute(
+        "UPDATE message_recipients SET is_read = 1 WHERE user_id = ? AND is_read = 0",
+        (session["user_id"],),
+    )
+    conn.commit()
+    conn.close()
+    return redirect(url_for("family_messages"))
 
 
 @app.route("/family/my-enrollments")

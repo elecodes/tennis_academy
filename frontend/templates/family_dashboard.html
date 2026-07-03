@@ -19,16 +19,29 @@
       </div>
     </div>
 
-    <div class="card-premium flex items-center gap-8 group">
+    {% if stats.messages|length > 0 %}
+    <a href="{{ url_for('family_messages') }}" class="card-premium flex items-center gap-8 group hover:bg-navy transition-all duration-500">
       <div
-        class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-navy group-hover:text-white transition-all duration-500 shadow-sm">
+        class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white transition-all duration-500 shadow-sm">
         <span class="material-symbols-outlined text-3xl">notifications_active</span>
       </div>
       <div>
+        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1 group-hover:text-white/60">Unread Alerts</div>
+        <div class="text-4xl font-black text-navy group-hover:text-white">{{ stats.messages|length }}</div>
+      </div>
+    </a>
+    {% else %}
+    <div class="card-premium flex items-center gap-8 group">
+      <div
+        class="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center text-navy shadow-sm">
+        <span class="material-symbols-outlined text-3xl">notifications_none</span>
+      </div>
+      <div>
         <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">Unread Alerts</div>
-        <div class="text-4xl font-black text-navy">{{ stats.messages|length }}</div>
+        <div class="text-4xl font-black text-navy">0</div>
       </div>
     </div>
+    {% endif %}
   </div>
 
   <!-- Quick Access -->
