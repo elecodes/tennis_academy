@@ -556,6 +556,7 @@ def dashboard():
     conn = get_db()
     user_id = session["user_id"]
     role = session["role"]
+    sb_lessons_list = []
 
     if role == "admin":
         # Admin sees everything
