@@ -615,6 +615,7 @@ def dashboard():
                 for sl in (sl_all or []):
                     sl_by_lesson.setdefault(sl["lesson_id"], []).append(sl)
 
+                sb_groups = []
                 DAY_ABBR = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
                 for l in sb_lessons:
                     time_24 = l["time"]
@@ -628,7 +629,7 @@ def dashboard():
                     schedule_text = f"{DAY_ABBR[l['day']]} {time_formatted}"
                     student_count = len(sl_by_lesson.get(l["id"], []))
 
-                    my_groups.append({
+                    sb_groups.append({
                         "id": f"sb_{l['id']}",
                         "name": l["title"],
                         "schedule": schedule_text,
@@ -636,6 +637,10 @@ def dashboard():
                         "description": l.get("type", ""),
                         "_supabase": True,
                     })
+
+                # If coach has Supabase data, use ONLY Supabase (no Turso groups)
+                if sb_groups:
+                    my_groups = sb_groups
 
         recent_messages = conn.execute(
             """
@@ -653,9 +658,7 @@ def dashboard():
             (user_id, user_id, user_id),
         ).fetchall()
 
-        total_families = sum(
-            group["member_count"] for group in my_groups if not group.get("_supabase")
-        )
+        total_families = sum(group["member_count"] for group in my_groups)
 
         total_sessions = conn.execute(
             """
