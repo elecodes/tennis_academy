@@ -684,32 +684,16 @@ def dashboard():
 
     else:  # family
         # Family sees their enrolled groups and messages
-        my_enrollments = list(
-            conn.execute(
-                """
-                SELECT g.*, gm.kid_name, u.full_name as coach_name
-                FROM group_members gm
-                JOIN groups g ON gm.group_id = g.id
-                LEFT JOIN users u ON g.coach_id = u.id
-                WHERE gm.family_id = ?
-            """,
-                (user_id,),
-            ).fetchall()
-        )
-
-        # Append Supabase enrollments
-        from supabase_db import fetch_family_enrollments
-
-        family_email = session.get("email")
-        if family_email:
-            sb_enrollments = fetch_family_enrollments(family_email)
-            if sb_enrollments:
-                # If no Turso enrollments, use Supabase-only
-                if not my_enrollments:
-                    my_enrollments = sb_enrollments
-                else:
-                    for e in sb_enrollments:
-                        my_enrollments.append(e)
+        my_enrollments = conn.execute(
+            """
+            SELECT g.*, gm.kid_name, u.full_name as coach_name
+            FROM group_members gm
+            JOIN groups g ON gm.group_id = g.id
+            LEFT JOIN users u ON g.coach_id = u.id
+            WHERE gm.family_id = ?
+        """,
+            (user_id,),
+        ).fetchall()
 
         messages = conn.execute(
             """
