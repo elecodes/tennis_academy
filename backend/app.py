@@ -586,6 +586,7 @@ def dashboard():
             """
             ).fetchall(),
         }
+        sb_lessons_list = sb_lessons if sb_lessons else []
         template = "admin_dashboard.html"
 
     elif role == "coach":
@@ -712,7 +713,7 @@ def dashboard():
         template = "family_dashboard.html"
 
     conn.close()
-    return render_template(template, stats=stats)
+    return render_template(template, stats=stats, sb_lessons=sb_lessons_list)
 
 
 # ==================== ADMIN ROUTES ====================
