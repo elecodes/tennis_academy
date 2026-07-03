@@ -214,3 +214,192 @@ def fetch_coach_groups(coach_name):
     DAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     groups.sort(key=lambda g: (DAY_ORDER.index(g["day"]) if g["day"] in DAY_ORDER else 99, g["time"]))
     return groups
+
+
+def fetch_coach_lessons(coach_name):
+    """
+    Fetch lessons assigned to a coach, deduplicated by (day, time).
+
+    Args:
+        coach_name: coach name (case-insensitive match)
+
+    Returns:
+        list of {id, title, day, time, type, student_count} or [] if no lessons
+    """
+    coaches = fetch_coaches()
+    lessons = fetch_lessons()
+    student_lessons = fetch_student_lessons()
+
+    if not all([coaches, lessons]):
+        return None
+
+    coach_ids = {c["id"] for c in coaches if c.get("name", "").lower() == coach_name.lower()}
+    if not coach_ids:
+        return []
+
+    sl_by_lesson = {}
+    for sl in (student_lessons or []):
+        sl_by_lesson.setdefault(sl["lesson_id"], []).append(sl)
+
+    DAY_MAP = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
+               "friday": 4, "saturday": 5, "sunday": 6}
+
+    seen = set()
+    result = []
+    for l in lessons:
+        if l.get("coach_id") not in coach_ids:
+            continue
+        key = (l.get("day"), l.get("time"))
+        if key in seen:
+            continue
+        seen.add(key)
+
+        day_str = (l.get("day") or "").lower()
+        day_num = DAY_MAP.get(day_str, 0)
+
+        result.append({
+            "id": l["id"],
+            "title": l.get("title", "Lesson"),
+            "day": day_num,
+            "day_name": l.get("day", "").capitalize(),
+            "time": (l.get("time") or "00:00:00")[:5],
+            "type": l.get("type", "GROUP"),
+            "student_count": len(sl_by_lesson.get(l["id"], [])),
+        })
+
+    DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    result.sort(key=lambda x: (x["day"], x["time"]))
+    return result
+
+
+def fetch_lesson_parents(lesson_id):
+    """
+    Get parent contact info for all students enrolled in a lesson.
+
+    Args:
+        lesson_id: Supabase lesson ID
+
+    Returns:
+        list of {name, email, phone} or []
+    """
+    students = fetch_students()
+    student_lessons = fetch_student_lessons()
+
+    if not all([students, student_lessons]):
+        return None
+
+    student_map = {s["id"]: s for s in students}
+
+    parents = []
+    seen_emails = set()
+    for sl in student_lessons:
+        if sl.get("lesson_id") != lesson_id:
+            continue
+        s = student_map.get(sl["student_id"])
+        if not s:
+            continue
+        email = s.get("parent_email") or ""
+        if not email or email in seen_emails:
+            continue
+        seen_emails.add(email)
+        parents.append({
+            "name": s.get("parent_name") or "Parent",
+            "email": email,
+            "phone": s.get("parent_phone") or "",
+            "student_name": s.get("name", ""),
+        })
+
+    return parents
+
+
+def fetch_timetable(role, user_name=None):
+    """
+    Fetch weekly timetable from Supabase, compatible with timetable.html.
+
+    Args:
+        role: 'admin', 'coach', or 'family'
+        user_name: session full_name (for coach role filtering)
+
+    Returns:
+        dict {groups: [...]} matching timetable template structure, or None on error
+    """
+    lessons = fetch_lessons()
+    coaches = fetch_coaches()
+    students = fetch_students()
+    student_lessons = fetch_student_lessons()
+
+    if not all([lessons, coaches, students]):
+        return None
+
+    coach_map = {c["id"]: c for c in coaches}
+    student_map = {s["id"]: s for s in students}
+
+    sl_by_lesson = {}
+    for sl in (student_lessons or []):
+        sl_by_lesson.setdefault(sl["lesson_id"], []).append(sl)
+
+    coach_ids = set()
+    if role == "coach" and user_name:
+        coach_ids = {c["id"] for c in coaches if c.get("name", "").lower() == user_name.lower()}
+
+    DAY_MAP = {
+        "monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
+        "friday": 4, "saturday": 5, "sunday": 6,
+    }
+
+    seen = {}
+    groups = []
+    for l in lessons:
+        if role == "coach" and l["coach_id"] not in coach_ids:
+            continue
+        if role == "family":
+            continue  # TODO: family filtering by parent_email
+
+        coach = coach_map.get(l["coach_id"], {})
+        coach_name = coach.get("name", "Unknown")
+
+        day_str = l.get("day", "").lower()
+        day_num = DAY_MAP.get(day_str, 0)
+
+        start_time = l.get("time", "00:00:00")[:5]
+        end_hour = int(l["time"][:2]) + 1 if l.get("time") else 1
+        end_time = f"{end_hour:02d}:{l['time'][3:5]}" if l.get("time") else "01:00"
+
+        dedup_key = (day_num, start_time, coach_name)
+        if dedup_key in seen:
+            existing = seen[dedup_key]
+            for sl in sl_by_lesson.get(l["id"], []):
+                s = student_map.get(sl["student_id"])
+                if s and not any(k["name"] == s["name"] for k in existing["kids"]):
+                    existing["kids"].append({"name": s["name"], "age": "Unknown"})
+            continue
+
+        lesson_students = []
+        for sl in sl_by_lesson.get(l["id"], []):
+            s = student_map.get(sl["student_id"])
+            if s:
+                lesson_students.append({"name": s["name"], "age": "Unknown"})
+
+        group = {
+            "id": l["id"],
+            "name": l.get("title", "Lesson"),
+            "schedule_text": f"{l.get('day', '').capitalize()} {start_time}",
+            "level": l.get("type", "GROUP"),
+            "coach": {
+                "id": coach.get("id"),
+                "name": coach_name,
+                "email": coach.get("email"),
+            },
+            "kids": lesson_students,
+            "schedules": [{
+                "id": l["id"],
+                "day": day_num,
+                "start_time": start_time,
+                "end_time": end_time,
+                "court": l.get("notes", ""),
+            }],
+        }
+        seen[dedup_key] = group
+        groups.append(group)
+
+    return {"groups": groups}

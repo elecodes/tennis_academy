@@ -12,6 +12,7 @@ from flask import (
     url_for,
     flash,
     current_app,
+    make_response,
 )
 from datetime import datetime, timedelta
 from repositories.timetable_repository import TimetableRepository
@@ -26,7 +27,7 @@ def cache_response(max_age=300):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            resp = f(*args, **kwargs)
+            resp = make_response(f(*args, **kwargs))
             if not current_app.debug and request.method == "GET":
                 resp.headers["Cache-Control"] = f"private, max-age={max_age}"
             return resp

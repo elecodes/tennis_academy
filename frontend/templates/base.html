@@ -181,6 +181,10 @@
           class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">cloud</span> My Groups (Supabase)
         </a>
+        <a href="{{ url_for('coach_send_message_supabase') }}"
+          class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">cloud</span> Send Message (Supabase)
+        </a>
         <a href="{{ url_for('coach_send_message') }}"
           class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">mail</span> Send Message
@@ -199,6 +203,10 @@
         <a href="{{ url_for('timetables.get_timetable_page') }}"
           class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">calendar_month</span> Schedules
+        </a>
+        <a href="{{ url_for('timetable_supabase') }}"
+          class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">cloud</span> Schedules (Supabase)
         </a>
         {% else %}
         <a href="#about" class="text-obsidian/60 hover:text-navy font-semibold transition-colors">Programs</a>
@@ -260,6 +268,10 @@
       <a href="{{ url_for('timetables.get_timetable_page') }}"
         class="flex items-center gap-4 text-obsidian/70 font-bold py-3 px-4 rounded-xl hover:bg-navy/5 hover:text-navy transition-all">
         <span class="material-symbols-outlined">calendar_month</span> Schedules
+      </a>
+      <a href="{{ url_for('timetable_supabase') }}"
+        class="flex items-center gap-4 text-obsidian/70 font-bold py-3 px-4 rounded-xl hover:bg-navy/5 hover:text-navy transition-all">
+        <span class="material-symbols-outlined">cloud</span> Schedules (Supabase)
       </a>
       <div class="border-t border-navy/5 my-2"></div>
       <a href="{{ url_for('logout') }}"
@@ -357,6 +369,8 @@
         <div class="flex flex-col gap-4 text-sm">
           <a href="{{ url_for('timetables.get_timetable_page') }}" class="hover:text-accent transition-colors">Weekly
             Schedule</a>
+          <a href="{{ url_for('timetable_supabase') }}" class="hover:text-accent transition-colors">Schedule
+            (Supabase)</a>
           <a href="{{ url_for('login') }}" class="hover:text-accent transition-colors">SF TENNIS KIDS Portal</a>
           <a href="#" class="hover:text-accent transition-colors">Club Rules</a>
         </div>

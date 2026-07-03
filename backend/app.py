@@ -1514,6 +1514,132 @@ def coach_my_groups_supabase():
     return render_template("coach/my_groups_supabase.html", groups=groups, coach_name=coach["full_name"])
 
 
+@app.route("/timetable-supabase")
+@login_required
+def timetable_supabase():
+    from datetime import timedelta
+    from supabase_db import fetch_timetable
+
+    user_role = session.get("role", "family")
+    user_name = session.get("full_name")
+
+    date_str = request.args.get("date")
+    if date_str:
+        try:
+            current_date = datetime.fromisoformat(date_str).date()
+        except ValueError:
+            current_date = datetime.now().date()
+    else:
+        current_date = datetime.now().date()
+
+    week_start = current_date - timedelta(days=current_date.weekday())
+    prev_week = (week_start - timedelta(days=7)).strftime("%Y-%m-%d")
+    next_week = (week_start + timedelta(days=7)).strftime("%Y-%m-%d")
+
+    result = fetch_timetable(user_role, user_name)
+    if result is None:
+        flash("Supabase no está configurado.", "danger")
+        return redirect(url_for("dashboard"))
+
+    day_filter = request.args.get("day")
+    if day_filter is not None:
+        try:
+            day_filter = int(day_filter)
+        except ValueError:
+            day_filter = None
+
+    return render_template(
+        "timetable.html",
+        groups=result["groups"],
+        week_start=week_start.strftime("%A, %B %d, %Y"),
+        week_end=(week_start + timedelta(days=6)).strftime("%A, %B %d, %Y"),
+        prev_week=prev_week,
+        next_week=next_week,
+        day_filter=day_filter,
+        supabase=True,
+    )
+
+
+@app.route("/coach/send-message-supabase", methods=["GET", "POST"])
+@coach_required
+def coach_send_message_supabase():
+    from supabase_db import fetch_coach_lessons, fetch_lesson_parents
+
+    conn = get_db()
+    coach_name = conn.execute(
+        "SELECT full_name FROM users WHERE id = ?", (session["user_id"],)
+    ).fetchone()
+    conn.close()
+
+    if not coach_name:
+        flash("Coach not found.", "danger")
+        return redirect(url_for("dashboard"))
+
+    coach_name = coach_name["full_name"]
+    lessons = fetch_coach_lessons(coach_name)
+    if lessons is None:
+        flash("Supabase not configured.", "danger")
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+        lesson_id = request.form.get("lesson_id")
+        message_type = request.form.get("message_type")
+        subject = request.form.get("subject", "").strip()
+        content = request.form.get("content", "").strip()
+
+        if not lesson_id or not message_type or not subject or not content:
+            flash("All fields are required.", "danger")
+            return render_template("coach/send_message_supabase.html", lessons=lessons)
+
+        lesson = next((l for l in lessons if str(l["id"]) == lesson_id), None)
+        if not lesson:
+            flash("Invalid lesson selected.", "danger")
+            return redirect(url_for("coach_send_message_supabase"))
+
+        lesson_id = int(lesson_id)
+        parents = fetch_lesson_parents(lesson_id)
+        if parents is None:
+            flash("Could not fetch enrolled families from Supabase.", "danger")
+            return redirect(url_for("coach_send_message_supabase"))
+
+        if not parents:
+            flash("No families enrolled in this lesson.", "warning")
+            return redirect(url_for("coach_send_message_supabase"))
+
+        email_body = f"""
+SF TENNIS KIDS Club Notification — Coach {session["full_name"]}
+
+Type: {message_type.replace("_", " ").title()}
+Lesson: {lesson["title"]}
+Subject: {subject}
+
+{content}
+
+---
+This message was sent from the SF TENNIS KIDS Club Communication System.
+"""
+
+        sent_count = 0
+        failed = []
+        for p in parents:
+            if send_email(p["email"], f"[SF TENNIS KIDS Club] {subject}", email_body):
+                sent_count += 1
+            else:
+                failed.append(p["email"])
+
+        if sent_count > 0:
+            msg = f"Message sent to {sent_count} families."
+            if failed:
+                msg += f" Failed: {', '.join(failed)}"
+            flash(msg, "success" if not failed else "warning")
+        else:
+            flash("Failed to send to any families.", "danger")
+
+        return redirect(url_for("dashboard"))
+
+    return render_template("coach/send_message_supabase.html", lessons=lessons)
+
+
 # ==================== FAMILY ROUTES ====================
 
 
