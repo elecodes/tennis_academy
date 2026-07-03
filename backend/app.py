@@ -581,16 +581,52 @@ def dashboard():
 
     elif role == "coach":
         # Coach sees their groups and messages
-        my_groups = conn.execute(
-            """
-            SELECT g.*, COUNT(DISTINCT gm.family_id) as member_count
-            FROM groups g
-            LEFT JOIN group_members gm ON g.id = gm.group_id
-            WHERE g.coach_id = ?
-            GROUP BY g.id
-        """,
-            (user_id,),
-        ).fetchall()
+        my_groups = list(
+            conn.execute(
+                """
+                SELECT g.*, COUNT(DISTINCT gm.family_id) as member_count
+                FROM groups g
+                LEFT JOIN group_members gm ON g.id = gm.group_id
+                WHERE g.coach_id = ?
+                GROUP BY g.id
+            """,
+                (user_id,),
+            ).fetchall()
+        )
+
+        # Append Supabase lessons to my_groups
+        from supabase_db import fetch_coach_lessons, fetch_student_lessons
+
+        coach_name = session.get("full_name")
+        if coach_name:
+            sb_lessons = fetch_coach_lessons(coach_name)
+            if sb_lessons:
+                sl_all = fetch_student_lessons()
+                sl_by_lesson = {}
+                for sl in (sl_all or []):
+                    sl_by_lesson.setdefault(sl["lesson_id"], []).append(sl)
+
+                DAY_ABBR = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+                for l in sb_lessons:
+                    time_24 = l["time"]
+                    hour = int(time_24[:2])
+                    minute = time_24[3:]
+                    ampm = "am" if hour < 12 else "pm"
+                    hour_12 = hour if hour <= 12 else hour - 12
+                    if hour_12 == 0:
+                        hour_12 = 12
+                    time_formatted = f"{hour_12}:{minute}{ampm}"
+                    schedule_text = f"{DAY_ABBR[l['day']]} {time_formatted}"
+                    student_count = len(sl_by_lesson.get(l["id"], []))
+
+                    my_groups.append({
+                        "id": f"sb_{l['id']}",
+                        "name": l["title"],
+                        "schedule": schedule_text,
+                        "member_count": student_count,
+                        "description": l.get("type", ""),
+                        "_supabase": True,
+                    })
 
         recent_messages = conn.execute(
             """
@@ -608,7 +644,9 @@ def dashboard():
             (user_id, user_id, user_id),
         ).fetchall()
 
-        total_families = sum(group["member_count"] for group in my_groups)
+        total_families = sum(
+            group["member_count"] for group in my_groups if not group.get("_supabase")
+        )
 
         total_sessions = conn.execute(
             """
@@ -618,6 +656,9 @@ def dashboard():
         """,
             (user_id,),
         ).fetchone()[0]
+        total_sessions += sum(
+            1 for g in my_groups if g.get("_supabase")
+        )
 
         stats = {
             "my_groups": my_groups,
