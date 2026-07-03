@@ -374,6 +374,14 @@ def init_db():
         cursor.execute("ALTER TABLE message_recipients ADD COLUMN is_read INTEGER DEFAULT 0")
     except Exception:
         pass  # column already exists
+    try:
+        cursor.execute("ALTER TABLE message_recipients ADD COLUMN ack_type TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE message_recipients ADD COLUMN ack_at TIMESTAMP")
+    except Exception:
+        pass
 
     # Group schedules table
     cursor.execute(
@@ -1858,7 +1866,8 @@ def family_messages():
     messages = conn.execute(
         """
         SELECT DISTINCT m.*, u.full_name as sender_name, g.name as group_name,
-               COALESCE(mr.is_read, 0) as is_read
+               COALESCE(mr.is_read, 0) as is_read,
+               mr.ack_type, mr.ack_at
         FROM messages m
         JOIN users u ON m.sender_id = u.id
         LEFT JOIN groups g ON m.group_id = g.id
@@ -1885,6 +1894,30 @@ def family_mark_all_read():
     conn.execute(
         "UPDATE message_recipients SET is_read = 1 WHERE user_id = ? AND is_read = 0",
         (session["user_id"],),
+    )
+    conn.commit()
+    conn.close()
+    return redirect(url_for("family_messages"))
+
+
+@app.route("/family/acknowledge/<int:message_id>", methods=["POST"])
+@login_required
+def family_acknowledge(message_id):
+    if session["role"] != "family":
+        return redirect(url_for("dashboard"))
+
+    ack = request.form.get("ack")
+    if ack not in ("ok", "received"):
+        flash("Invalid acknowledgment.", "danger")
+        return redirect(url_for("family_messages"))
+
+    conn = get_db()
+    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    conn.execute(
+        """UPDATE message_recipients
+           SET ack_type = ?, ack_at = ?, is_read = 1
+           WHERE message_id = ? AND user_id = ?""",
+        (ack, now, message_id, session["user_id"]),
     )
     conn.commit()
     conn.close()
