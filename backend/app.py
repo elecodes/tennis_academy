@@ -559,6 +559,12 @@ def dashboard():
 
     if role == "admin":
         # Admin sees everything
+        from supabase_db import fetch_lessons, fetch_coaches, fetch_students
+
+        sb_lessons = fetch_lessons()
+        sb_coaches = fetch_coaches()
+        sb_students = fetch_students()
+
         stats = {
             "total_users": conn.execute(
                 "SELECT COUNT(*) FROM users WHERE role != 'admin'"
@@ -567,6 +573,9 @@ def dashboard():
             "total_messages": conn.execute("SELECT COUNT(*) FROM messages").fetchone()[
                 0
             ],
+            "sb_total_lessons": len(sb_lessons) if sb_lessons else 0,
+            "sb_total_coaches": len(sb_coaches) if sb_coaches else 0,
+            "sb_total_students": len(sb_students) if sb_students else 0,
             "recent_messages": conn.execute(
                 """
                 SELECT m.*, u.full_name as sender_name, g.name as group_name
