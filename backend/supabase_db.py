@@ -427,6 +427,7 @@ def fetch_family_enrollments(parent_email):
         sl_by_student.setdefault(sl["student_id"], []).append(sl)
 
     enrollments = []
+    seen_lessons = set()
     for s in students:
         if s.get("parent_email", "").strip().lower() != parent_email.strip().lower():
             continue
@@ -442,6 +443,12 @@ def fetch_family_enrollments(parent_email):
         else:
             for sl in linked:
                 lesson = lesson_map.get(sl["lesson_id"], {})
+                title = lesson.get("title", "")
+                dedup_key = (s["name"], title)
+                if dedup_key in seen_lessons:
+                    continue
+                seen_lessons.add(dedup_key)
+
                 coach = coach_map.get(lesson.get("coach_id"), "")
                 day_raw = (lesson.get("day") or "").upper()
                 time_raw = lesson.get("time") or ""

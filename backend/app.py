@@ -1264,6 +1264,102 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
         conn.close()
 
 
+@app.route("/admin/send-message-supabase", methods=["GET", "POST"])
+@admin_required
+def admin_send_message_supabase():
+    from supabase_db import fetch_lessons, fetch_lesson_parents
+
+    lessons = fetch_lessons()
+    if lessons is None:
+        flash("Supabase not configured.", "danger")
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+        lesson_id = request.form.get("lesson_id")
+        message_type = request.form.get("message_type")
+        subject = request.form.get("subject", "").strip()
+        content = request.form.get("content", "").strip()
+
+        if not lesson_id or not message_type or not subject or not content:
+            flash("All fields are required.", "danger")
+            return render_template("admin/send_message_supabase.html", lessons=lessons)
+
+        lesson = next((l for l in lessons if str(l["id"]) == lesson_id), None)
+        if not lesson:
+            flash("Invalid lesson selected.", "danger")
+            return redirect(url_for("admin_send_message_supabase"))
+
+        lesson_id = int(lesson_id)
+        parents = fetch_lesson_parents(lesson_id)
+        if parents is None:
+            flash("Could not fetch enrolled families from Supabase.", "danger")
+            return redirect(url_for("admin_send_message_supabase"))
+
+        if not parents:
+            flash("No families enrolled in this lesson.", "warning")
+            return redirect(url_for("admin_send_message_supabase"))
+
+        email_body = f"""
+SF TENNIS KIDS Club Notification — Admin {session["full_name"]}
+
+Type: {message_type.replace("_", " ").title()}
+Lesson: {lesson["title"]}
+Subject: {subject}
+
+{content}
+
+---
+This message was sent from the SF TENNIS KIDS Club Communication System.
+"""
+
+        sent_count = 0
+        failed = []
+        matched_users = []
+        for p in parents:
+            if send_email(p["email"], f"[SF TENNIS KIDS Club] {subject}", email_body):
+                sent_count += 1
+                matched_users.append(p["email"])
+            else:
+                failed.append(p["email"])
+
+        if sent_count > 0:
+            try:
+                store_conn = get_db()
+                from datetime import datetime
+                ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+                store_conn.execute(
+                    """INSERT INTO messages (sender_id, group_id, message_type, subject, content, sent_at, is_general)
+                       VALUES (?, NULL, ?, ?, ?, ?, 0)""",
+                    (session["user_id"], message_type, subject, content, ts),
+                )
+                msg_id = store_conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+                for email in matched_users:
+                    family_user = store_conn.execute(
+                        "SELECT id FROM users WHERE email = ? AND role = 'family'", (email,)
+                    ).fetchone()
+                    if family_user:
+                        store_conn.execute(
+                            "INSERT INTO message_recipients (message_id, user_id) VALUES (?, ?)",
+                            (msg_id, family_user["id"]),
+                        )
+                store_conn.commit()
+            except Exception:
+                pass
+            finally:
+                store_conn.close()
+
+            msg = f"Message sent to {sent_count} families."
+            if failed:
+                msg += f" Failed: {', '.join(failed)}"
+            flash(msg, "success" if not failed else "warning")
+        else:
+            flash("Failed to send to any families.", "danger")
+
+        return redirect(url_for("dashboard"))
+
+    return render_template("admin/send_message_supabase.html", lessons=lessons)
+
+
 @app.route("/admin/test-email", methods=["POST"])
 @admin_required
 def admin_test_email():
@@ -1692,13 +1788,41 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
 
         sent_count = 0
         failed = []
+        matched_users = []
         for p in parents:
             if send_email(p["email"], f"[SF TENNIS KIDS Club] {subject}", email_body):
                 sent_count += 1
+                matched_users.append(p["email"])
             else:
                 failed.append(p["email"])
 
         if sent_count > 0:
+            # Also store in Turso so families see it in their inbox
+            try:
+                store_conn = get_db()
+                from datetime import datetime
+                ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+                store_conn.execute(
+                    """INSERT INTO messages (sender_id, group_id, message_type, subject, content, sent_at, is_general)
+                       VALUES (?, NULL, ?, ?, ?, ?, 0)""",
+                    (session["user_id"], message_type, subject, content, ts),
+                )
+                msg_id = store_conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+                for email in matched_users:
+                    family_user = store_conn.execute(
+                        "SELECT id FROM users WHERE email = ? AND role = 'family'", (email,)
+                    ).fetchone()
+                    if family_user:
+                        store_conn.execute(
+                            "INSERT INTO message_recipients (message_id, user_id) VALUES (?, ?)",
+                            (msg_id, family_user["id"]),
+                        )
+                store_conn.commit()
+            except Exception:
+                pass  # best-effort: don't break the flow if Turso storage fails
+            finally:
+                store_conn.close()
+
             msg = f"Message sent to {sent_count} families."
             if failed:
                 msg += f" Failed: {', '.join(failed)}"
@@ -1724,25 +1848,20 @@ def family_messages():
     conn = get_db()
     user_id = session["user_id"]
 
-    my_groups = conn.execute(
-        "SELECT group_id FROM group_members WHERE family_id = ?", (user_id,)
+    messages = conn.execute(
+        """
+        SELECT DISTINCT m.*, u.full_name as sender_name, g.name as group_name
+        FROM messages m
+        JOIN users u ON m.sender_id = u.id
+        LEFT JOIN groups g ON m.group_id = g.id
+        LEFT JOIN message_recipients mr ON m.id = mr.message_id
+        WHERE m.is_general = 1
+           OR m.group_id IN (SELECT group_id FROM group_members WHERE family_id = ?)
+           OR mr.user_id = ?
+        ORDER BY m.sent_at DESC
+    """,
+        (user_id, user_id),
     ).fetchall()
-    my_group_ids = [g["group_id"] for g in my_groups]
-
-    messages = []
-    if my_group_ids:
-        placeholders = ",".join("?" * len(my_group_ids))
-        messages = conn.execute(
-            f"""
-            SELECT m.*, u.full_name as sender_name, g.name as group_name
-            FROM messages m
-            JOIN users u ON m.sender_id = u.id
-            LEFT JOIN groups g ON m.group_id = g.id
-            WHERE m.group_id IN ({placeholders}) OR m.is_general = 1
-            ORDER BY m.sent_at DESC
-        """,
-            tuple(my_group_ids),
-        ).fetchall()
 
     conn.close()
     return render_template("family/messages.html", messages=messages)
