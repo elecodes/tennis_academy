@@ -23,6 +23,7 @@
             <th class="px-6 py-4">Type</th>
             <th class="px-6 py-4">Subject</th>
             <th class="px-6 py-4">Content</th>
+            <th class="px-6 py-4">Acks</th>
             <th class="px-6 py-4 text-right">Actions</th>
           </tr>
         </thead>
@@ -56,6 +57,15 @@
               <span class="text-xs text-obsidian/60 line-clamp-2 {% if '[deleted' in (msg.content or '') %}line-through text-obsidian/30{% endif %}">
                 {{ msg.content }}
               </span>
+            </td>
+            <td class="px-6 py-4">
+              {% if msg.source == 'broadcast' %}
+              <span class="text-[10px] font-bold {% if msg.ack_summary and msg.ack_summary != '—' %}text-green-600{% else %}text-obsidian/30{% endif %}">
+                {{ msg.ack_summary or '—' }}
+              </span>
+              {% else %}
+              <span class="text-[10px] text-obsidian/30">—</span>
+              {% endif %}
             </td>
             <td class="px-6 py-4 text-right">
               <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -260,10 +260,10 @@ As of Feb 2026, the application follows a **Premium Centered Layout** (`max-w-7x
    - **Schedule Display**: Use compact pills like "Mon 4pm", "Wed 5:30pm" instead of long strings.
    - **PWA Support**: App can be installed on mobile via "Add to Home Screen". Service worker caches offline access.
    - **Bottom Navigation**: Mobile users see fixed bottom nav bar with quick links (Home, Schedule, Groups/Kids, Message).
-    - **Empty Days**: Days without scheduled lessons are hidden for coach/family to reduce clutter.
-    - **Day Filter**: Schedule page has day filter buttons (Mon-Sun) to show only groups with lessons on that day.
-    - **Readability**: Day headers use `text-lg` bold navy with thicker borders. Time text uses `text-base` for clear visibility.
-    - **Coach Schedule**: Bold uppercase day names (`font-black text-base`) with larger time (`text-lg`) in schedule slot headers.
+   - **Empty Days**: Days without scheduled lessons are hidden for coach/family to reduce clutter.
+   - **Day Filter**: Schedule page has day filter buttons (Mon-Sun) to show only groups with lessons on that day.
+   - **Readability**: Day headers use `text-lg` bold navy with thicker borders. Time text uses `text-base` for clear visibility.
+   - **Coach Schedule**: Bold uppercase day names (`font-black text-base`) with larger time (`text-lg`) in schedule slot headers.
 
 ### Schedule Formatting Filters
 The app provides Jinja2 filters for consistent schedule display:
@@ -827,6 +827,54 @@ This ensures coaches can manage their groups without accessing family personal d
 
 ## Family Dashboard Features (v1.24.0+)
 
+### Message Acknowledgments
+
+Messages now support acknowledgment from families:
+
+- **Schema**: `message_recipients.ack_type` (TEXT — "ok" or "received") and `ack_at` (TIMESTAMP) columns
+- **Family flow**: Each message on `/family/messages` shows "OK" and "Received" buttons below unacknowledged messages
+- **POST `/family/acknowledge/<message_id>`**: Sends `ack=ok` or `ack=received`, sets `ack_type`, `ack_at`, and `is_read = 1`
+- **Coach visibility**: Coach dashboard "Messages Sent" table shows per-message ack summary (e.g., "3 ok | 1 received") or "Awaiting response"
+
+### Family Quick Messages
+
+Families can send preset notices to coaches:
+
+- **4 presets** (no free text):
+  - 🕐 Running Late — "We're running late but on our way. ETA approximately 10–15 minutes."
+  - ❌ Will Miss Class — "{kid} won't make it to class today. See you next session."
+  - ✅ On My Way — "Just confirming we're on the way to class today."
+  - 🚗 Early Pickup — "We need to pick {kid} up early today."
+- **Rate-limited**: 15-minute cooldown per family user
+- **Family dashboard**: "Notify Your Coach" widget appears when family has enrollments with a known `coach_name`
+- **Enrollment lookup**: Checks Turso `group_members` first, then Supabase `parent_email` + `kid_name`
+- **POST `/family/quick-message`**: Validates preset against whitelist, inserts into `family_quick_messages` table
+
+### Coach Reply
+
+Coaches can reply to family quick messages:
+
+- **Coach dashboard**: "Messages from Families" widget shows last 5 `family_quick_messages` for coach's groups
+- **Reply button** on each alert → opens modal with family name and subject context
+- **Free text reply** (coach is trusted role — no preset restriction)
+- **POST `/coach/reply-family/<quick_msg_id>`**:
+  1. Creates `messages` entry with sender = coach, subject = `"Reply re: {subject}"`
+  2. Creates `message_recipients` row for the family user
+  3. Marks original quick message as `is_read = 1`
+- **Red pulse dot** indicates unread family alerts
+
+### Admin Message Auditor
+
+Full visibility into all club communication:
+
+- **Route**: `GET /admin/messages` — merged table of broadcasts + family notes
+- **Source badges**: "Family" (purple) for `family_quick_messages`, "Broadcast" (navy) for `messages`
+- **Edit modal**: Inline form to update subject/content — POST to `/admin/messages/<id>/edit`
+- **Soft delete**:
+  - Family notes: `deleted_at` timestamp (hidden from coach dashboard)
+  - Broadcasts: Content cleared to `[deleted by admin]`, subject to `[deleted]`
+- **Nav link**: "Message Auditor" in admin sidebar (below "Broadcast (Supabase)")
+
 ### Unread Message Tracking
 
 Messages now track read status per recipient:
@@ -878,6 +926,9 @@ The app uses Supabase (PostgreSQL) as a secondary read layer alongside Turso, sy
 | Send Message (Admin) | `GET/POST /admin/send-message-supabase` | Admin broadcasts to Supabase lesson families, stored in Turso |
 | Family Enrollments | `fetch_family_enrollments(email)` | Appends Supabase enrollments to family dashboard |
 | Mark All Read | `POST /family/mark-all-read` | Marks all unread messages as read for family user |
+| Message Audit | `GET /admin/messages` | All broadcasts + family notes in merged table with edit/delete |
+| Family Quick Messages | `POST /family/quick-message` | Family sends preset quick message (15-min rate limit) |
+| Coach Reply | `POST /coach/reply-family/<id>` | Coach replies to family quick message |
 
 ### Dashboard Integration
 
@@ -889,6 +940,8 @@ The app uses Supabase (PostgreSQL) as a secondary read layer alongside Turso, sy
 - Coaches with Supabase lessons see ONLY Supabase groups (Turso groups hidden)
 - Coaches without Supabase data fall back to Turso groups
 - This avoids duplicate cards and keeps the coach focused on the richer Supabase data
+- **Messages from Families widget**: Last 5 `family_quick_messages` with reply capability
+- **Acknowledgments column**: Per-message ack summary in "Messages Sent" table
 
 ### Supabase URLs
 
@@ -918,5 +971,5 @@ Supabase free tier pauses projects after 7 days of inactivity. GitHub Actions cr
 - `SUPABASE_URL` — `https://ypbwlpeighgpafocauzp.supabase.co/rest/v1`
 - `SUPABASE_ANON_KEY` — your Supabase anon/public key
 
-**Last Updated**: 2026-07-03
+**Last Updated**: 2026-07-06
 **Version**: 1.24.0

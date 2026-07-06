@@ -1,7 +1,7 @@
 # ADR-029: Supabase Coach Features
 
 ## Status
-Accepted (Updated 2026-07-03)
+Accepted (Updated 2026-07-06)
 
 ## Context
 The app has data in two places:
@@ -149,3 +149,83 @@ New `fetch_family_enrollments(parent_email)` function in `supabase_db.py` return
 |-------|--------|---------|
 | `/admin/send-message-supabase` | GET, POST | Admin broadcasts to Supabase lesson families, stores in Turso |
 | `/family/mark-all-read` | POST | Marks all unread messages as read for the logged-in family |
+
+---
+
+## Extension: Message Acknowledgments, Quick Messages, Coach Reply & Admin Auditor (2026-07-06)
+
+### 14. Message Acknowledgments
+- **Schema**: `ack_type` (TEXT) and `ack_at` (TIMESTAMP) columns on `message_recipients` via ALTER TABLE migration
+- **Family flow**: Each message on `/family/messages` shows two buttons — "OK" and "Received" — below unacknowledged messages
+- **POST `/family/acknowledge/<message_id>`**: Accepts `ack=ok` or `ack=received`, updates `ack_type`, `ack_at`, and sets `is_read = 1`
+- **Coach ack summary**: Coach dashboard "Messages Sent" table shows per-message acknowledgment status (e.g., "3 ok | 1 received") in a new "Acknowledgments" column, or "Awaiting response" if no acks yet
+
+### 15. Family Quick Messages
+- **Schema**: New `family_quick_messages` table with `id`, `user_id`, `group_id`, `kid_name`, `coach_name`, `preset`, `subject`, `content`, `sent_at`, `is_read`, `deleted_at`
+- **4 presets** (no free text — families are untrusted):
+  - `running_late` — "Running Late — {kid}"
+  - `will_miss` — "Will Miss Class — {kid}"
+  - `on_my_way` — "On My Way — {kid}"
+  - `early_pickup` — "Early Pickup — {kid}"
+- **Rate-limited**: 15-minute cooldown per family user (checked by last `sent_at` in `family_quick_messages`)
+- **Family dashboard "Notify Your Coach" widget**: Shows only when family has enrollments with a known `coach_name`. Dropdown selects child, then 4 preset buttons.
+- **Enrollment resolution**: Checks Turso `group_members` first, then falls back to Supabase `fetch_family_enrollments()` by `parent_email` + `kid_name`
+- **POST `/family/quick-message`**: Validates preset against whitelist, inserts row, flashes success
+
+### 16. Coach Reply to Family Alerts
+- **Coach dashboard "Messages from Families" widget**: Shows last 5 `family_quick_messages` where `deleted_at IS NULL`, filtered to coach's groups (by `group_id` or `coach_name` match)
+- **Reply button** on each alert card → opens modal with family name and subject context
+- **Coach has free text** (coach is a trusted role — no preset restriction)
+- **POST `/coach/reply-family/<quick_msg_id>`**:
+  1. Validates original quick message exists and is not deleted
+  2. Creates a new `messages` entry with sender = coach, subject = `"Reply re: {original_subject}"`
+  3. Creates `message_recipients` row for the family user
+  4. Marks the original `family_quick_messages` row as `is_read = 1`
+- **Red pulse dot**: Shows on unread family alerts in coach dashboard (from `is_read = 0`)
+
+### 17. Admin Message Auditor
+- **Route**: `GET /admin/messages` — new page at `/admin/messages`
+- **Data sources**: Merges up to 100 broadcasts from `messages` table + up to 100 family notes from `family_quick_messages` (where `deleted_at IS NULL`), sorted by `sent_at` DESC
+- **Table columns**: Sent, From (sender name + source badge: "Family" or "Broadcast"), Type (preset or message_type badge), Subject, Content (truncated), Actions
+- **Edit modal**: Opens inline modal with pre-filled subject and content fields. POST to `/admin/messages/<id>/edit` updates the appropriate table based on `source` parameter
+- **Soft delete**:
+  - **Family notes** (`source=family_note`): Sets `deleted_at` timestamp (row hidden from coach dashboard)
+  - **Broadcasts** (`source=broadcast`): Clears content to `[deleted by admin]` and subject to `[deleted]` (keeps the row for audit)
+- **Nav link**: "Message Auditor" entry in admin sidebar dropdown (below "Broadcast (Supabase)" with `summarize` icon)
+
+### Consequences
+
+#### Positive
+- Families can acknowledge messages, giving coaches visibility into whether families read important notices
+- Quick messages give families a simple, safe way to communicate with coaches without exposing free-text abuse vectors
+- Coach reply completes the communication loop — families can send quick notices and coaches can respond
+- Admin auditor provides full visibility into ALL club communication (broadcasts + family notes) from one page
+- Soft delete preserves audit trail while hiding content from regular views
+
+#### Negative
+- `family_quick_messages` is Turso-only (no Supabase storage) — families with only Supabase enrollments but no Turso user may get `flash` errors on quick message send
+- 15-minute rate limit is app-level, not enforced in DB — concurrent requests could bypass it
+- Ack summary queries are O(n) per coach dashboard render — acceptable for <50 messages but won't scale past hundreds
+
+#### Neutral
+- Ack pattern (ALTER TABLE + try/except) follows the same idempotent migration pattern as `is_read`
+- Quick messages store the full resolved text (subject + content) rather than computing on read — simpler queries at the cost of minor duplication
+
+### Routes Added
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/admin/messages` | GET | Admin message auditor — all broadcasts + family notes |
+| `/admin/messages/<id>/edit` | POST | Edit message subject/content |
+| `/admin/messages/<id>/delete` | POST | Soft-delete family note or clear broadcast content |
+| `/coach/reply-family/<quick_msg_id>` | POST | Coach replies to a family quick message |
+| `/family/acknowledge/<message_id>` | POST | Family acknowledges a message (ok/received) |
+| `/family/quick-message` | POST | Family sends a preset quick message to coach |
+
+### Key Schema Additions
+
+| Table/Column | Purpose |
+|--------------|---------|
+| `message_recipients.ack_type` | TEXT — `"ok"` or `"received"` |
+| `message_recipients.ack_at` | TIMESTAMP — when family acknowledged |
+| `family_quick_messages` | Family preset messages with `user_id`, `kid_name`, `coach_name`, `preset`, `subject`, `content`, `sent_at`, `is_read`, `deleted_at` |

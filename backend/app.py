@@ -1508,6 +1508,26 @@ def admin_message_auditor():
     all_msgs = list(main_msgs) + list(family_msgs)
     all_msgs.sort(key=lambda m: m.get("sent_at", ""), reverse=True)
 
+    # Attach ack summaries for broadcast messages
+    ack_map = {}
+    for msg in all_msgs:
+        if msg["source"] == "broadcast":
+            mid = msg["id"]
+            if mid not in ack_map:
+                acks = conn.execute(
+                    """SELECT ack_type, COUNT(*) as cnt
+                       FROM message_recipients
+                       WHERE message_id = ? AND ack_type IS NOT NULL
+                       GROUP BY ack_type""",
+                    (mid,),
+                ).fetchall()
+                ack_map[mid] = acks
+            parts = []
+            for a in ack_map[mid]:
+                parts.append(f"{a['cnt']} {a['ack_type']}")
+            msg["ack_summary"] = " | ".join(parts) if parts else "—"
+
+    conn.close()
     return render_template("admin/message_auditor.html", messages=all_msgs)
 
 
