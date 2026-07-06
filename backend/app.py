@@ -1502,14 +1502,9 @@ def admin_message_auditor():
            ORDER BY fqm.sent_at DESC LIMIT 100"""
     ).fetchall()
 
-    conn.close()
-
-    # Merge and sort
-    all_msgs = list(main_msgs) + list(family_msgs)
-    all_msgs.sort(key=lambda m: m.get("sent_at", ""), reverse=True)
-
-    # Attach ack summaries for broadcast messages
+    # Attach ack summaries for broadcast messages (before closing conn)
     ack_map = {}
+    all_msgs = list(main_msgs) + list(family_msgs)
     for msg in all_msgs:
         if msg["source"] == "broadcast":
             mid = msg["id"]
@@ -1526,6 +1521,11 @@ def admin_message_auditor():
             for a in ack_map[mid]:
                 parts.append(f"{a['cnt']} {a['ack_type']}")
             msg["ack_summary"] = " | ".join(parts) if parts else "—"
+
+    conn.close()
+
+    # Merge and sort (ack_summary already attached)
+    all_msgs.sort(key=lambda m: m.get("sent_at", ""), reverse=True)
 
     conn.close()
     return render_template("admin/message_auditor.html", messages=all_msgs)
