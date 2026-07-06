@@ -7,13 +7,14 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 ## 🎯 Features
 
 ### Role-Based Access Control (RBAC)
-- **Admin**: Full access to manage users, groups, schedules, and send messages to all
-- **Coach**: View assigned groups with schedules, send messages to their groups (no family email exposure)
-- **Family**: View messages for enrolled groups, see weekly schedules
+- **Admin**: Full access to manage users, groups, schedules, send messages, audit all communication, and broadcast to Supabase lesson families
+- **Coach**: View assigned groups with schedules, send messages to their groups, see family alerts and reply, view message acknowledgments (no family email exposure)
+- **Family**: View messages for enrolled groups, acknowledge messages (OK/Received), send preset quick messages to coaches, see weekly schedules
 
 ### Weekly Timetables
 - **View schedules by week** - Navigate between weeks with a clean 7x1 grid
 - **Role-based filtering** - Admins see all, coaches see their groups, families see their kids' groups
+- **Supabase timetable** - Family timetable now filters by `parent_email` showing only enrolled lessons
 - **Premium Centered Layout** - Elegant, focused experience using `max-w-7xl mx-auto` containers
 - **Custom Modal System** - Reliable, vanilla JS interactions for all record creation (no Bootstrap JS dependencies)
 - **Responsive design** - Optimized for mobile, tablet, and high-res desktops
@@ -35,7 +36,13 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - ✅ General announcements (admin can message all families)
 - ✅ Weekly timetable view with RBAC
 - ✅ **Turso Cloud Database** (Edge SQLite for real-time sync)
-- ✅ **Supabase Integration** (PostgreSQL read layer for students, enrollments, users, coach dashboard, admin dashboard, timetable, and messaging)
+- ✅ **Supabase Integration** (PostgreSQL read layer for students, enrollments, users, coach dashboard, admin dashboard, timetable, family enrollments, and messaging)
+- ✅ **Message Acknowledgments** — family clicks "OK" or "Received" on each message; coach sees ack summary in "Messages Sent" table
+- ✅ **Family Quick Messages** — 4 presets (Running Late, Will Miss, On My Way, Early Pickup), no free text, 15-min rate limit
+- ✅ **Coach Reply** — reply button on family alerts opens modal with free text; creates messages entry + message_recipients for the family
+- ✅ **Admin Message Auditor** — `/admin/messages` table of ALL messages (broadcasts + family notes), edit modal, soft delete
+- ✅ **Unread message tracking** (`is_read` column + unread count on dashboard + visual read/unread styling)
+- ✅ **Mark All Read** — one-click bulk marking on family messages page
 - ✅ **Google Spreadsheet Integration** (Sync schedules automatically)
 - ✅ **Auto-Sync** (Sheets edits sync to Turso in seconds via installable GAS triggers)
 - ✅ Simple web interface for all roles
@@ -169,6 +176,8 @@ The app will be available at: **http://localhost:5001**
 5. Enroll Kids: Admin Panel → Enrollments → Add Enrollment
 6. Send Messages: Admin Panel → Broadcast → Select group or specific schedule slot → Send
 7. View Schedules: Dashboard → View Weekly Schedules
+8. Audit Messages: Admin Panel → Message Auditor (view/edit/delete all messages)
+9. Supabase Broadcast: Nav → Broadcast (Supabase) → select lesson → send
 ```
 
 ### Coach Workflow
@@ -176,16 +185,19 @@ The app will be available at: **http://localhost:5001**
 1. Login with coach credentials
 2. Dashboard → My Groups (view assigned groups)
 3. Dashboard → Send Message (notify families)
-4. Dashboard → View Weekly Schedules (see all sessions)
+4. Dashboard → Messages from Families (view and reply to quick messages)
+5. Dashboard → View Weekly Schedules (see all sessions)
+6. Check Acknowledgments column in Messages Sent for family response status
 ```
 
 ### Family Workflow
 ```
 1. Login with family credentials
 2. Dashboard → My Enrollments (see kids' groups)
-3. Dashboard → View Weekly Schedules (see kids' schedules)
-4. Dashboard → My Messages (receive notifications)
-5. Email notifications arrive automatically
+3. Dashboard → Notify Your Coach (send preset quick messages)
+4. Dashboard → View Weekly Schedules (see kids' schedules)
+5. Dashboard → My Messages (receive notifications, acknowledge with OK/Received, Mark All Read)
+6. Email notifications arrive automatically
 ```
 
 ## 📊 Database Schema
@@ -207,7 +219,10 @@ group_schedules(id, group_id, day_of_week, start_time, end_time, court, created_
 messages(id, sender_id, group_id, message_type, subject, content, sent_at, is_general)
 
 -- Message recipients tracking
-message_recipients(id, message_id, user_id, email_sent, sent_at)
+message_recipients(id, message_id, user_id, email_sent, sent_at, is_read, ack_type, ack_at)
+
+-- Family quick messages (preset-only, no free text for families)
+family_quick_messages(id, user_id, group_id, kid_name, coach_name, preset, subject, content, sent_at, is_read, deleted_at)
 ```
 
 ## 📚 Documentation
@@ -236,6 +251,7 @@ message_recipients(id, message_id, user_id, email_sent, sent_at)
 - **[ADR-025](docs/ADR-025:%20PWA%20Icon%20Fix%20for%20Android%20Home%20Screen.md)** - PWA Icon Fix for Android
 - **[ADR-026](docs/ADR-026:%20Magic%20Draft%20Reliability%20and%20Vercel%20Dependency%20Alignment.md)** - Magic Draft reliability and Vercel dependency alignment
 - **[ADR-027](docs/ADR-027:%20Auto-Sync%20Webhook%20and%20Cache%20Invalidation.md)** - Auto-Sync webhook architecture and cache invalidation
+- **[ADR-029](docs/ADR-029:%20Supabase%20Coach%20Features.md)** - Supabase Coach Features, Family Dashboard, Unread Tracking, Quick Messages, Coach Reply, Admin Auditor
 - **[MCP Configuration](docs/mcp-configuration.md)** - Google Sheets Agent Integration
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
@@ -475,10 +491,16 @@ MIT License - Free to use and modify!
 ✅ Auto-Sync:       Google Sheets → Turso via installable GAS triggers + webhook (v1.20.0)
 ✅ Supabase Layer:  Coach groups, timetable, messaging, coach dashboard, admin dashboard via REST API (v1.23.0)
 ⏸️ Admin CRUD:     Groups/users read-only — manage via Google Sheets (v1.20.0)
+✅ Family Dashboard: Supabase enrollments + Supabase timetable (v1.24.0)
+✅ Unread Tracking:  is_read per recipient, read/unread styling, Mark All Read, clickable alert card (v1.24.0)
+✅ Admin Broadcast:  Supabase lesson-based messaging with Turso storage (v1.24.0)
+✅ Message Acks:     ack_type/ack_at per recipient, OK/Received buttons, coach ack summary (v1.24.0)
+✅ Quick Messages:   4 presets, 15-min rate limit, coach reply, family alerts widget (v1.24.0)
+✅ Admin Auditor:    /admin/messages table, edit modal, soft delete, nav link (v1.24.0)
 ```
 
-**Last Updated**: 2026-07-02
-**Version**: 1.23.0
+**Last Updated**: 2026-07-06
+**Version**: 1.24.0
 **Status**: Production Ready ✅
 
 ---

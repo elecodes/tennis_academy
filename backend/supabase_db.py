@@ -1,5 +1,10 @@
 import os
+import json
 import requests
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
+from database import get_db
+
 
 SUPABASE_URL = os.environ.get(
     "SUPABASE_URL",
@@ -7,6 +12,53 @@ SUPABASE_URL = os.environ.get(
 )
 SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+
+_CACHE_TTL = 60  # seconds
+_cache_initialized = False
+
+
+def _ensure_cache_table():
+    global _cache_initialized
+    if _cache_initialized:
+        return
+    conn = get_db()
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS supabase_cache (
+            key TEXT PRIMARY KEY,
+            data TEXT NOT NULL,
+            expires_at TIMESTAMP NOT NULL
+        )"""
+    )
+    conn.commit()
+    conn.close()
+    _cache_initialized = True
+
+
+def _cache_get(key):
+    _ensure_cache_table()
+    conn = get_db()
+    row = conn.execute(
+        "SELECT data FROM supabase_cache WHERE key = ? AND expires_at > datetime('now')",
+        (key,),
+    ).fetchone()
+    conn.close()
+    if row:
+        return json.loads(row["data"])
+    return None
+
+
+def _cache_set(key, data, ttl=None):
+    _ensure_cache_table()
+    expires = (datetime.utcnow() + timedelta(seconds=ttl or _CACHE_TTL)).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+    conn = get_db()
+    conn.execute(
+        "INSERT OR REPLACE INTO supabase_cache (key, data, expires_at) VALUES (?, ?, ?)",
+        (key, json.dumps(data), expires),
+    )
+    conn.commit()
+    conn.close()
 
 
 def _client():
@@ -23,6 +75,11 @@ def _client():
 
 
 def _fetch(table, order=None):
+    cache_key = f"sb:{table}:{order or ''}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
     client = _client()
     if not client:
         return None
@@ -36,7 +93,23 @@ def _fetch(table, order=None):
         timeout=10,
     )
     resp.raise_for_status()
-    return resp.json()
+    data = resp.json()
+    _cache_set(cache_key, data)
+    return data
+
+
+def _fetch_multi(*specs):
+    """Fetch multiple tables concurrently. Each spec is (table, order) or just table."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _do(spec):
+        if isinstance(spec, tuple):
+            return spec[0], _fetch(spec[0], spec[1])
+        return spec, _fetch(spec)
+
+    with ThreadPoolExecutor(max_workers=len(specs)) as ex:
+        results = ex.map(_do, specs)
+    return dict(results)
 
 
 def fetch_students():
@@ -312,13 +385,14 @@ def fetch_lesson_parents(lesson_id):
     return parents
 
 
-def fetch_timetable(role, user_name=None):
+def fetch_timetable(role, user_name=None, user_email=None):
     """
     Fetch weekly timetable from Supabase, compatible with timetable.html.
 
     Args:
         role: 'admin', 'coach', or 'family'
         user_name: session full_name (for coach role filtering)
+        user_email: session email (for family role filtering by parent_email)
 
     Returns:
         dict {groups: [...]} matching timetable template structure, or None on error
@@ -342,6 +416,14 @@ def fetch_timetable(role, user_name=None):
     if role == "coach" and user_name:
         coach_ids = {c["id"] for c in coaches if c.get("name", "").lower() == user_name.lower()}
 
+    family_lesson_ids = set()
+    if role == "family" and user_email:
+        family_students = [s for s in students if s.get("parent_email", "").lower() == user_email.lower()]
+        family_student_ids = {s["id"] for s in family_students}
+        for sl in (student_lessons or []):
+            if sl["student_id"] in family_student_ids:
+                family_lesson_ids.add(sl["lesson_id"])
+
     DAY_MAP = {
         "monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
         "friday": 4, "saturday": 5, "sunday": 6,
@@ -352,8 +434,8 @@ def fetch_timetable(role, user_name=None):
     for l in lessons:
         if role == "coach" and l["coach_id"] not in coach_ids:
             continue
-        if role == "family":
-            continue  # TODO: family filtering by parent_email
+        if role == "family" and l["id"] not in family_lesson_ids:
+            continue
 
         coach = coach_map.get(l["coach_id"], {})
         coach_name = coach.get("name", "Unknown")
@@ -403,3 +485,70 @@ def fetch_timetable(role, user_name=None):
         groups.append(group)
 
     return {"groups": groups}
+
+
+def fetch_family_enrollments(parent_email):
+    data = _fetch_multi("students", "student_lessons", "lessons", "coaches")
+    students = data.get("students")
+    student_lessons = data.get("student_lessons")
+    lessons = data.get("lessons")
+    coaches = data.get("coaches")
+
+    if not all([students, student_lessons, lessons, coaches]):
+        return None
+
+    coach_map = {c["id"]: c["name"] for c in coaches}
+    lesson_map = {l["id"]: l for l in lessons}
+
+    DAYS = {
+        "MONDAY": "Mon", "TUESDAY": "Tue", "WEDNESDAY": "Wed",
+        "THURSDAY": "Thu", "FRIDAY": "Fri", "SATURDAY": "Sat", "SUNDAY": "Sun",
+    }
+
+    sl_by_student = {}
+    for sl in student_lessons:
+        sl_by_student.setdefault(sl["student_id"], []).append(sl)
+
+    enrollments = []
+    seen_lessons = set()
+    for s in students:
+        if s.get("parent_email", "").strip().lower() != parent_email.strip().lower():
+            continue
+
+        linked = sl_by_student.get(s["id"], [])
+        if not linked:
+            enrollments.append({
+                "kid_name": s["name"],
+                "name": "(no lesson assigned)",
+                "coach_name": None,
+                "_supabase": True,
+            })
+        else:
+            for sl in linked:
+                lesson = lesson_map.get(sl["lesson_id"], {})
+                title = lesson.get("title", "")
+                dedup_key = (s["name"], title)
+                if dedup_key in seen_lessons:
+                    continue
+                seen_lessons.add(dedup_key)
+
+                coach = coach_map.get(lesson.get("coach_id"), "")
+                day_raw = (lesson.get("day") or "").upper()
+                time_raw = lesson.get("time") or ""
+
+                day_abbr = DAYS.get(day_raw, day_raw[:3].capitalize())
+                hour = int(time_raw[:2]) if time_raw[:2].isdigit() else 0
+                minute = time_raw[3:5] if len(time_raw) >= 5 else "00"
+                ampm = "am" if hour < 12 else "pm"
+                hour12 = hour if 1 <= hour <= 12 else (hour - 12 if hour > 12 else 12)
+                time_str = f"{hour12}:{minute}{ampm}"
+
+                enrollments.append({
+                    "kid_name": s["name"],
+                    "name": lesson.get("title", ""),
+                    "coach_name": coach,
+                    "schedule": f"{day_abbr} {time_str}",
+                    "_supabase": True,
+                })
+
+    return enrollments

@@ -9,10 +9,17 @@
       <h1 class="text-4xl font-display font-bold text-navy mb-2">My Messages</h1>
       <p class="text-navy/60">Important updates and notifications for your kids' enrolled groups.</p>
     </div>
+    <form method="POST" action="{{ url_for('family_mark_all_read') }}">
+      <button type="submit"
+        class="btn-outline flex items-center gap-2 !h-12 px-6">
+        <span class="material-symbols-outlined text-lg">done_all</span>
+        Mark All Read
+      </button>
+    </form>
   </div>
 
   {% if messages %}
-  <div class="space-y-6">
+  <div class="space-y-4">
     {% for message in messages %}
     {% set accent_color = 'navy' %}
     {% if message.message_type == 'rain_cancellation' %}{% set accent_color = 'slate-500' %}
@@ -21,17 +28,29 @@
     {% endif %}
 
     <div
-      class="card-premium border-l-4 border-l-{{ accent_color }} shadow-lg hover:shadow-xl transition-shadow bg-white p-8">
+      class="card-premium border-l-4 transition-all duration-300 bg-white p-8
+      {% if message.is_read == 0 %}
+        border-l-accent shadow-xl ring-1 ring-accent/10
+      {% else %}
+        border-l-navy/10 opacity-70 hover:opacity-100
+      {% endif %}">
       <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6">
         <div class="flex-1">
           <div class="flex items-center gap-3 mb-3">
+            {% if message.is_read == 0 %}
+            <span
+              class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+            {% endif %}
             <span
               class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-{{ accent_color }}/10 text-{{ accent_color }} border border-{{ accent_color }}/20">
               {{ message.message_type.replace('_', ' ') }}
             </span>
             <span class="text-navy/40 text-xs font-medium">{{ message.sent_at }}</span>
           </div>
-          <h3 class="text-xl font-display font-bold text-navy leading-tight">{{ message.subject }}</h3>
+          <h3 class="text-xl font-display font-bold text-navy leading-tight
+            {% if message.is_read == 0 %}text-navy{% else %}text-navy/60{% endif %}">
+            {{ message.subject }}
+          </h3>
         </div>
         <div class="flex items-center gap-2 text-navy/40 whitespace-nowrap">
           <span class="material-symbols-rounded text-base">person</span>
@@ -53,6 +72,32 @@
           {% endif %}
         </span>
       </div>
+
+      {% if message.ack_type %}
+      <div class="mt-4 flex items-center gap-2 text-green-600">
+        <span class="material-symbols-outlined text-lg">check_circle</span>
+        <span class="text-sm font-semibold">
+          {{ message.ack_type|capitalize }} — {{ message.ack_at }}
+        </span>
+      </div>
+      {% else %}
+      <div class="mt-4 flex items-center gap-3">
+        <form method="POST" action="{{ url_for('family_acknowledge', message_id=message.id) }}">
+          <input type="hidden" name="ack" value="ok">
+          <button type="submit"
+            class="px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-all">
+            OK
+          </button>
+        </form>
+        <form method="POST" action="{{ url_for('family_acknowledge', message_id=message.id) }}">
+          <input type="hidden" name="ack" value="received">
+          <button type="submit"
+            class="px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-all">
+            Received
+          </button>
+        </form>
+      </div>
+      {% endif %}
     </div>
     {% endfor %}
   </div>

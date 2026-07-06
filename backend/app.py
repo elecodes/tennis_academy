@@ -364,11 +364,49 @@ def init_db():
             user_id INTEGER NOT NULL,
             email_sent INTEGER DEFAULT 0,
             sent_at TIMESTAMP,
+            is_read INTEGER DEFAULT 0,
             FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
     """
     )
+    try:
+        cursor.execute("ALTER TABLE message_recipients ADD COLUMN is_read INTEGER DEFAULT 0")
+    except Exception:
+        pass  # column already exists
+    try:
+        cursor.execute("ALTER TABLE message_recipients ADD COLUMN ack_type TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE message_recipients ADD COLUMN ack_at TIMESTAMP")
+    except Exception:
+        pass
+
+    # Family quick messages (restricted presets, no free text)
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS family_quick_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            group_id INTEGER,
+            kid_name TEXT NOT NULL,
+            coach_name TEXT,
+            preset TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            content TEXT NOT NULL,
+            sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_read INTEGER DEFAULT 0,
+            deleted_at TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+            FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE SET NULL
+        )
+    """
+    )
+    try:
+        cursor.execute("ALTER TABLE family_quick_messages ADD COLUMN coach_name TEXT")
+    except Exception:
+        pass
 
     # Group schedules table
     cursor.execute(
@@ -557,14 +595,21 @@ def dashboard():
     user_id = session["user_id"]
     role = session["role"]
     sb_lessons_list = []
+    turso_enrollments = []
+    quick_enrollments = []
 
     if role == "admin":
-        # Admin sees everything
+        # Admin sees everything — parallel Supabase fetches
         from supabase_db import fetch_lessons, fetch_coaches, fetch_students
+        from concurrent.futures import ThreadPoolExecutor
 
-        sb_lessons = fetch_lessons()
-        sb_coaches = fetch_coaches()
-        sb_students = fetch_students()
+        with ThreadPoolExecutor(max_workers=3) as ex:
+            fut_lessons = ex.submit(fetch_lessons)
+            fut_coaches = ex.submit(fetch_coaches)
+            fut_students = ex.submit(fetch_students)
+            sb_lessons = fut_lessons.result()
+            sb_coaches = fut_coaches.result()
+            sb_students = fut_students.result()
 
         stats = {
             "total_users": conn.execute(
@@ -607,12 +652,15 @@ def dashboard():
 
         # Append Supabase lessons to my_groups
         from supabase_db import fetch_coach_lessons, fetch_student_lessons
+        from concurrent.futures import ThreadPoolExecutor
 
         coach_name = session.get("full_name")
         if coach_name:
-            sb_lessons = fetch_coach_lessons(coach_name)
-            if sb_lessons:
-                sl_all = fetch_student_lessons()
+            with ThreadPoolExecutor(max_workers=2) as ex:
+                fut_lessons = ex.submit(fetch_coach_lessons, coach_name)
+                fut_sl = ex.submit(fetch_student_lessons)
+                sb_lessons = fut_lessons.result()
+                sl_all = fut_sl.result()
                 sl_by_lesson = {}
                 for sl in (sl_all or []):
                     sl_by_lesson.setdefault(sl["lesson_id"], []).append(sl)
@@ -660,6 +708,44 @@ def dashboard():
             (user_id, user_id, user_id),
         ).fetchall()
 
+        # Family alerts for coach's groups
+        coach_full_name = session.get("full_name")
+        family_alerts = conn.execute(
+            """SELECT fqm.*, u.full_name as family_name
+               FROM family_quick_messages fqm
+               JOIN users u ON fqm.user_id = u.id
+               WHERE (fqm.group_id IN (SELECT id FROM groups WHERE coach_id = ?)
+                  OR (fqm.coach_name IS NOT NULL AND fqm.coach_name = ?))
+                 AND fqm.deleted_at IS NULL
+               ORDER BY fqm.sent_at DESC LIMIT 5""",
+            (user_id, coach_full_name),
+        ).fetchall()
+
+        # Append ack info to coach's own sent messages (batched)
+        recent_messages = list(recent_messages)
+        coach_sent_ids = [m["id"] for m in recent_messages if m["sender_id"] == user_id]
+        ack_map = {}
+        if coach_sent_ids:
+            placeholders = ",".join("?" for _ in coach_sent_ids)
+            rows = conn.execute(
+                f"""SELECT message_id, ack_type, COUNT(*) as cnt
+                    FROM message_recipients
+                    WHERE message_id IN ({placeholders}) AND ack_type IS NOT NULL
+                    GROUP BY message_id, ack_type""",
+                coach_sent_ids,
+            ).fetchall()
+            for r in rows:
+                key = (r["message_id"], r["ack_type"])
+                ack_map[key] = r["cnt"]
+        for msg in recent_messages:
+            if msg["sender_id"] == user_id:
+                parts = []
+                for t in ("ok", "received"):
+                    cnt = ack_map.get((msg["id"], t), 0)
+                    if cnt:
+                        parts.append(f"{cnt} {t}")
+                msg["ack_display"] = " | ".join(parts) if parts else "Awaiting response"
+
         total_families = sum(group["member_count"] for group in my_groups)
 
         total_sessions = conn.execute(
@@ -677,6 +763,7 @@ def dashboard():
         stats = {
             "my_groups": my_groups,
             "recent_messages": recent_messages,
+            "family_alerts": family_alerts,
             "total_families": total_families,
             "total_sessions": total_sessions,
         }
@@ -695,26 +782,33 @@ def dashboard():
             (user_id,),
         ).fetchall()
 
+        # Keep Turso-only enrollments for quick messages (need group_id)
+        turso_enrollments = [
+            e for e in my_enrollments if not e.get("_supabase")
+        ]
+        quick_enrollments = [e for e in my_enrollments if e.get("coach_name")]
+
         messages = conn.execute(
             """
             SELECT DISTINCT m.*, u.full_name as sender_name, g.name as group_name
             FROM messages m
             JOIN users u ON m.sender_id = u.id
             LEFT JOIN groups g ON m.group_id = g.id
-            LEFT JOIN message_recipients mr ON m.id = mr.message_id
-            WHERE m.group_id IN (SELECT group_id FROM group_members WHERE family_id = ?)
+            LEFT JOIN message_recipients mr ON m.id = mr.message_id AND mr.user_id = ?
+            WHERE (m.group_id IN (SELECT group_id FROM group_members WHERE family_id = ?)
                OR mr.user_id = ?
-               OR m.is_general = 1
+               OR m.is_general = 1)
+              AND (mr.id IS NULL OR mr.is_read = 0)
             ORDER BY m.sent_at DESC
         """,
-            (user_id, user_id),
+            (user_id, user_id, user_id),
         ).fetchall()
 
         stats = {"my_enrollments": my_enrollments, "messages": messages}
         template = "family_dashboard.html"
 
     conn.close()
-    return render_template(template, stats=stats, sb_lessons=sb_lessons_list)
+    return render_template(template, stats=stats, sb_lessons=sb_lessons_list, turso_enrollments=turso_enrollments, quick_enrollments=quick_enrollments)
 
 
 # ==================== ADMIN ROUTES ====================
@@ -1248,6 +1342,117 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
         conn.close()
 
 
+@app.route("/admin/send-message-supabase", methods=["GET", "POST"])
+@admin_required
+def admin_send_message_supabase():
+    from supabase_db import fetch_lessons, fetch_lesson_parents
+
+    lessons = fetch_lessons()
+    if lessons is None:
+        flash("Supabase not configured.", "danger")
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+        lesson_id = request.form.get("lesson_id")
+        message_type = request.form.get("message_type")
+        subject = request.form.get("subject", "").strip()
+        content = request.form.get("content", "").strip()
+
+        if not lesson_id or not message_type or not subject or not content:
+            flash("All fields are required.", "danger")
+            return render_template("admin/send_message_supabase.html", lessons=lessons)
+
+        if lesson_id == "all":
+            from supabase_db import fetch_students
+            students = fetch_students() or []
+            seen = set()
+            parents = []
+            for s in students:
+                email = (s.get("parent_email") or "").strip().lower()
+                if email and email not in seen:
+                    seen.add(email)
+                    parents.append({"email": email})
+            lesson_title = "All Lessons"
+            if not parents:
+                flash("No families found in Supabase.", "warning")
+                return redirect(url_for("admin_send_message_supabase"))
+        else:
+            lesson = next((l for l in lessons if str(l["id"]) == lesson_id), None)
+            if not lesson:
+                flash("Invalid lesson selected.", "danger")
+                return redirect(url_for("admin_send_message_supabase"))
+
+            lesson_id = int(lesson_id)
+            parents = fetch_lesson_parents(lesson_id)
+            lesson_title = lesson["title"]
+            if parents is None:
+                flash("Could not fetch enrolled families from Supabase.", "danger")
+                return redirect(url_for("admin_send_message_supabase"))
+            if not parents:
+                flash("No families enrolled in this lesson.", "warning")
+                return redirect(url_for("admin_send_message_supabase"))
+
+        email_body = f"""
+SF TENNIS KIDS Club Notification — Admin {session["full_name"]}
+
+Type: {message_type.replace("_", " ").title()}
+Lesson: {lesson_title}
+Subject: {subject}
+
+{content}
+
+---
+This message was sent from the SF TENNIS KIDS Club Communication System.
+"""
+
+        sent_count = 0
+        failed = []
+        matched_users = []
+        for p in parents:
+            if send_email(p["email"], f"[SF TENNIS KIDS Club] {subject}", email_body):
+                sent_count += 1
+                matched_users.append(p["email"])
+            else:
+                failed.append(p["email"])
+
+        if sent_count > 0:
+            try:
+                store_conn = get_db()
+                from datetime import datetime
+                ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+                store_conn.execute(
+                    """INSERT INTO messages (sender_id, group_id, message_type, subject, content, sent_at, is_general)
+                       VALUES (?, NULL, ?, ?, ?, ?, 0)""",
+                    (session["user_id"], message_type, subject, content, ts),
+                )
+                msg_id = store_conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+                for email in matched_users:
+                    family_user = store_conn.execute(
+                        "SELECT id FROM users WHERE email = ? AND role = 'family'", (email,)
+                    ).fetchone()
+                    if family_user:
+                        store_conn.execute(
+                            "INSERT INTO message_recipients (message_id, user_id) VALUES (?, ?)",
+                            (msg_id, family_user["id"]),
+                        )
+                store_conn.commit()
+            except Exception:
+                pass
+            finally:
+                store_conn.close()
+
+            msg = f"Message sent to {sent_count} families."
+            if failed:
+                msg += f" Failed: {', '.join(failed)}"
+            flash(msg, "success" if not failed else "warning")
+        else:
+            flash("Failed to send to any families.", "danger")
+
+        return redirect(url_for("dashboard"))
+
+    return render_template("admin/send_message_supabase.html", lessons=lessons)
+
+
 @app.route("/admin/test-email", methods=["POST"])
 @admin_required
 def admin_test_email():
@@ -1284,20 +1489,162 @@ def admin_test_email():
     return redirect(url_for("dashboard"))
 
 
-@app.route("/admin/messages/delete/<int:message_id>", methods=["POST"])
+# ==================== ADMIN MESSAGE AUDITOR ====================
+
+
+@app.route("/admin/messages")
+@admin_required
+def admin_message_auditor():
+    conn = get_db()
+
+    # All messages from main messages table
+    main_msgs = conn.execute(
+        """SELECT m.*, u.full_name as sender_name, g.name as group_name,
+                  'broadcast' as source
+           FROM messages m
+           JOIN users u ON m.sender_id = u.id
+           LEFT JOIN groups g ON m.group_id = g.id
+           ORDER BY m.sent_at DESC LIMIT 100"""
+    ).fetchall()
+
+    # All family quick messages
+    family_msgs = conn.execute(
+        """SELECT fqm.*, u.full_name as sender_name, g.name as group_name,
+                  'family_note' as source
+           FROM family_quick_messages fqm
+           JOIN users u ON fqm.user_id = u.id
+           LEFT JOIN groups g ON fqm.group_id = g.id
+           WHERE fqm.deleted_at IS NULL
+           ORDER BY fqm.sent_at DESC LIMIT 100"""
+    ).fetchall()
+
+    # Attach ack summaries for broadcast messages (before closing conn)
+    ack_map = {}
+    all_msgs = list(main_msgs) + list(family_msgs)
+    for msg in all_msgs:
+        if msg["source"] == "broadcast":
+            mid = msg["id"]
+            if mid not in ack_map:
+                acks = conn.execute(
+                    """SELECT ack_type, COUNT(*) as cnt
+                       FROM message_recipients
+                       WHERE message_id = ? AND ack_type IS NOT NULL
+                       GROUP BY ack_type""",
+                    (mid,),
+                ).fetchall()
+                ack_map[mid] = acks
+            parts = []
+            for a in ack_map[mid]:
+                parts.append(f"{a['cnt']} {a['ack_type']}")
+            msg["ack_summary"] = " | ".join(parts) if parts else "—"
+
+    conn.close()
+
+    # Merge and sort (ack_summary already attached)
+    all_msgs.sort(key=lambda m: m.get("sent_at", ""), reverse=True)
+
+    conn.close()
+    return render_template("admin/message_auditor.html", messages=all_msgs)
+
+
+@app.route("/admin/messages/<int:message_id>/edit", methods=["POST"])
+@admin_required
+def admin_edit_message(message_id):
+    subject = request.form.get("subject", "").strip()
+    content = request.form.get("content", "").strip()
+    source = request.form.get("source", "broadcast")
+    table = "family_quick_messages" if source == "family_note" else "messages"
+
+    if not subject or not content:
+        flash("Subject and content are required.", "danger")
+        return redirect(url_for("admin_message_auditor"))
+
+    conn = get_db()
+    conn.execute(
+        f"UPDATE {table} SET subject = ?, content = ? WHERE id = ?",
+        (subject, content, message_id),
+    )
+    conn.commit()
+    conn.close()
+    flash("Message updated.", "success")
+    return redirect(url_for("admin_message_auditor"))
+
+
+@app.route("/admin/messages/<int:message_id>/delete", methods=["POST"])
 @admin_required
 def admin_delete_message(message_id):
-    conn = get_db()
-    try:
-        # recipients will be deleted automatically due to ON DELETE CASCADE
-        conn.execute("DELETE FROM messages WHERE id = ?", (message_id,))
-        conn.commit()
-        flash("Communication log entry deleted.", "success")
-    except Exception as e:
-        flash(f"Error deleting message: {e}", "danger")
-    finally:
-        conn.close()
+    source = request.form.get("source", "broadcast")
 
+    conn = get_db()
+    if source == "family_note":
+        conn.execute(
+            "UPDATE family_quick_messages SET deleted_at = datetime('now') WHERE id = ?",
+            (message_id,),
+        )
+    else:
+        conn.execute(
+            "UPDATE messages SET content = '[deleted by admin]', subject = '[deleted]' WHERE id = ?",
+            (message_id,),
+        )
+    conn.commit()
+    conn.close()
+    flash("Message deleted.", "success")
+    return redirect(url_for("admin_message_auditor"))
+
+
+# ==================== COACH REPLY TO FAMILY ====================
+
+
+@app.route("/coach/reply-family/<int:quick_msg_id>", methods=["POST"])
+@coach_required
+def coach_reply_family(quick_msg_id):
+    content = request.form.get("content", "").strip()
+    if not content:
+        flash("Reply cannot be empty.", "danger")
+        return redirect(url_for("dashboard"))
+
+    conn = get_db()
+    coach_id = session["user_id"]
+    coach_name = session["full_name"]
+    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Get the original quick message
+    qm = conn.execute(
+        "SELECT * FROM family_quick_messages WHERE id = ? AND deleted_at IS NULL",
+        (quick_msg_id,),
+    ).fetchone()
+    if not qm:
+        flash("Message not found.", "danger")
+        conn.close()
+        return redirect(url_for("dashboard"))
+
+    family_user_id = qm["user_id"]
+    kid_name = qm["kid_name"]
+    subject = f"Reply re: {qm['subject']}"
+
+    # Create message in main messages table
+    conn.execute(
+        """INSERT INTO messages (sender_id, group_id, message_type, subject, content, sent_at, is_general)
+           VALUES (?, NULL, 'announcement', ?, ?, ?, 0)""",
+        (coach_id, subject, content, now),
+    )
+    msg_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+    # Add message_recipients for the family user
+    conn.execute(
+        "INSERT INTO message_recipients (message_id, user_id, sent_at) VALUES (?, ?, ?)",
+        (msg_id, family_user_id, now),
+    )
+
+    # Mark the original quick message as read
+    conn.execute(
+        "UPDATE family_quick_messages SET is_read = 1 WHERE id = ?",
+        (quick_msg_id,),
+    )
+
+    conn.commit()
+    conn.close()
+    flash("Reply sent to family.", "success")
     return redirect(url_for("dashboard"))
 
 
@@ -1577,6 +1924,7 @@ def timetable_supabase():
 
     user_role = session.get("role", "family")
     user_name = session.get("full_name")
+    user_email = session.get("email")
 
     date_str = request.args.get("date")
     if date_str:
@@ -1591,7 +1939,7 @@ def timetable_supabase():
     prev_week = (week_start - timedelta(days=7)).strftime("%Y-%m-%d")
     next_week = (week_start + timedelta(days=7)).strftime("%Y-%m-%d")
 
-    result = fetch_timetable(user_role, user_name)
+    result = fetch_timetable(user_role, user_name, user_email)
     if result is None:
         flash("Supabase no está configurado.", "danger")
         return redirect(url_for("dashboard"))
@@ -1676,13 +2024,41 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
 
         sent_count = 0
         failed = []
+        matched_users = []
         for p in parents:
             if send_email(p["email"], f"[SF TENNIS KIDS Club] {subject}", email_body):
                 sent_count += 1
+                matched_users.append(p["email"])
             else:
                 failed.append(p["email"])
 
         if sent_count > 0:
+            # Also store in Turso so families see it in their inbox
+            try:
+                store_conn = get_db()
+                from datetime import datetime
+                ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+                store_conn.execute(
+                    """INSERT INTO messages (sender_id, group_id, message_type, subject, content, sent_at, is_general)
+                       VALUES (?, NULL, ?, ?, ?, ?, 0)""",
+                    (session["user_id"], message_type, subject, content, ts),
+                )
+                msg_id = store_conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+                for email in matched_users:
+                    family_user = store_conn.execute(
+                        "SELECT id FROM users WHERE email = ? AND role = 'family'", (email,)
+                    ).fetchone()
+                    if family_user:
+                        store_conn.execute(
+                            "INSERT INTO message_recipients (message_id, user_id) VALUES (?, ?)",
+                            (msg_id, family_user["id"]),
+                        )
+                store_conn.commit()
+            except Exception:
+                pass  # best-effort: don't break the flow if Turso storage fails
+            finally:
+                store_conn.close()
+
             msg = f"Message sent to {sent_count} families."
             if failed:
                 msg += f" Failed: {', '.join(failed)}"
@@ -1708,28 +2084,158 @@ def family_messages():
     conn = get_db()
     user_id = session["user_id"]
 
-    my_groups = conn.execute(
-        "SELECT group_id FROM group_members WHERE family_id = ?", (user_id,)
+    messages = conn.execute(
+        """
+        SELECT DISTINCT m.*, u.full_name as sender_name, g.name as group_name,
+               COALESCE(mr.is_read, 0) as is_read,
+               mr.ack_type, mr.ack_at
+        FROM messages m
+        JOIN users u ON m.sender_id = u.id
+        LEFT JOIN groups g ON m.group_id = g.id
+        LEFT JOIN message_recipients mr ON m.id = mr.message_id AND mr.user_id = ?
+        WHERE m.is_general = 1
+           OR m.group_id IN (SELECT group_id FROM group_members WHERE family_id = ?)
+           OR mr.user_id = ?
+        ORDER BY m.sent_at DESC
+    """,
+        (user_id, user_id, user_id),
     ).fetchall()
-    my_group_ids = [g["group_id"] for g in my_groups]
-
-    messages = []
-    if my_group_ids:
-        placeholders = ",".join("?" * len(my_group_ids))
-        messages = conn.execute(
-            f"""
-            SELECT m.*, u.full_name as sender_name, g.name as group_name
-            FROM messages m
-            JOIN users u ON m.sender_id = u.id
-            LEFT JOIN groups g ON m.group_id = g.id
-            WHERE m.group_id IN ({placeholders}) OR m.is_general = 1
-            ORDER BY m.sent_at DESC
-        """,
-            tuple(my_group_ids),
-        ).fetchall()
 
     conn.close()
     return render_template("family/messages.html", messages=messages)
+
+
+@app.route("/family/mark-all-read", methods=["POST"])
+@login_required
+def family_mark_all_read():
+    if session["role"] != "family":
+        return redirect(url_for("dashboard"))
+
+    conn = get_db()
+    conn.execute(
+        "UPDATE message_recipients SET is_read = 1 WHERE user_id = ? AND is_read = 0",
+        (session["user_id"],),
+    )
+    conn.commit()
+    conn.close()
+    return redirect(url_for("family_messages"))
+
+
+@app.route("/family/acknowledge/<int:message_id>", methods=["POST"])
+@login_required
+def family_acknowledge(message_id):
+    if session["role"] != "family":
+        return redirect(url_for("dashboard"))
+
+    ack = request.form.get("ack")
+    if ack not in ("ok", "received"):
+        flash("Invalid acknowledgment.", "danger")
+        return redirect(url_for("family_messages"))
+
+    conn = get_db()
+    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    conn.execute(
+        """UPDATE message_recipients
+           SET ack_type = ?, ack_at = ?, is_read = 1
+           WHERE message_id = ? AND user_id = ?""",
+        (ack, now, message_id, session["user_id"]),
+    )
+    conn.commit()
+    conn.close()
+    return redirect(url_for("family_messages"))
+
+
+@app.route("/family/quick-message", methods=["POST"])
+@login_required
+def family_quick_message():
+    if session["role"] != "family":
+        return redirect(url_for("dashboard"))
+
+    kid_name = request.form.get("kid_name", "").strip()
+    preset = request.form.get("preset", "").strip()
+
+    PRESETS = {
+        "running_late": {
+            "subject": "Running Late — {kid}",
+            "content": "We're running late but on our way. ETA approximately 10–15 minutes.",
+        },
+        "will_miss": {
+            "subject": "Will Miss Class — {kid}",
+            "content": "{kid} won't make it to class today. See you next session.",
+        },
+        "on_my_way": {
+            "subject": "On My Way — {kid}",
+            "content": "Just confirming we're on the way to class today.",
+        },
+        "early_pickup": {
+            "subject": "Early Pickup — {kid}",
+            "content": "We need to pick {kid} up early today.",
+        },
+    }
+
+    if preset not in PRESETS or not kid_name:
+        flash("Invalid request.", "danger")
+        return redirect(url_for("dashboard"))
+
+    conn = get_db()
+    user_id = session["user_id"]
+
+    # Rate limit: 15 minutes
+    last = conn.execute(
+        "SELECT sent_at FROM family_quick_messages WHERE user_id = ? ORDER BY sent_at DESC LIMIT 1",
+        (user_id,),
+    ).fetchone()
+    if last:
+        from datetime import datetime, timedelta
+        last_time = datetime.fromisoformat(last["sent_at"].replace("Z", "+00:00").replace(" ", "T"))
+        if datetime.now(last_time.tzinfo) - last_time < timedelta(minutes=15):
+            flash("You can only send one quick message every 15 minutes.", "warning")
+            conn.close()
+            return redirect(url_for("dashboard"))
+
+    # Find group for this kid (check Turso first, then Supabase)
+    enrollment = conn.execute(
+        """SELECT g.id, gm.kid_name, u.full_name as coach_name FROM group_members gm
+           JOIN groups g ON gm.group_id = g.id
+           LEFT JOIN users u ON g.coach_id = u.id
+           WHERE gm.family_id = ? AND LOWER(gm.kid_name) = LOWER(?)""",
+        (user_id, kid_name),
+    ).fetchone()
+
+    coach_name = None
+    group_id = None
+    if enrollment:
+        group_id = enrollment["id"]
+        coach_name = enrollment["coach_name"]
+    else:
+        # Check Supabase enrollments by parent_email + kid_name
+        from supabase_db import fetch_family_enrollments
+        family_email = session.get("email")
+        if family_email:
+            sb = fetch_family_enrollments(family_email) or []
+            for e in sb:
+                if e.get("kid_name", "").lower() == kid_name.lower():
+                    coach_name = e.get("coach_name")
+                    break
+
+    if not coach_name:
+        flash("Could not find enrollment for that child.", "danger")
+        conn.close()
+        return redirect(url_for("dashboard"))
+
+    preset_data = PRESETS[preset]
+    subject = preset_data["subject"].format(kid=kid_name)
+    content = preset_data["content"].format(kid=kid_name)
+
+    conn.execute(
+        """INSERT INTO family_quick_messages (user_id, group_id, kid_name, coach_name, preset, subject, content)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (user_id, group_id, kid_name, coach_name, preset, subject, content),
+    )
+    conn.commit()
+    conn.close()
+    flash("Message sent to your coach.", "success")
+    return redirect(url_for("dashboard"))
 
 
 @app.route("/family/my-enrollments")
@@ -1742,16 +2248,33 @@ def family_enrollments():
     conn = get_db()
     user_id = session["user_id"]
 
-    enrollments = conn.execute(
-        """
-        SELECT g.*, gm.kid_name, u.full_name as coach_name
-        FROM group_members gm
-        JOIN groups g ON gm.group_id = g.id
-        LEFT JOIN users u ON g.coach_id = u.id
-        WHERE gm.family_id = ?
-    """,
-        (user_id,),
-    ).fetchall()
+    enrollments = list(
+        conn.execute(
+            """
+            SELECT g.*, gm.kid_name, u.full_name as coach_name
+            FROM group_members gm
+            JOIN groups g ON gm.group_id = g.id
+            LEFT JOIN users u ON g.coach_id = u.id
+            WHERE gm.family_id = ?
+        """,
+            (user_id,),
+        ).fetchall()
+    )
+
+    # Append Supabase enrollments
+    from supabase_db import fetch_family_enrollments
+
+    family_email = session.get("email")
+    if family_email:
+        sb_enrollments = fetch_family_enrollments(family_email)
+        if sb_enrollments:
+            if not enrollments:
+                enrollments = sb_enrollments
+            else:
+                enrollment_ids = {e["kid_name"] for e in enrollments}
+                for e in sb_enrollments:
+                    if e["kid_name"] not in enrollment_ids:
+                        enrollments.append(e)
 
     conn.close()
     return render_template("family/enrollments.html", enrollments=enrollments)

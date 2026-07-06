@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Send Message (Supabase) - SF TENNIS KIDS Club{% endblock %}
+{% block title %}Admin Broadcast (Supabase) - SF TENNIS KIDS Club{% endblock %}
 
 {% block content %}
 {% include 'dashboard_header.html' %}
@@ -19,7 +19,7 @@
     </div>
 
     {% if lessons %}
-    <form method="POST" action="{{ url_for('coach_send_message_supabase') }}" class="space-y-4 lg:space-y-8">
+    <form method="POST" action="{{ url_for('admin_send_message_supabase') }}" class="space-y-4 lg:space-y-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-8">
         <div class="space-y-2 lg:space-y-3">
           <label for="message_type" class="text-[10px] font-black text-accent uppercase tracking-[0.2em] pl-1">Nature of
@@ -28,9 +28,9 @@
             <select class="form-input appearance-none pr-10 lg:pr-12 cursor-pointer text-base lg:text-sm" id="message_type" name="message_type"
               required>
               <option value="announcement">Announcement</option>
-              <option value="rain_cancellation">Rain Cancellation</option>
-              <option value="coach_delay">Coach Delay</option>
-              <option value="schedule_change">Schedule Change</option>
+              <option value="rain_cancellation">Weather</option>
+              <option value="coach_delay">Delay</option>
+              <option value="schedule_change">Schedule</option>
             </select>
             <div class="absolute right-3 lg:right-5 top-1/2 -translate-y-1/2 pointer-events-none text-navy/30">
               <span class="material-symbols-outlined">expand_more</span>
@@ -44,6 +44,9 @@
           <div class="relative">
             <select class="form-input appearance-none pr-10 lg:pr-12 cursor-pointer text-base lg:text-sm" id="lesson_id" name="lesson_id" required>
               <option value="">-- Select --</option>
+              {% if lessons|length > 1 %}
+              <option value="all">-- All Families (Supabase) --</option>
+              {% endif %}
               {% for l in lessons %}
                 <option value="{{ l.id }}">
                   {{ l.title }} — {{ l.student_count }} enrolled
@@ -85,7 +88,7 @@
         </div>
         <p class="text-xs text-obsidian/70 leading-relaxed font-semibold">
           <strong class="text-accent font-black uppercase tracking-wider block mb-1 lg:mb-2">Club Directive</strong>
-          Message will be sent to all families enrolled in the selected lesson (via Supabase). Please verify details before sending.
+          Message will be sent to families enrolled in the selected lesson (or ALL families if "All Families" is selected). Data sourced from Supabase.
         </p>
       </div>
 
