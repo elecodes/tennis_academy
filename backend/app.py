@@ -599,12 +599,17 @@ def dashboard():
     quick_enrollments = []
 
     if role == "admin":
-        # Admin sees everything
+        # Admin sees everything — parallel Supabase fetches
         from supabase_db import fetch_lessons, fetch_coaches, fetch_students
+        from concurrent.futures import ThreadPoolExecutor
 
-        sb_lessons = fetch_lessons()
-        sb_coaches = fetch_coaches()
-        sb_students = fetch_students()
+        with ThreadPoolExecutor(max_workers=3) as ex:
+            fut_lessons = ex.submit(fetch_lessons)
+            fut_coaches = ex.submit(fetch_coaches)
+            fut_students = ex.submit(fetch_students)
+            sb_lessons = fut_lessons.result()
+            sb_coaches = fut_coaches.result()
+            sb_students = fut_students.result()
 
         stats = {
             "total_users": conn.execute(
@@ -647,12 +652,15 @@ def dashboard():
 
         # Append Supabase lessons to my_groups
         from supabase_db import fetch_coach_lessons, fetch_student_lessons
+        from concurrent.futures import ThreadPoolExecutor
 
         coach_name = session.get("full_name")
         if coach_name:
-            sb_lessons = fetch_coach_lessons(coach_name)
-            if sb_lessons:
-                sl_all = fetch_student_lessons()
+            with ThreadPoolExecutor(max_workers=2) as ex:
+                fut_lessons = ex.submit(fetch_coach_lessons, coach_name)
+                fut_sl = ex.submit(fetch_student_lessons)
+                sb_lessons = fut_lessons.result()
+                sl_all = fut_sl.result()
                 sl_by_lesson = {}
                 for sl in (sl_all or []):
                     sl_by_lesson.setdefault(sl["lesson_id"], []).append(sl)
@@ -1370,26 +1378,41 @@ def admin_send_message_supabase():
             flash("All fields are required.", "danger")
             return render_template("admin/send_message_supabase.html", lessons=lessons)
 
-        lesson = next((l for l in lessons if str(l["id"]) == lesson_id), None)
-        if not lesson:
-            flash("Invalid lesson selected.", "danger")
-            return redirect(url_for("admin_send_message_supabase"))
+        if lesson_id == "all":
+            from supabase_db import fetch_students
+            students = fetch_students() or []
+            seen = set()
+            parents = []
+            for s in students:
+                email = (s.get("parent_email") or "").strip().lower()
+                if email and email not in seen:
+                    seen.add(email)
+                    parents.append({"email": email})
+            lesson_title = "All Lessons"
+            if not parents:
+                flash("No families found in Supabase.", "warning")
+                return redirect(url_for("admin_send_message_supabase"))
+        else:
+            lesson = next((l for l in lessons if str(l["id"]) == lesson_id), None)
+            if not lesson:
+                flash("Invalid lesson selected.", "danger")
+                return redirect(url_for("admin_send_message_supabase"))
 
-        lesson_id = int(lesson_id)
-        parents = fetch_lesson_parents(lesson_id)
-        if parents is None:
-            flash("Could not fetch enrolled families from Supabase.", "danger")
-            return redirect(url_for("admin_send_message_supabase"))
-
-        if not parents:
-            flash("No families enrolled in this lesson.", "warning")
-            return redirect(url_for("admin_send_message_supabase"))
+            lesson_id = int(lesson_id)
+            parents = fetch_lesson_parents(lesson_id)
+            lesson_title = lesson["title"]
+            if parents is None:
+                flash("Could not fetch enrolled families from Supabase.", "danger")
+                return redirect(url_for("admin_send_message_supabase"))
+            if not parents:
+                flash("No families enrolled in this lesson.", "warning")
+                return redirect(url_for("admin_send_message_supabase"))
 
         email_body = f"""
 SF TENNIS KIDS Club Notification — Admin {session["full_name"]}
 
 Type: {message_type.replace("_", " ").title()}
-Lesson: {lesson["title"]}
+Lesson: {lesson_title}
 Subject: {subject}
 
 {content}

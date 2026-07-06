@@ -44,6 +44,9 @@
           <div class="relative">
             <select class="form-input appearance-none pr-10 lg:pr-12 cursor-pointer text-base lg:text-sm" id="lesson_id" name="lesson_id" required>
               <option value="">-- Select --</option>
+              {% if lessons|length > 1 %}
+              <option value="all">-- All Families (Supabase) --</option>
+              {% endif %}
               {% for l in lessons %}
                 <option value="{{ l.id }}">
                   {{ l.title }} — {{ l.student_count }} enrolled
@@ -85,7 +88,7 @@
         </div>
         <p class="text-xs text-obsidian/70 leading-relaxed font-semibold">
           <strong class="text-accent font-black uppercase tracking-wider block mb-1 lg:mb-2">Club Directive</strong>
-          Message will be sent to all families enrolled in the selected lesson (via Supabase). Please verify details before sending.
+          Message will be sent to families enrolled in the selected lesson (or ALL families if "All Families" is selected). Data sourced from Supabase.
         </p>
       </div>
 

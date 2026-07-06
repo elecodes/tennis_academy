@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from database import get_db
 
@@ -95,6 +96,20 @@ def _fetch(table, order=None):
     data = resp.json()
     _cache_set(cache_key, data)
     return data
+
+
+def _fetch_multi(*specs):
+    """Fetch multiple tables concurrently. Each spec is (table, order) or just table."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _do(spec):
+        if isinstance(spec, tuple):
+            return spec[0], _fetch(spec[0], spec[1])
+        return spec, _fetch(spec)
+
+    with ThreadPoolExecutor(max_workers=len(specs)) as ex:
+        results = ex.map(_do, specs)
+    return dict(results)
 
 
 def fetch_students():
@@ -473,10 +488,11 @@ def fetch_timetable(role, user_name=None, user_email=None):
 
 
 def fetch_family_enrollments(parent_email):
-    students = _fetch("students")
-    student_lessons = _fetch("student_lessons")
-    lessons = _fetch("lessons")
-    coaches = _fetch("coaches")
+    data = _fetch_multi("students", "student_lessons", "lessons", "coaches")
+    students = data.get("students")
+    student_lessons = data.get("student_lessons")
+    lessons = data.get("lessons")
+    coaches = data.get("coaches")
 
     if not all([students, student_lessons, lessons, coaches]):
         return None
