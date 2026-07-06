@@ -1,5 +1,9 @@
 import os
+import json
 import requests
+from datetime import datetime, timedelta
+from database import get_db
+
 
 SUPABASE_URL = os.environ.get(
     "SUPABASE_URL",
@@ -7,6 +11,53 @@ SUPABASE_URL = os.environ.get(
 )
 SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+
+_CACHE_TTL = 60  # seconds
+_cache_initialized = False
+
+
+def _ensure_cache_table():
+    global _cache_initialized
+    if _cache_initialized:
+        return
+    conn = get_db()
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS supabase_cache (
+            key TEXT PRIMARY KEY,
+            data TEXT NOT NULL,
+            expires_at TIMESTAMP NOT NULL
+        )"""
+    )
+    conn.commit()
+    conn.close()
+    _cache_initialized = True
+
+
+def _cache_get(key):
+    _ensure_cache_table()
+    conn = get_db()
+    row = conn.execute(
+        "SELECT data FROM supabase_cache WHERE key = ? AND expires_at > datetime('now')",
+        (key,),
+    ).fetchone()
+    conn.close()
+    if row:
+        return json.loads(row["data"])
+    return None
+
+
+def _cache_set(key, data, ttl=None):
+    _ensure_cache_table()
+    expires = (datetime.utcnow() + timedelta(seconds=ttl or _CACHE_TTL)).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+    conn = get_db()
+    conn.execute(
+        "INSERT OR REPLACE INTO supabase_cache (key, data, expires_at) VALUES (?, ?, ?)",
+        (key, json.dumps(data), expires),
+    )
+    conn.commit()
+    conn.close()
 
 
 def _client():
@@ -23,6 +74,11 @@ def _client():
 
 
 def _fetch(table, order=None):
+    cache_key = f"sb:{table}:{order or ''}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
     client = _client()
     if not client:
         return None
@@ -36,7 +92,9 @@ def _fetch(table, order=None):
         timeout=10,
     )
     resp.raise_for_status()
-    return resp.json()
+    data = resp.json()
+    _cache_set(cache_key, data)
+    return data
 
 
 def fetch_students():

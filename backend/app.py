@@ -713,20 +713,29 @@ def dashboard():
             (user_id, coach_full_name),
         ).fetchall()
 
-        # Append ack info to coach's own sent messages
+        # Append ack info to coach's own sent messages (batched)
         recent_messages = list(recent_messages)
+        coach_sent_ids = [m["id"] for m in recent_messages if m["sender_id"] == user_id]
+        ack_map = {}
+        if coach_sent_ids:
+            placeholders = ",".join("?" for _ in coach_sent_ids)
+            rows = conn.execute(
+                f"""SELECT message_id, ack_type, COUNT(*) as cnt
+                    FROM message_recipients
+                    WHERE message_id IN ({placeholders}) AND ack_type IS NOT NULL
+                    GROUP BY message_id, ack_type""",
+                coach_sent_ids,
+            ).fetchall()
+            for r in rows:
+                key = (r["message_id"], r["ack_type"])
+                ack_map[key] = r["cnt"]
         for msg in recent_messages:
             if msg["sender_id"] == user_id:
-                acks = conn.execute(
-                    """SELECT ack_type, COUNT(*) as cnt
-                       FROM message_recipients
-                       WHERE message_id = ? AND ack_type IS NOT NULL
-                       GROUP BY ack_type""",
-                    (msg["id"],),
-                ).fetchall()
                 parts = []
-                for a in acks:
-                    parts.append(f"{a['cnt']} {a['ack_type']}")
+                for t in ("ok", "received"):
+                    cnt = ack_map.get((msg["id"], t), 0)
+                    if cnt:
+                        parts.append(f"{cnt} {t}")
                 msg["ack_display"] = " | ".join(parts) if parts else "Awaiting response"
 
         total_families = sum(group["member_count"] for group in my_groups)
