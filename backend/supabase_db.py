@@ -1,143 +1,44 @@
 import os
-import json
-import requests
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
-from database import get_db
+from backend.pg_db import pg_query
 
 
-SUPABASE_URL = os.environ.get(
-    "SUPABASE_URL",
-    "https://ypbwlpeighgpafocauzp.supabase.co/rest/v1",
-)
-SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY")
-SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
-
-_CACHE_TTL = 60  # seconds
-_cache_initialized = False
-
-
-def _ensure_cache_table():
-    global _cache_initialized
-    if _cache_initialized:
-        return
-    conn = get_db()
-    conn.execute(
-        """CREATE TABLE IF NOT EXISTS supabase_cache (
-            key TEXT PRIMARY KEY,
-            data TEXT NOT NULL,
-            expires_at TIMESTAMP NOT NULL
-        )"""
-    )
-    conn.commit()
-    conn.close()
-    _cache_initialized = True
-
-
-def _cache_get(key):
-    _ensure_cache_table()
-    conn = get_db()
-    row = conn.execute(
-        "SELECT data FROM supabase_cache WHERE key = ? AND expires_at > datetime('now')",
-        (key,),
-    ).fetchone()
-    conn.close()
-    if row:
-        return json.loads(row["data"])
-    return None
-
-
-def _cache_set(key, data, ttl=None):
-    _ensure_cache_table()
-    expires = (datetime.utcnow() + timedelta(seconds=ttl or _CACHE_TTL)).strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-    conn = get_db()
-    conn.execute(
-        "INSERT OR REPLACE INTO supabase_cache (key, data, expires_at) VALUES (?, ?, ?)",
-        (key, json.dumps(data), expires),
-    )
-    conn.commit()
-    conn.close()
-
-
-def _client():
-    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY or not SUPABASE_ANON_KEY:
-        return None
-    return {
-        "url": SUPABASE_URL.rstrip("/"),
-        "headers": {
-            "apikey": SUPABASE_ANON_KEY,
-            "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
-            "Accept": "application/json",
-        },
-    }
-
-
-def _fetch(table, order=None):
-    cache_key = f"sb:{table}:{order or ''}"
-    cached = _cache_get(cache_key)
-    if cached is not None:
-        return cached
-
-    client = _client()
-    if not client:
-        return None
-    params = {}
+def _fetch_all(table, order=None):
+    sql = f"SELECT * FROM {table}"
     if order:
-        params["order"] = order
-    resp = requests.get(
-        f"{client['url']}/{table}",
-        headers=client["headers"],
-        params=params,
-        timeout=10,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    _cache_set(cache_key, data)
-    return data
-
-
-def _fetch_multi(*specs):
-    """Fetch multiple tables concurrently. Each spec is (table, order) or just table."""
-    from concurrent.futures import ThreadPoolExecutor
-
-    def _do(spec):
-        if isinstance(spec, tuple):
-            return spec[0], _fetch(spec[0], spec[1])
-        return spec, _fetch(spec)
-
-    with ThreadPoolExecutor(max_workers=len(specs)) as ex:
-        results = ex.map(_do, specs)
-    return dict(results)
+        clauses = []
+        for part in order.split(","):
+            col, direction = part.strip().split(".")
+            clauses.append(f"{col} {direction.upper()}")
+        sql += " ORDER BY " + ", ".join(clauses)
+    return pg_query(sql)
 
 
 def fetch_students():
-    return _fetch("students", order="name.asc")
+    return _fetch_all("students", "name.asc")
 
 
 def fetch_coaches():
-    return _fetch("coaches", order="name.asc")
+    return _fetch_all("coaches", "name.asc")
 
 
 def fetch_lessons():
-    return _fetch("lessons", order="day.asc,time.asc")
+    return _fetch_all("lessons", "day.asc,time.asc")
 
 
 def fetch_seasons():
-    return _fetch("seasons", order="name.asc")
+    return _fetch_all("seasons", "name.asc")
 
 
 def fetch_student_lessons():
-    return _fetch("student_lessons")
+    return _fetch_all("student_lessons")
 
 
 def fetch_enrollments():
-    students = _fetch("students")
-    student_lessons = _fetch("student_lessons")
-    lessons = _fetch("lessons")
-    seasons = _fetch("seasons")
-    coaches = _fetch("coaches")
+    students = fetch_students()
+    student_lessons = fetch_student_lessons()
+    lessons = fetch_lessons()
+    seasons = fetch_seasons()
+    coaches = fetch_coaches()
 
     if not all([students, student_lessons, lessons, seasons, coaches]):
         return None
@@ -197,8 +98,8 @@ def fetch_enrollments():
 
 
 def fetch_supabase_users():
-    coaches = _fetch("coaches", order="name.asc")
-    students = _fetch("students", order="name.asc")
+    coaches = fetch_coaches()
+    students = fetch_students()
 
     if coaches is None or students is None:
         return None
@@ -239,10 +140,10 @@ def fetch_supabase_users():
 
 
 def fetch_coach_groups(coach_name):
-    coaches = _fetch("coaches")
-    lessons = _fetch("lessons")
-    students = _fetch("students")
-    student_lessons = _fetch("student_lessons")
+    coaches = fetch_coaches()
+    lessons = fetch_lessons()
+    students = fetch_students()
+    student_lessons = fetch_student_lessons()
 
     if not all([coaches, lessons, students, student_lessons]):
         return None
@@ -290,15 +191,6 @@ def fetch_coach_groups(coach_name):
 
 
 def fetch_coach_lessons(coach_name):
-    """
-    Fetch lessons assigned to a coach, deduplicated by (day, time).
-
-    Args:
-        coach_name: coach name (case-insensitive match)
-
-    Returns:
-        list of {id, title, day, time, type, student_count} or [] if no lessons
-    """
     coaches = fetch_coaches()
     lessons = fetch_lessons()
     student_lessons = fetch_student_lessons()
@@ -346,15 +238,6 @@ def fetch_coach_lessons(coach_name):
 
 
 def fetch_lesson_parents(lesson_id):
-    """
-    Get parent contact info for all students enrolled in a lesson.
-
-    Args:
-        lesson_id: Supabase lesson ID
-
-    Returns:
-        list of {name, email, phone} or []
-    """
     students = fetch_students()
     student_lessons = fetch_student_lessons()
 
@@ -386,17 +269,6 @@ def fetch_lesson_parents(lesson_id):
 
 
 def fetch_timetable(role, user_name=None, user_email=None):
-    """
-    Fetch weekly timetable from Supabase, compatible with timetable.html.
-
-    Args:
-        role: 'admin', 'coach', or 'family'
-        user_name: session full_name (for coach role filtering)
-        user_email: session email (for family role filtering by parent_email)
-
-    Returns:
-        dict {groups: [...]} matching timetable template structure, or None on error
-    """
     lessons = fetch_lessons()
     coaches = fetch_coaches()
     students = fetch_students()
@@ -488,11 +360,10 @@ def fetch_timetable(role, user_name=None, user_email=None):
 
 
 def fetch_family_enrollments(parent_email):
-    data = _fetch_multi("students", "student_lessons", "lessons", "coaches")
-    students = data.get("students")
-    student_lessons = data.get("student_lessons")
-    lessons = data.get("lessons")
-    coaches = data.get("coaches")
+    students = fetch_students()
+    student_lessons = fetch_student_lessons()
+    lessons = fetch_lessons()
+    coaches = fetch_coaches()
 
     if not all([students, student_lessons, lessons, coaches]):
         return None

@@ -1,11 +1,25 @@
 import os
 import pg8000
+import datetime
+from decimal import Decimal
 from queue import Queue, Empty
 from threading import Lock
 from contextlib import contextmanager
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+def _normalize(val):
+    if isinstance(val, (datetime.time, datetime.date, datetime.datetime)):
+        return val.isoformat()
+    if isinstance(val, Decimal):
+        return float(val)
+    return val
+
+
+def _normalize_row(row):
+    return {k: _normalize(v) for k, v in row.items()}
 
 
 POOL_MIN = int(os.environ.get("PG_POOL_MIN", "2"))
@@ -100,7 +114,7 @@ def pg_query(sql, params=None):
             if sql.strip().upper().startswith("SELECT") or "RETURNING" in sql.upper():
                 cols = [d[0].lower() for d in cursor.description]
                 rows = cursor.fetchall()
-                return [dict(zip(cols, row)) for row in rows]
+                return [_normalize_row(dict(zip(cols, row))) for row in rows]
             conn.commit()
             return cursor.rowcount
         except Exception:
