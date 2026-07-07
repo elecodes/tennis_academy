@@ -23,7 +23,7 @@ def _normalize_row(row):
 
 
 POOL_MIN = int(os.environ.get("PG_POOL_MIN", "2"))
-POOL_MAX = int(os.environ.get("PG_POOL_MAX", "6"))
+POOL_MAX = int(os.environ.get("PG_POOL_MAX", "10"))
 _DATABASE_URL = os.environ.get("DATABASE_URL")
 
 
@@ -138,7 +138,10 @@ def is_pg_available():
 def get_pg_connection():
     if not is_pg_available():
         return None
-    return PgConnection()
+    try:
+        return PgConnection()
+    except Exception:
+        return None
 
 
 class PgRow(dict):
