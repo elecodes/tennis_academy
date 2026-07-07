@@ -1,36 +1,24 @@
-import os
 from backend.pg_db import pg_query
 
 
-def _fetch_all(table, order=None):
-    sql = f"SELECT * FROM {table}"
-    if order:
-        clauses = []
-        for part in order.split(","):
-            col, direction = part.strip().split(".")
-            clauses.append(f"{col} {direction.upper()}")
-        sql += " ORDER BY " + ", ".join(clauses)
-    return pg_query(sql)
-
-
 def fetch_students():
-    return _fetch_all("students", "name.asc")
+    return pg_query("SELECT * FROM students ORDER BY name ASC")
 
 
 def fetch_coaches():
-    return _fetch_all("coaches", "name.asc")
+    return pg_query("SELECT * FROM coaches ORDER BY name ASC")
 
 
 def fetch_lessons():
-    return _fetch_all("lessons", "day.asc,time.asc")
+    return pg_query("SELECT * FROM lessons ORDER BY day ASC, time ASC")
 
 
 def fetch_seasons():
-    return _fetch_all("seasons", "name.asc")
+    return pg_query("SELECT * FROM seasons ORDER BY name ASC")
 
 
 def fetch_student_lessons():
-    return _fetch_all("student_lessons")
+    return pg_query("SELECT * FROM student_lessons")
 
 
 def fetch_enrollments():
@@ -392,7 +380,6 @@ def fetch_family_enrollments(parent_email):
                 "kid_name": s["name"],
                 "name": "(no lesson assigned)",
                 "coach_name": None,
-                "_supabase": True,
             })
         else:
             for sl in linked:
@@ -419,7 +406,6 @@ def fetch_family_enrollments(parent_email):
                     "name": lesson.get("title", ""),
                     "coach_name": coach,
                     "schedule": f"{day_abbr} {time_str}",
-                    "_supabase": True,
                 })
 
     return enrollments

@@ -1349,7 +1349,7 @@ def admin_send_message_supabase():
 
     lessons = fetch_lessons()
     if lessons is None:
-        flash("Supabase not configured.", "danger")
+        flash("Base de datos no configurada.", "danger")
         return redirect(url_for("dashboard"))
 
     if request.method == "POST":
@@ -1374,7 +1374,7 @@ def admin_send_message_supabase():
                     parents.append({"email": email})
             lesson_title = "All Lessons"
             if not parents:
-                flash("No families found in Supabase.", "warning")
+                flash("No families found in lesson data.", "warning")
                 return redirect(url_for("admin_send_message_supabase"))
         else:
             lesson = next((l for l in lessons if str(l["id"]) == lesson_id), None)
@@ -1386,7 +1386,7 @@ def admin_send_message_supabase():
             parents = fetch_lesson_parents(lesson_id)
             lesson_title = lesson["title"]
             if parents is None:
-                flash("Could not fetch enrolled families from Supabase.", "danger")
+                flash("Could not fetch enrolled families.", "danger")
                 return redirect(url_for("admin_send_message_supabase"))
             if not parents:
                 flash("No families enrolled in this lesson.", "warning")
@@ -1910,7 +1910,7 @@ def coach_my_groups_supabase():
 
     groups = fetch_coach_groups(coach["full_name"])
     if groups is None:
-        flash("Supabase not configured.", "danger")
+        flash("Base de datos no configurada.", "danger")
         return redirect(url_for("dashboard"))
 
     return render_template("coach/my_groups_supabase.html", groups=groups, coach_name=coach["full_name"])
@@ -1941,7 +1941,7 @@ def timetable_supabase():
 
     result = fetch_timetable(user_role, user_name, user_email)
     if result is None:
-        flash("Supabase no está configurado.", "danger")
+        flash("Base de datos no configurada.", "danger")
         return redirect(url_for("dashboard"))
 
     day_filter = request.args.get("day")
@@ -1981,7 +1981,7 @@ def coach_send_message_supabase():
     coach_name = coach_name["full_name"]
     lessons = fetch_coach_lessons(coach_name)
     if lessons is None:
-        flash("Supabase not configured.", "danger")
+        flash("Base de datos no configurada.", "danger")
         return redirect(url_for("dashboard"))
 
     if request.method == "POST":
@@ -2002,7 +2002,7 @@ def coach_send_message_supabase():
         lesson_id = int(lesson_id)
         parents = fetch_lesson_parents(lesson_id)
         if parents is None:
-            flash("Could not fetch enrolled families from Supabase.", "danger")
+            flash("Could not fetch enrolled families.", "danger")
             return redirect(url_for("coach_send_message_supabase"))
 
         if not parents:
@@ -2339,7 +2339,7 @@ def supabase_students():
 
     data = fetch_students()
     if data is None:
-        return jsonify({"error": "Supabase not configured"}), 503
+        return jsonify({"error": "Base de datos no configurada"}), 503
     return jsonify(data)
 
 
@@ -2351,7 +2351,7 @@ def supabase_coaches():
 
     data = fetch_coaches()
     if data is None:
-        return jsonify({"error": "Supabase not configured"}), 503
+        return jsonify({"error": "Base de datos no configurada"}), 503
     return jsonify(data)
 
 
@@ -2363,7 +2363,7 @@ def supabase_lessons():
 
     data = fetch_lessons()
     if data is None:
-        return jsonify({"error": "Supabase not configured"}), 503
+        return jsonify({"error": "Base de datos no configurada"}), 503
     return jsonify(data)
 
 
@@ -2375,7 +2375,7 @@ def admin_students():
 
     students = fetch_students()
     if students is None:
-        flash("Supabase not configured. Set SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_KEY.", "danger")
+        flash("Base de datos no configurada. Set DATABASE_URL.", "danger")
         return redirect(url_for("dashboard"))
     seasons = fetch_seasons() or []
     season_map = {s["id"]: s["name"] for s in seasons}
@@ -2392,7 +2392,7 @@ def admin_enrollments_supabase():
 
     enrollments = fetch_enrollments()
     if enrollments is None:
-        flash("Supabase not configured. Set SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_KEY.", "danger")
+        flash("Base de datos no configurada. Set DATABASE_URL.", "danger")
         return redirect(url_for("dashboard"))
     return render_template("admin/enrollments_supabase.html", enrollments=enrollments)
 
@@ -2405,7 +2405,7 @@ def admin_users_supabase():
 
     users = fetch_supabase_users()
     if users is None:
-        flash("Supabase not configured. Set SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_KEY.", "danger")
+        flash("Base de datos no configurada. Set DATABASE_URL.", "danger")
         return redirect(url_for("dashboard"))
     return render_template("admin/users_supabase.html", users=users)
 

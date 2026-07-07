@@ -6,9 +6,6 @@ services:
     environment:
       - TURSO_URL=${TURSO_URL:-libsql://sf-tennis-academy-elecodes.turso.io}
       - TURSO_TOKEN=${TURSO_TOKEN:-}
-      - SUPABASE_URL=${SUPABASE_URL:-}
-      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}
-      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY:-}
       - SENDER_EMAIL=${SENDER_EMAIL:-}
       - SENDER_PASSWORD=${SENDER_PASSWORD:-}
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
