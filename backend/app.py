@@ -866,7 +866,7 @@ def admin_groups():
         FROM groups g
         LEFT JOIN users u ON g.coach_id = u.id
         LEFT JOIN group_members gm ON g.id = gm.group_id
-        GROUP BY g.id
+        GROUP BY g.id, g.name, g.coach_id, g.description, g.created_at, g.schedule, u.full_name
         ORDER BY g.created_at DESC
     """
     ).fetchall()

@@ -129,3 +129,84 @@ def pg_insert(sql, params=None):
 
 def pg_close_all():
     _pool.closeall()
+
+
+def is_pg_available():
+    return bool(_DATABASE_URL)
+
+
+def get_pg_connection():
+    if not is_pg_available():
+        return None
+    return PgConnection()
+
+
+class PgRow(dict):
+    def __init__(self, cols, values):
+        self._cols = cols
+        data = {}
+        for i, col in enumerate(cols):
+            data[col] = _normalize(values[i])
+        super().__init__(data)
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            col = self._cols[key]
+            return super().__getitem__(col)
+        return super().__getitem__(key)
+
+
+class PgCursor:
+    def __init__(self, pg_conn):
+        self._pg_conn = pg_conn
+        self._pg_cursor = pg_conn.cursor()
+        self._results = []
+        self.rowcount = -1
+        self.description = None
+
+    def execute(self, sql, params=None):
+        if params is not None and "?" in sql:
+            sql = sql.replace("?", "%s")
+        self._pg_cursor.execute(sql, params or ())
+        self.rowcount = self._pg_cursor.rowcount
+        self.description = self._pg_cursor.description
+        if self.description:
+            cols = [d[0].lower() for d in self.description]
+            self._results = [PgRow(cols, row) for row in self._pg_cursor.fetchall()]
+        else:
+            self._results = []
+        return self
+
+    def fetchone(self):
+        if not self._results:
+            return None
+        return self._results.pop(0)
+
+    def fetchall(self):
+        result = self._results[:]
+        self._results = []
+        return result
+
+
+class PgConnection:
+    def __init__(self):
+        self._conn = _pool.getconn()
+
+    def cursor(self):
+        return PgCursor(self._conn)
+
+    def execute(self, sql, params=None):
+        return self.cursor().execute(sql, params)
+
+    def commit(self):
+        if self._conn:
+            self._conn.commit()
+
+    def rollback(self):
+        if self._conn:
+            self._conn.rollback()
+
+    def close(self):
+        if self._conn:
+            _pool.putconn(self._conn)
+            self._conn = None

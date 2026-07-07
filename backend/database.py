@@ -201,6 +201,14 @@ def set_config(key: str, value: str) -> None:
 
 
 def get_db():
+    # Prefer direct PostgreSQL connection
+    from backend.pg_db import is_pg_available, get_pg_connection
+
+    if is_pg_available():
+        conn = get_pg_connection()
+        if conn:
+            return conn
+
     url = os.environ.get("TURSO_URL", "libsql://sfchat-gelenmp.aws-eu-west-1.turso.io")
     token = os.environ.get(
         "TURSO_TOKEN",
