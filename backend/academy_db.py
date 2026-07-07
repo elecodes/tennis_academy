@@ -85,7 +85,7 @@ def fetch_enrollments():
     return enrollments
 
 
-def fetch_supabase_users():
+def fetch_academy_users():
     coaches = fetch_coaches()
     students = fetch_students()
 

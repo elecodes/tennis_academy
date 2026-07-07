@@ -600,7 +600,7 @@ def dashboard():
 
     if role == "admin":
         # Admin sees everything — parallel Supabase fetches
-        from supabase_db import fetch_lessons, fetch_coaches, fetch_students
+        from academy_db import fetch_lessons, fetch_coaches, fetch_students
         from concurrent.futures import ThreadPoolExecutor
 
         with ThreadPoolExecutor(max_workers=3) as ex:
@@ -651,7 +651,7 @@ def dashboard():
         )
 
         # Append Supabase lessons to my_groups
-        from supabase_db import fetch_coach_lessons, fetch_student_lessons
+        from academy_db import fetch_coach_lessons, fetch_student_lessons
         from concurrent.futures import ThreadPoolExecutor
 
         coach_name = session.get("full_name")
@@ -1345,7 +1345,7 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
 @app.route("/admin/send-message-supabase", methods=["GET", "POST"])
 @admin_required
 def admin_send_message_supabase():
-    from supabase_db import fetch_lessons, fetch_lesson_parents
+    from academy_db import fetch_lessons, fetch_lesson_parents
 
     lessons = fetch_lessons()
     if lessons is None:
@@ -1363,7 +1363,7 @@ def admin_send_message_supabase():
             return render_template("admin/send_message_supabase.html", lessons=lessons)
 
         if lesson_id == "all":
-            from supabase_db import fetch_students
+            from academy_db import fetch_students
             students = fetch_students() or []
             seen = set()
             parents = []
@@ -1898,7 +1898,7 @@ def coach_my_groups():
 @login_required
 @coach_required
 def coach_my_groups_supabase():
-    from supabase_db import fetch_coach_groups
+    from academy_db import fetch_coach_groups
 
     conn = get_db()
     coach = conn.execute("SELECT full_name FROM users WHERE id = ?", (session["user_id"],)).fetchone()
@@ -1920,7 +1920,7 @@ def coach_my_groups_supabase():
 @login_required
 def timetable_supabase():
     from datetime import timedelta
-    from supabase_db import fetch_timetable
+    from academy_db import fetch_timetable
 
     user_role = session.get("role", "family")
     user_name = session.get("full_name")
@@ -1966,7 +1966,7 @@ def timetable_supabase():
 @app.route("/coach/send-message-supabase", methods=["GET", "POST"])
 @coach_required
 def coach_send_message_supabase():
-    from supabase_db import fetch_coach_lessons, fetch_lesson_parents
+    from academy_db import fetch_coach_lessons, fetch_lesson_parents
 
     conn = get_db()
     coach_name = conn.execute(
@@ -2209,7 +2209,7 @@ def family_quick_message():
         coach_name = enrollment["coach_name"]
     else:
         # Check Supabase enrollments by parent_email + kid_name
-        from supabase_db import fetch_family_enrollments
+        from academy_db import fetch_family_enrollments
         family_email = session.get("email")
         if family_email:
             sb = fetch_family_enrollments(family_email) or []
@@ -2262,7 +2262,7 @@ def family_enrollments():
     )
 
     # Append Supabase enrollments
-    from supabase_db import fetch_family_enrollments
+    from academy_db import fetch_family_enrollments
 
     family_email = session.get("email")
     if family_email:
@@ -2335,7 +2335,7 @@ def setup():
 @login_required
 @admin_required
 def supabase_students():
-    from supabase_db import fetch_students
+    from academy_db import fetch_students
 
     data = fetch_students()
     if data is None:
@@ -2347,7 +2347,7 @@ def supabase_students():
 @login_required
 @admin_required
 def supabase_coaches():
-    from supabase_db import fetch_coaches
+    from academy_db import fetch_coaches
 
     data = fetch_coaches()
     if data is None:
@@ -2359,7 +2359,7 @@ def supabase_coaches():
 @login_required
 @admin_required
 def supabase_lessons():
-    from supabase_db import fetch_lessons
+    from academy_db import fetch_lessons
 
     data = fetch_lessons()
     if data is None:
@@ -2371,7 +2371,7 @@ def supabase_lessons():
 @login_required
 @admin_required
 def admin_students():
-    from supabase_db import fetch_students, fetch_seasons
+    from academy_db import fetch_students, fetch_seasons
 
     students = fetch_students()
     if students is None:
@@ -2388,7 +2388,7 @@ def admin_students():
 @login_required
 @admin_required
 def admin_enrollments_supabase():
-    from supabase_db import fetch_enrollments
+    from academy_db import fetch_enrollments
 
     enrollments = fetch_enrollments()
     if enrollments is None:
@@ -2401,9 +2401,9 @@ def admin_enrollments_supabase():
 @login_required
 @admin_required
 def admin_users_supabase():
-    from supabase_db import fetch_supabase_users
+    from academy_db import fetch_academy_users
 
-    users = fetch_supabase_users()
+    users = fetch_academy_users()
     if users is None:
         flash("Base de datos no configurada. Set DATABASE_URL.", "danger")
         return redirect(url_for("dashboard"))
