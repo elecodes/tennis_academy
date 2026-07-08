@@ -4,19 +4,13 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-10 pb-24">
-  <div class="bg-amber-50 border border-amber-200 rounded-lg px-6 py-4 mb-8 flex items-center gap-3">
-    <span class="material-symbols-outlined text-amber-600">info</span>
-    <p class="text-sm font-semibold text-amber-800">
-      Group management is read-only. Edit groups directly in <strong>Google Sheets</strong> — changes sync automatically.
-    </p>
-  </div>
   <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
     <div class="flex items-center gap-4">
       <span class="w-12 h-1 bg-accent rounded-full"></span>
       <h1 class="text-4xl font-black text-navy font-serif tracking-tight">Manage Groups</h1>
     </div>
     <div class="flex items-center gap-3">
-      <button class="btn-primary opacity-50 cursor-not-allowed" disabled title="Temporarily disabled — use Google Sheets">
+      <button class="btn-primary" data-modal-target="addGroupModal">
         <span class="material-symbols-outlined">layers</span> Create Group
       </button>
     </div>
@@ -77,15 +71,20 @@
             <td class="px-6 py-5 text-right">
               <div class="flex items-center justify-end gap-2">
                 <button
-                  class="w-8 h-8 rounded-lg bg-navy/5 text-navy opacity-30 cursor-not-allowed flex items-center justify-center"
-                  disabled title="Temporarily disabled — use Google Sheets">
+                  class="w-8 h-8 rounded-lg bg-navy/5 text-navy hover:bg-navy hover:text-white transition-all flex items-center justify-center edit-group-btn"
+                  data-id="{{ group.id }}" data-name="{{ group.name }}" data-coach-id="{{ group.coach_id }}"
+                  data-schedule="{{ group.schedule }}" data-description="{{ group.description or '' }}"
+                  title="Edit Group">
                   <span class="material-symbols-outlined text-base">edit</span>
                 </button>
-                <button type="submit" disabled
-                  class="w-8 h-8 rounded-lg bg-clay/5 text-clay opacity-30 cursor-not-allowed flex items-center justify-center"
-                  title="Temporarily disabled — use Google Sheets">
+                <form method="POST" action="{{ url_for('admin_delete_group', group_id=group.id) }}"
+                  class="inline" onsubmit="return confirm('Delete group \'{{ group.name }}\'? All members and schedules will be removed.')">
+                  <button type="submit"
+                    class="w-8 h-8 rounded-lg bg-clay/5 text-clay hover:bg-clay hover:text-white transition-all flex items-center justify-center"
+                    title="Delete Group">
                     <span class="material-symbols-outlined text-base">delete</span>
                   </button>
+                </form>
               </div>
             </td>
           </tr>
@@ -105,4 +104,129 @@
     </div>
   </div>
 </div>
+
+<!-- Add Group Modal -->
+<div class="modal-backdrop" id="addGroupModal">
+  <div class="modal-dialog max-w-xl w-full">
+    <div class="modal-content !rounded-[2.5rem] !border-none shadow-2xl overflow-hidden">
+      <div class="bg-navy p-8 text-white relative">
+        <h5 class="text-2xl font-black font-serif">Create New Group</h5>
+        <p class="text-white/60 text-sm">Add a new training group to the curriculum.</p>
+        <button type="button" class="absolute top-8 right-8 text-white/40 hover:text-white transition-colors"
+          data-modal-close="addGroupModal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form method="POST" action="{{ url_for('admin_add_group') }}" class="p-8 space-y-6">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Group Name *</label>
+          <input type="text" name="name" class="form-input" placeholder="e.g., Beginners Mon/Wed" required>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Coach</label>
+          <select name="coach_id" class="form-input">
+            <option value="">Unassigned</option>
+            {% for coach in coaches %}
+            <option value="{{ coach.id }}">{{ coach.full_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Schedule *</label>
+          <input type="text" name="schedule" class="form-input" placeholder="e.g., Mon 4:00-5:00 &amp; Wed 4:00-5:00" required>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Description (optional)</label>
+          <textarea name="description" class="form-input" rows="2" placeholder="e.g., Beginner group focusing on fundamentals"></textarea>
+        </div>
+
+        <div class="flex items-center gap-4 pt-4">
+          <button type="submit" class="btn-primary flex-1 justify-center">Create Group</button>
+          <button type="button"
+            class="px-8 py-3 text-sm font-bold text-obsidian/40 hover:text-obsidian transition-colors"
+            data-modal-close="addGroupModal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Group Modal -->
+<div class="modal-backdrop" id="editGroupModal">
+  <div class="modal-dialog max-w-xl w-full">
+    <div class="modal-content !rounded-[2.5rem] !border-none shadow-2xl overflow-hidden">
+      <div class="bg-navy p-8 text-white relative">
+        <h5 class="text-2xl font-black font-serif">Edit Group</h5>
+        <p class="text-white/60 text-sm">Update group name, coach, or schedule.</p>
+        <button type="button" class="absolute top-8 right-8 text-white/40 hover:text-white transition-colors"
+          data-modal-close="editGroupModal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="editGroupForm" method="POST" action="{{ url_for('admin_edit_group') }}" class="p-8 space-y-6">
+        <input type="hidden" name="group_id" id="edit_group_id">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Group Name *</label>
+          <input type="text" name="name" id="edit_group_name" class="form-input" required>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Coach</label>
+          <select name="coach_id" id="edit_group_coach_id" class="form-input">
+            <option value="">Unassigned</option>
+            {% for coach in coaches %}
+            <option value="{{ coach.id }}">{{ coach.full_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Schedule *</label>
+          <input type="text" name="schedule" id="edit_group_schedule" class="form-input" required>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-accent uppercase tracking-widest ml-4">Description</label>
+          <textarea name="description" id="edit_group_description" class="form-input" rows="2"></textarea>
+        </div>
+
+        <div class="flex items-center gap-4 pt-4">
+          <button type="submit" class="btn-primary flex-1 justify-center">Save Changes</button>
+          <button type="button"
+            class="px-8 py-3 text-sm font-bold text-obsidian/40 hover:text-obsidian transition-colors"
+            data-modal-close="editGroupModal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.edit-group-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const id = this.getAttribute('data-id');
+        const name = this.getAttribute('data-name');
+        const coachId = this.getAttribute('data-coach-id');
+        const schedule = this.getAttribute('data-schedule');
+        const description = this.getAttribute('data-description');
+
+        document.getElementById('edit_group_id').value = id;
+        document.getElementById('edit_group_name').value = name;
+        document.getElementById('edit_group_schedule').value = schedule;
+        document.getElementById('edit_group_description').value = description;
+
+        const coachSelect = document.getElementById('edit_group_coach_id');
+        if (coachSelect) {
+          coachSelect.value = coachId || '';
+        }
+
+        openModal('editGroupModal');
+      });
+    });
+  });
+</script>
 {% endblock %}

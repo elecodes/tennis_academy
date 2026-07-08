@@ -273,6 +273,11 @@ REDIRECT_EMAILS_TO = REDIRECT_TARGET if TEST_MODE else None
 
 def init_db():
     """Initialize the database with tables (Local or Cloud)."""
+    if os.environ.get("DATABASE_URL"):
+        from backend.pg_migrate import create_schema
+        create_schema()
+        return
+
     conn = get_db()
     cursor = conn.cursor()
 
@@ -403,12 +408,8 @@ def init_db():
         )
     """
     )
-    try:
-        cursor.execute("ALTER TABLE family_quick_messages ADD COLUMN coach_name TEXT")
-    except Exception:
-        pass
 
-    # Group schedules table
+    # Group schedules (weekly sessions for each group)
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS group_schedules (
@@ -420,12 +421,29 @@ def init_db():
             court TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+            FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE
         )
     """
     )
 
-    # App config (key-value store for sync metadata, cache versions, etc.)
+    # Session attendance tracking
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS session_attendance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            schedule_id INTEGER NOT NULL,
+            group_member_id INTEGER NOT NULL,
+            session_date DATE NOT NULL,
+            present INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (schedule_id) REFERENCES group_schedules (id) ON DELETE CASCADE,
+            FOREIGN KEY (group_member_id) REFERENCES group_members (id) ON DELETE CASCADE,
+            UNIQUE(schedule_id, group_member_id, session_date)
+        )
+    """
+    )
+
+    # App configuration (key-value store)
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS app_config (
@@ -880,14 +898,91 @@ def admin_groups():
 @app.route("/admin/groups/add", methods=["POST"])
 @admin_required
 def admin_add_group():
-    flash("Group creation is temporarily disabled. Manage groups via Google Sheets.", "warning")
+    name = request.form.get("name", "").strip()
+    coach_id = request.form.get("coach_id")
+    schedule = request.form.get("schedule", "").strip()
+    description = request.form.get("description", "").strip()
+
+    if not name or not schedule:
+        flash("Group name and schedule are required.", "danger")
+        return redirect(url_for("admin_groups"))
+
+    conn = get_db()
+    try:
+        row = conn.execute(
+            "INSERT INTO groups (name, coach_id, schedule, description) VALUES (?, ?, ?, ?) RETURNING id",
+            (name, int(coach_id) if coach_id else None, schedule, description),
+        ).fetchone()
+        group_id = row["id"]
+        conn.commit()
+
+        # Parse schedule text into group_schedules
+        for s in parse_schedule(schedule):
+            conn.execute(
+                """INSERT INTO group_schedules (group_id, day_of_week, start_time, end_time, court)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (group_id, s["day"], s["start"], s["end"], s.get("court", "Court 1")),
+            )
+        conn.commit()
+        flash(f"Group '{name}' created successfully!", "success")
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        err = str(e).lower()
+        if "unique" in err or "duplicate" in err:
+            flash(f"A group named '{name}' already exists.", "danger")
+        else:
+            flash(f"Error creating group: {e}", "danger")
+        return redirect(url_for("admin_groups"))
+    conn.close()
     return redirect(url_for("admin_groups"))
 
 
 @app.route("/admin/groups/edit", methods=["POST"])
 @admin_required
 def admin_edit_group():
-    flash("Group editing is temporarily disabled. Manage groups via Google Sheets.", "warning")
+    group_id = request.form.get("group_id")
+    name = request.form.get("name", "").strip()
+    coach_id = request.form.get("coach_id")
+    schedule = request.form.get("schedule", "").strip()
+    description = request.form.get("description", "").strip()
+
+    if not group_id or not name or not schedule:
+        flash("Group name and schedule are required.", "danger")
+        return redirect(url_for("admin_groups"))
+
+    conn = get_db()
+    try:
+        conn.execute(
+            "UPDATE groups SET name = ?, coach_id = ?, schedule = ?, description = ? WHERE id = ?",
+            (name, int(coach_id) if coach_id else None, schedule, description, int(group_id)),
+        )
+        conn.commit()
+
+        # Re-parse schedule: clear existing and re-insert
+        conn.execute(
+            "UPDATE group_members SET schedule_id = NULL WHERE group_id = ? AND schedule_id IN (SELECT id FROM group_schedules WHERE group_id = ?)",
+            (int(group_id), int(group_id)),
+        )
+        conn.execute("DELETE FROM group_schedules WHERE group_id = ?", (int(group_id),))
+        for s in parse_schedule(schedule):
+            conn.execute(
+                """INSERT INTO group_schedules (group_id, day_of_week, start_time, end_time, court)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (int(group_id), s["day"], s["start"], s["end"], s.get("court", "Court 1")),
+            )
+        conn.commit()
+        flash(f"Group '{name}' updated successfully!", "success")
+    except Exception as e:
+        conn.rollback()
+        err = str(e).lower()
+        if "unique" in err or "duplicate" in err:
+            flash(f"A group named '{name}' already exists.", "danger")
+        else:
+            flash(f"Error updating group: {e}", "danger")
+    finally:
+        conn.close()
+    return redirect(url_for("admin_groups"))
 
 
 @app.route("/admin/sync-spreadsheet", methods=["POST"])
@@ -1021,7 +1116,19 @@ def admin_repair_timetable():
 @app.route("/admin/groups/delete/<int:group_id>", methods=["POST"])
 @admin_required
 def admin_delete_group(group_id):
-    flash("Group deletion is temporarily disabled. Manage groups via Google Sheets.", "warning")
+    conn = get_db()
+    try:
+        name = conn.execute("SELECT name FROM groups WHERE id = ?", (group_id,)).fetchone()
+        conn.execute("DELETE FROM group_members WHERE group_id = ?", (group_id,))
+        conn.execute("DELETE FROM group_schedules WHERE group_id = ?", (group_id,))
+        conn.execute("DELETE FROM groups WHERE id = ?", (group_id,))
+        conn.commit()
+        flash(f"Group '{name['name']}' deleted.", "success")
+    except Exception as e:
+        conn.rollback()
+        flash(f"Error deleting group: {e}", "danger")
+    finally:
+        conn.close()
     return redirect(url_for("admin_groups"))
 
 

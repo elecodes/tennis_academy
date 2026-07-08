@@ -58,7 +58,7 @@ class _ConnectionPool:
         if not _DATABASE_URL:
             return None
         params = _parse_url(_DATABASE_URL)
-        return pg8000.connect(**params, timeout=5)
+        return pg8000.connect(**params, timeout=10)
 
     def getconn(self):
         try:
