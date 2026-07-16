@@ -629,6 +629,11 @@ def dashboard():
             sb_coaches = fut_coaches.result()
             sb_students = fut_students.result()
 
+        if sb_lessons and sb_coaches:
+            coach_map = {c["id"]: c["name"] for c in sb_coaches}
+            for l in sb_lessons:
+                l["coach_name"] = coach_map.get(l["coach_id"], "Unknown")
+
         stats = {
             "total_users": conn.execute(
                 "SELECT COUNT(*) FROM users WHERE role != 'admin'"
