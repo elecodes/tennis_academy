@@ -1019,6 +1019,27 @@ def sheets_sync_webhook():
             "last_sync_at": get_config("last_sync_at"),
         })
 
+    sync_key = os.environ.get("SYNC_API_KEY")
+    if not sync_key:
+        return jsonify({"status": "error", "message": "Server not configured"}), 500
+
+    if request.headers.get("X-Sync-Key") != sync_key:
+        return jsonify({"status": "error", "message": "Invalid sync key"}), 401
+
+    data = request.get_json(silent=True) or {}
+    action = data.get("action")
+
+    if action in ("sync_all", "sync_row"):
+        set_config("last_sync_at", str(int(time.time())))
+        return jsonify(
+            {
+                "status": "ok",
+                "rows_processed": data.get("rows_processed", 0),
+            }
+        )
+
+    return jsonify({"status": "error", "message": f"Unknown action: {action}"}), 400
+
 
 @app.route("/api/debug/sync-status")
 def debug_sync_status():
@@ -1048,27 +1069,6 @@ def debug_sync_status():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-    sync_key = os.environ.get("SYNC_API_KEY")
-    if not sync_key:
-        return jsonify({"status": "error", "message": "Server not configured"}), 500
-
-    if request.headers.get("X-Sync-Key") != sync_key:
-        return jsonify({"status": "error", "message": "Invalid sync key"}), 401
-
-    data = request.get_json(silent=True) or {}
-    action = data.get("action")
-
-    if action in ("sync_all", "sync_row"):
-        set_config("last_sync_at", str(int(time.time())))
-        return jsonify(
-            {
-                "status": "ok",
-                "rows_processed": data.get("rows_processed", 0),
-            }
-        )
-
-    return jsonify({"status": "error", "message": f"Unknown action: {action}"}), 400
 
 
 @app.route("/admin/repair-timetable", methods=["POST"])

@@ -191,12 +191,21 @@ def get_config(key: str) -> str | None:
 
 def set_config(key: str, value: str) -> None:
     """Write a config value to app_config table (upsert)."""
+    from backend.pg_db import is_pg_available
+
     db = get_db()
     _ensure_app_config_table(db)
-    db.execute(
-        "INSERT OR REPLACE INTO app_config (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
-        (key, value),
-    )
+    if is_pg_available():
+        db.execute(
+            "INSERT INTO app_config (key, value, updated_at) VALUES (%s, %s, CURRENT_TIMESTAMP) "
+            "ON CONFLICT (key) DO UPDATE SET value = %s, updated_at = CURRENT_TIMESTAMP",
+            (key, value, value),
+        )
+    else:
+        db.execute(
+            "INSERT OR REPLACE INTO app_config (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
+            (key, value),
+        )
     db.commit()
 
 
