@@ -274,8 +274,12 @@ REDIRECT_EMAILS_TO = REDIRECT_TARGET if TEST_MODE else None
 def init_db():
     """Initialize the database with tables (Local or Cloud)."""
     if os.environ.get("DATABASE_URL"):
-        from backend.pg_migrate import create_schema
-        create_schema()
+        try:
+            from backend.pg_migrate import create_schema
+            create_schema()
+        except Exception as e:
+            import traceback
+            print(f"init_db (PG): {e}\n{traceback.format_exc()}", flush=True)
         return
 
     conn = get_db()
@@ -1074,33 +1078,43 @@ def debug_sync_status():
 @app.route("/api/debug/pg-check")
 def debug_pg_check():
     """Debug endpoint to verify PostgreSQL connection on Vercel."""
-    from backend.pg_db import _DATABASE_URL, _pool, is_pg_available
     import traceback
+    result = {"error": None}
 
-    result = {
-        "has_database_url": bool(_DATABASE_URL),
-        "is_pg_available": is_pg_available(),
-        "db_url_prefix": (_DATABASE_URL[:30] + "...") if _DATABASE_URL else None,
-    }
-
-    if is_pg_available():
-        conn = None
+    try:
         try:
-            conn = _pool.getconn()
-            result["pool_conn_ok"] = True
-            cur = conn.cursor()
-            cur.execute("SELECT current_database(), version()")
-            row = cur.fetchone()
-            result["db_info"] = [row[0], row[1][:50]]
-            cur.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')")
-            result["has_users_table"] = cur.fetchone()[0]
+            from backend.pg_db import _DATABASE_URL, _pool, is_pg_available
         except Exception as e:
-            result["pool_conn_ok"] = False
-            result["error"] = str(e)[:200]
-            result["traceback"] = traceback.format_exc()[:500]
-        finally:
-            if conn:
-                _pool.putconn(conn)
+            result["import_error"] = str(e)[:200]
+            return jsonify(result)
+
+        result["has_database_url"] = bool(_DATABASE_URL)
+        result["is_pg_available"] = is_pg_available()
+        result["db_url_prefix"] = (_DATABASE_URL[:30] + "...") if _DATABASE_URL else None
+
+        if is_pg_available():
+            conn = None
+            try:
+                conn = _pool.getconn()
+                result["pool_conn_ok"] = True
+                cur = conn.cursor()
+                cur.execute("SELECT current_database(), version()")
+                row = cur.fetchone()
+                result["db_info"] = [row[0], row[1][:50]]
+                cur.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')")
+                result["has_users_table"] = cur.fetchone()[0]
+            except Exception as e:
+                result["pool_conn_ok"] = False
+                result["error"] = str(e)[:200]
+                result["traceback"] = traceback.format_exc()[:500]
+            finally:
+                if conn is not None:
+                    try:
+                        _pool.putconn(conn)
+                    except Exception:
+                        pass
+    except Exception as e:
+        result["fatal_error"] = str(e)[:200]
 
     return jsonify(result)
 
