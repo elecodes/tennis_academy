@@ -1,7 +1,7 @@
 # SF TENNIS KIDS Club
 
-**Live**: https://tennis-academy-six.vercel.app (Vercel — Turso fallback)
-**Backup**: https://sf-tennis-kids.onrender.com (Render — Supabase PostgreSQL, PWA-ready)
+**Live**: https://tennis-academy-six.vercel.app (Vercel — PG direct → REST API → Turso)
+**Backup**: https://sf-tennis-kids.onrender.com (Render — Supabase PostgreSQL direct, PWA-ready)
 
 A simple, free-tier communication platform for tennis clubs to connect administrators, coaches, and families via email notifications.
 
@@ -55,7 +55,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 |-----------|-----------|------|
 | Backend | Python 3.12 + Flask | Free |
 | Database (primary) | Turso Cloud (libSQL) | Free |
-| Database (secondary) | Supabase (PostgreSQL) via pg8000 direct connection | Free |
+| Database (secondary) | Supabase (PostgreSQL) via pg8000 direct + REST API fallback | Free |
 | DB Driver (PG) | pg8000 (pure Python, SSL + IPv6) | Free |
 | Email | Python smtplib + Gmail | Free |
 | Frontend | HTML5 + CSS3 + Bootstrap 5 | Free |
@@ -349,7 +349,7 @@ Family: family1@email.com / admin123
 ## 🚀 Deployment
 
 ### Production Architecture
-- **Vercel** (primary, https://tennis-academy-six.vercel.app) — Turso database, PWA-enabled, Turso fallback when PostgreSQL is unreachable
+- **Vercel** (primary, https://tennis-academy-six.vercel.app) — PG direct (pg8000) → Supabase REST API → Turso fallback. PWA-enabled.
 - **Render** (backup, https://sf-tennis-kids.onrender.com) — Supabase PostgreSQL direct via pg8000 + IPv6, PWA-enabled
 
 ### Option 0: Docker (Local Development)
@@ -491,6 +491,7 @@ MIT License - Free to use and modify!
 ✅ Auto-Sync:       Google Sheets → Turso via installable GAS triggers + webhook (v1.20.0)
 ✅ Supabase Layer:  Coach groups, timetable, messaging, coach dashboard, admin dashboard via REST API (v1.23.0)
 ✅ Supabase PostgreSQL: Direct pg8000 connection with SSL + IPv6, PgBouncer port 6543, pool error handling (v1.25.0)
+✅ REST API Fallback:  Supabase REST API for Vercel when PG direct is unreachable (HTTPS/IPv4), Turso last resort (v1.25.0)
 ⏸️ Admin CRUD:     Groups/users read-only — manage via Google Sheets (v1.20.0)
 ✅ Family Dashboard: Supabase enrollments + Supabase timetable (v1.24.0)
 ✅ Unread Tracking:  is_read per recipient, read/unread styling, Mark All Read, clickable alert card (v1.24.0)
