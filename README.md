@@ -294,12 +294,20 @@ python3 -c "import smtplib; \
 
 ### Database Errors
 ```bash
-# Reset database
+# Reset local SQLite
 rm academy.db
 python3 backend/app.py  # Will recreate DB automatically
 
 # Or run migrations
 python3 backend/migrate_schedules.py
+```
+
+### Query Turso Database
+```bash
+python3 scripts/turso.py "SELECT name FROM sqlite_master WHERE type='table'"
+python3 scripts/turso.py "SELECT id, email, full_name, role FROM users"
+python3 scripts/turso.py "SELECT * FROM groups"
+python3 scripts/turso.py "<any SQL>"
 ```
 
 ### Port Already in Use
