@@ -1,4 +1,5 @@
 import os
+import ssl
 import pg8000
 import datetime
 from decimal import Decimal
@@ -58,7 +59,8 @@ class _ConnectionPool:
         if not _DATABASE_URL:
             return None
         params = _parse_url(_DATABASE_URL)
-        return pg8000.connect(**params, timeout=10)
+        ctx = ssl.create_default_context()
+        return pg8000.connect(**params, timeout=10, ssl_context=ctx)
 
     def getconn(self):
         try:
