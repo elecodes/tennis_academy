@@ -60,6 +60,8 @@ class _ConnectionPool:
             return None
         params = _parse_url(_DATABASE_URL)
         ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
         return pg8000.connect(**params, timeout=10, ssl_context=ctx)
 
     def getconn(self):

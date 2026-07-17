@@ -1,5 +1,6 @@
 import os
 import sys
+import ssl
 from backend.pg_db import pg_query, pg_close_all, get_pg
 
 SCHEMA_SQL = """
@@ -115,7 +116,10 @@ def migrate_data():
 
     turso = get_db()
     params = _parse_url(DATABASE_URL)
-    pg = pg8000.connect(**params, timeout=10)
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    pg = pg8000.connect(**params, timeout=10, ssl_context=ctx)
     pg.autocommit = False
 
     # Clear existing data for clean migration
