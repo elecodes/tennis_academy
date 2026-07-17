@@ -1,6 +1,7 @@
 # SF TENNIS KIDS Club
 
-**Live**: https://tennis-academy-six.vercel.app
+**Live**: https://tennis-academy-six.vercel.app (Vercel — Turso fallback)
+**Backup**: https://sf-tennis-kids.onrender.com (Render — Supabase PostgreSQL, PWA-ready)
 
 A simple, free-tier communication platform for tennis clubs to connect administrators, coaches, and families via email notifications.
 
@@ -52,9 +53,10 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 
 | Technology | Component | Cost |
 |-----------|-----------|------|
-| Backend | Python 3.8+ + Flask | Free |
+| Backend | Python 3.12 + Flask | Free |
 | Database (primary) | Turso Cloud (libSQL) | Free |
-| Database (secondary) | Supabase (PostgreSQL) via REST API | Free |
+| Database (secondary) | Supabase (PostgreSQL) via pg8000 direct connection | Free |
+| DB Driver (PG) | pg8000 (pure Python, SSL + IPv6) | Free |
 | Email | Python smtplib + Gmail | Free |
 | Frontend | HTML5 + CSS3 + Bootstrap 5 | Free |
 | Validation| **Zod** + esbuild | Free |
@@ -346,6 +348,10 @@ Family: family1@email.com / admin123
 
 ## 🚀 Deployment
 
+### Production Architecture
+- **Vercel** (primary, https://tennis-academy-six.vercel.app) — Turso database, PWA-enabled, Turso fallback when PostgreSQL is unreachable
+- **Render** (backup, https://sf-tennis-kids.onrender.com) — Supabase PostgreSQL direct via pg8000 + IPv6, PWA-enabled
+
 ### Option 0: Docker (Local Development)
 
 ```bash
@@ -354,7 +360,7 @@ docker compose up --build
 
 App runs at **http://localhost:5001** with hot reload via volume mounts.
 
-### Option 1: Vercel (Fastest, recommended)
+### Option 1: Vercel (Fastest, recommended — Turso fallback)
 1. Install Vercel CLI: `npm i -g vercel`
 2. Login: `vercel login`
 3. Set environment variables in Vercel dashboard:
@@ -365,6 +371,8 @@ App runs at **http://localhost:5001** with hot reload via volume mounts.
    - `GEMINI_API_KEY` - Gemini API key for Magic Draft
    - `SECRET_KEY` - Random string
    - `SYNC_API_KEY` - Shared secret for GAS webhook auth
+   - `DATABASE_URL` - Supabase PostgreSQL connection string (optional — Vercel falls back to Turso due to IPv6)
+   - `ENABLE_TALISMAN` - Set to `false` for Vercel/Serverless
 4. Deploy:
 ```bash
 vercel --prod
@@ -372,32 +380,23 @@ vercel --prod
 
 The app will be live at `https://your-project.vercel.app`
 
-### Option 2: Render (Alternative)
+### Option 2: Render (Alternative — Supabase PostgreSQL via IPv6)
+Render runs on Google Cloud with IPv6 support, so it connects directly to Supabase PostgreSQL.
+
 1. Sign up at https://render.com
 2. Connect your GitHub repository
 3. Create Web Service (or use `render.yaml` in root)
 4. Set environment variables:
-   - `TURSO_URL` - Your Turso database URL
+   - `DATABASE_URL` - Supabase PostgreSQL connection string (primary for Render)
+   - `TURSO_URL` - Your Turso database URL (fallback)
    - `TURSO_TOKEN` - Your Turso token
    - `SENDER_EMAIL` - Gmail address for notifications
    - `SENDER_PASSWORD` - Gmail app password
    - `SECRET_KEY` - Random string for sessions
-5. Deploy!
-1. Sign up at https://render.com
-2. Connect your GitHub repository
-3. Create Web Service (or use `render.yaml` in root)
-4. Set environment variables:
-   - `TURSO_URL` - Your Turso database URL
-   - `TURSO_TOKEN` - Your Turso token
-   - `SENDER_EMAIL` - Gmail address for notifications
-   - `SENDER_PASSWORD` - Gmail app password
-   - `SECRET_KEY` - Random string for sessions
+   - `ENABLE_TALISMAN` - Set to `false` for Render
 5. Deploy!
 
-Or deploy with `render.yaml`:
-```bash
-render deploy
-```
+Render uses `wsgi.py` as the entry point with gunicorn.
 
 ### Option 2: PythonAnywhere
 1. Sign up at https://www.pythonanywhere.com (free tier)
@@ -485,11 +484,13 @@ MIT License - Free to use and modify!
 ✅ Docker Support:  Containerized deployment with docker-compose (v1.16.0)
 ✅ Vercel Caching:  Static asset CDN caching + template caching for cold starts (v1.16.0)
 ✅ Vercel Deploy:   Production deployment on Vercel (v1.16.0)
-✅ PWA Icons:       Android home screen icon fix (v1.17.0)
+✅ PWA Icons:      Android home screen icon fix (v1.17.0)
 ✅ PWA Maskable:    Solid navy blue backgrounds for adaptive icons (v1.18.0)
+✅ PWA Production:  manifest.json + sw.js + iOS meta tags, live on Vercel and Render (v1.25.0)
 ✅ Magic Draft:     Robust AI error handling and Vercel runtime dependency alignment (v1.19.0)
 ✅ Auto-Sync:       Google Sheets → Turso via installable GAS triggers + webhook (v1.20.0)
 ✅ Supabase Layer:  Coach groups, timetable, messaging, coach dashboard, admin dashboard via REST API (v1.23.0)
+✅ Supabase PostgreSQL: Direct pg8000 connection with SSL + IPv6, PgBouncer port 6543, pool error handling (v1.25.0)
 ⏸️ Admin CRUD:     Groups/users read-only — manage via Google Sheets (v1.20.0)
 ✅ Family Dashboard: Supabase enrollments + Supabase timetable (v1.24.0)
 ✅ Unread Tracking:  is_read per recipient, read/unread styling, Mark All Read, clickable alert card (v1.24.0)
@@ -499,8 +500,8 @@ MIT License - Free to use and modify!
 ✅ Admin Auditor:    /admin/messages table, edit modal, soft delete, nav link (v1.24.0)
 ```
 
-**Last Updated**: 2026-07-06
-**Version**: 1.24.0
+**Last Updated**: 2026-07-16
+**Version**: 1.25.0
 **Status**: Production Ready ✅
 
 ---
