@@ -54,6 +54,7 @@ class _ConnectionPool:
         self._pool = Queue()
         self._size = 0
         self._max = POOL_MAX
+        self._unavailable = False
 
     def _create_conn(self):
         if not _DATABASE_URL:
@@ -76,14 +77,21 @@ class _ConnectionPool:
         return pg8000.connect(**params, timeout=10, ssl_context=ctx)
 
     def getconn(self):
+        if self._unavailable:
+            return None
         try:
             return self._pool.get_nowait()
         except Empty:
             with self._lock:
                 if self._size < self._max:
-                    conn = self._create_conn()
+                    try:
+                        conn = self._create_conn()
+                    except Exception:
+                        conn = None
                     if conn:
                         self._size += 1
+                    else:
+                        self._unavailable = True
                     return conn
             return self._pool.get(timeout=5)
 
