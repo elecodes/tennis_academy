@@ -1,24 +1,46 @@
 from backend.pg_db import pg_query
+from backend.supabase_rest import get_table
+
+
+def _rows_or_rest(rows, rest_fn):
+    if rows is not None:
+        return rows
+    return rest_fn()
 
 
 def fetch_students():
-    return pg_query("SELECT * FROM students ORDER BY name ASC")
+    return _rows_or_rest(
+        pg_query("SELECT * FROM students ORDER BY name ASC"),
+        lambda: get_table("students", order="name.asc"),
+    )
 
 
 def fetch_coaches():
-    return pg_query("SELECT * FROM coaches ORDER BY name ASC")
+    return _rows_or_rest(
+        pg_query("SELECT * FROM coaches ORDER BY name ASC"),
+        lambda: get_table("coaches", order="name.asc"),
+    )
 
 
 def fetch_lessons():
-    return pg_query("SELECT * FROM lessons ORDER BY day ASC, time ASC")
+    return _rows_or_rest(
+        pg_query("SELECT * FROM lessons ORDER BY day ASC, time ASC"),
+        lambda: get_table("lessons", order="day.asc,time.asc"),
+    )
 
 
 def fetch_seasons():
-    return pg_query("SELECT * FROM seasons ORDER BY name ASC")
+    return _rows_or_rest(
+        pg_query("SELECT * FROM seasons ORDER BY name ASC"),
+        lambda: get_table("seasons", order="name.asc"),
+    )
 
 
 def fetch_student_lessons():
-    return pg_query("SELECT * FROM student_lessons")
+    return _rows_or_rest(
+        pg_query("SELECT * FROM student_lessons"),
+        lambda: get_table("student_lessons"),
+    )
 
 
 def fetch_enrollments():
