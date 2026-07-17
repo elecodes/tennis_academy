@@ -59,10 +59,17 @@ class _ConnectionPool:
         if not _DATABASE_URL:
             return None
         params = _parse_url(_DATABASE_URL)
-        # Supabase blocks direct PG (5432) from serverless networks;
-        # use PgBouncer port (6543) which handles short-lived connections
+        # Supabase only has IPv6 AAAA records for the database host.
+        # Vercel serverless functions need the resolved IPv6 address.
         if "supabase.co" in params.get("host", ""):
             params["port"] = 6543
+            try:
+                import socket
+                ips = socket.getaddrinfo(params["host"], params["port"], socket.AF_INET6)
+                if ips:
+                    params["host"] = ips[0][4][0]
+            except Exception:
+                pass
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
