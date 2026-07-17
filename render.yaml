@@ -3,9 +3,19 @@ services:
     name: sf-tennis-kids
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python backend/app.py
+    startCommand: gunicorn backend.app:app
     envVars:
       - key: ENABLE_TALISMAN
         value: "false"
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SENDER_EMAIL
+        sync: false
+      - key: SENDER_PASSWORD
+        sync: false
     regions:
-      - aws-us-west-2
+      - oregon
