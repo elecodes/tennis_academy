@@ -217,6 +217,8 @@ class PgCursor:
 class PgConnection:
     def __init__(self):
         self._conn = _pool.getconn()
+        if self._conn is None:
+            raise RuntimeError("PostgreSQL not available")
 
     def cursor(self):
         return PgCursor(self._conn)
