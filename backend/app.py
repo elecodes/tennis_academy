@@ -1071,6 +1071,40 @@ def debug_sync_status():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/debug/pg-check")
+def debug_pg_check():
+    """Debug endpoint to verify PostgreSQL connection on Vercel."""
+    from backend.pg_db import _DATABASE_URL, _pool, is_pg_available
+    import traceback
+
+    result = {
+        "has_database_url": bool(_DATABASE_URL),
+        "is_pg_available": is_pg_available(),
+        "db_url_prefix": (_DATABASE_URL[:30] + "...") if _DATABASE_URL else None,
+    }
+
+    if is_pg_available():
+        conn = None
+        try:
+            conn = _pool.getconn()
+            result["pool_conn_ok"] = True
+            cur = conn.cursor()
+            cur.execute("SELECT current_database(), version()")
+            row = cur.fetchone()
+            result["db_info"] = [row[0], row[1][:50]]
+            cur.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')")
+            result["has_users_table"] = cur.fetchone()[0]
+        except Exception as e:
+            result["pool_conn_ok"] = False
+            result["error"] = str(e)[:200]
+            result["traceback"] = traceback.format_exc()[:500]
+        finally:
+            if conn:
+                _pool.putconn(conn)
+
+    return jsonify(result)
+
+
 @app.route("/admin/repair-timetable", methods=["POST"])
 @admin_required
 def admin_repair_timetable():
@@ -2522,8 +2556,11 @@ def admin_users_supabase():
     return render_template("admin/users_supabase.html", users=users)
 
 
+# Initialize database on import (critical for Vercel serverless)
+init_db()
+
+
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True, host="0.0.0.0", port=5001, use_reloader=False)
 
 
