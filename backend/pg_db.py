@@ -59,6 +59,10 @@ class _ConnectionPool:
         if not _DATABASE_URL:
             return None
         params = _parse_url(_DATABASE_URL)
+        # Supabase blocks direct PG (5432) from serverless networks;
+        # use PgBouncer port (6543) which handles short-lived connections
+        if "supabase.co" in params.get("host", ""):
+            params["port"] = 6543
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE

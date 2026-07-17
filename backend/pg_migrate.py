@@ -116,6 +116,8 @@ def migrate_data():
 
     turso = get_db()
     params = _parse_url(DATABASE_URL)
+    if "supabase.co" in params.get("host", ""):
+        params["port"] = 6543
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
