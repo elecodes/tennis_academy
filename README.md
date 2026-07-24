@@ -58,7 +58,9 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 | Database (secondary) | Supabase (PostgreSQL) via pg8000 direct + REST API fallback | Free |
 | DB Driver (PG) | pg8000 (pure Python, SSL + IPv6) | Free |
 | Email | Python smtplib + Gmail | Free |
-| Frontend | HTML5 + CSS3 + Bootstrap 5 | Free |
+| Frontend | HTML5 + CSS3 + Bootstrap 5 + Tailwind v4 (CDN) | Free |
+| Typography | Georgia (headings) + Inter / System UI (body) | Free |
+| Design Tokens | Navy #0d47a1, Green #2e7d32, Yellow #ffd600, Fog #f4f7f6 | Free |
 | Validation| **Zod** + esbuild | Free |
 | Monitoring | **Sentry** | Free tier |
 | Security | **flask-talisman** (Security Headers) | Free |
@@ -500,6 +502,7 @@ MIT License - Free to use and modify!
 ✅ Supabase Layer:  Coach groups, timetable, messaging, coach dashboard, admin dashboard via REST API (v1.23.0)
 ✅ Supabase PostgreSQL: Direct pg8000 connection with SSL + IPv6, PgBouncer port 6543, pool error handling (v1.25.0)
 ✅ REST API Fallback:  Supabase REST API for Vercel when PG direct is unreachable (HTTPS/IPv4), Turso last resort (v1.25.0)
+✅ Brand Design:      Brand palette (#0d47a1/#2e7d32/#ffd600/#f4f7f6), Georgia headings, green/yellow CTAs, layout utilities (feat/ui-improvements)
 ⏸️ Admin CRUD:     Groups/users read-only — manage via Google Sheets (v1.20.0)
 ✅ Family Dashboard: Supabase enrollments + Supabase timetable (v1.24.0)
 ✅ Unread Tracking:  is_read per recipient, read/unread styling, Mark All Read, clickable alert card (v1.24.0)
