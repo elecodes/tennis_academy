@@ -12,14 +12,25 @@
   --white: #FFFFFF;
 }
 
-/* V2 Theme - Royal Blue + Golden Yellow */
+/* Brand Design Tokens */
+:root {
+  --brand-navy: #0d47a1;
+  --brand-navy-deep: #093472;
+  --brand-green: #2e7d32;
+  --brand-green-light: #43a047;
+  --brand-yellow: #ffd600;
+  --brand-fog: #f4f7f6;
+  --slate-600: #64748b;
+}
+
+/* V2 Theme - Brand Colors */
 .theme-v2 {
-  --navy: #163E85;
-  --navy-light: rgba(22, 62, 133, 0.05);
-  --navy-muted: rgba(22, 62, 133, 0.1);
-  --accent: #E6C200;
-  --accent-light: rgba(230, 194, 0, 0.05);
-  --mist: #EEF0F5;
+  --navy: #0d47a1;
+  --navy-light: rgba(13, 71, 161, 0.05);
+  --navy-muted: rgba(13, 71, 161, 0.1);
+  --accent: #2e7d32;
+  --accent-light: rgba(46, 125, 50, 0.08);
+  --mist: #f4f7f6;
 }
 
 /* Base Styles */
@@ -33,7 +44,7 @@ body {
 }
 
 h1, h2, h3, h4, .font-serif {
-  font-family: 'Playfair Display', serif;
+  font-family: Georgia, 'Times New Roman', serif;
   color: var(--navy);
   font-weight: 900;
 }
@@ -84,9 +95,84 @@ h1, h2, h3, h4, .font-serif {
   color: var(--white) !important;
 }
 
+/* Primary Green Button */
+.btn-green {
+  background-color: #2e7d32;
+  color: #fff !important;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+}
+.btn-green:hover {
+  background-color: #43a047;
+  box-shadow: 0 8px 25px rgba(46, 125, 50, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Yellow CTA */
+.btn-yellow {
+  background-color: #ffd600;
+  color: #000 !important;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+}
+.btn-yellow:hover {
+  background-color: #ffea00;
+  box-shadow: 0 8px 25px rgba(255, 214, 0, 0.35);
+  transform: translateY(-2px);
+}
+
+/* Yellow Badge */
+.badge-yellow {
+  display: inline-flex;
+  align-items: center;
+  background: #ffd600;
+  color: #000;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.25rem;
+}
+
+/* Layout Utilities */
+.container-brand {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+@media (min-width: 1024px) {
+  .container-brand {
+    padding: 0 2rem;
+  }
+}
+.section-pad {
+  padding: 3.5rem 0;
+}
+@media (min-width: 1024px) {
+  .section-pad {
+    padding: 5rem 0;
+  }
+}
+
 .card-premium {
   background: var(--white);
-  border-radius: 2.5rem;
+  border-radius: 1rem;
   padding: 2.5rem;
   box-shadow: 0 10px 30px rgba(10, 13, 46, 0.03);
   border: 1px solid var(--navy-light);
