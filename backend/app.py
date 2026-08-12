@@ -275,7 +275,7 @@ def init_db():
     """Initialize the database with tables (Local or Cloud)."""
     if os.environ.get("DATABASE_URL"):
         try:
-            from backend.pg_migrate import create_schema
+            from pg_migrate import create_schema
             create_schema()
         except Exception as e:
             import traceback
@@ -1083,7 +1083,7 @@ def debug_pg_check():
 
     try:
         try:
-            from backend.pg_db import _DATABASE_URL, _pool, is_pg_available
+            from pg_db import _DATABASE_URL, _pool, is_pg_available
         except Exception as e:
             result["import_error"] = str(e)[:200]
             return jsonify(result)

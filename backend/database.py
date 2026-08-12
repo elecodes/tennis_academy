@@ -191,7 +191,7 @@ def get_config(key: str) -> str | None:
 
 def set_config(key: str, value: str) -> None:
     """Write a config value to app_config table (upsert)."""
-    from backend.pg_db import is_pg_available
+    from pg_db import is_pg_available
 
     db = get_db()
     _ensure_app_config_table(db)
@@ -211,7 +211,7 @@ def set_config(key: str, value: str) -> None:
 
 def get_db():
     # Prefer direct PostgreSQL connection
-    from backend.pg_db import is_pg_available, get_pg_connection
+    from pg_db import is_pg_available, get_pg_connection
 
     if is_pg_available():
         conn = get_pg_connection()

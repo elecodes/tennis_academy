@@ -1,5 +1,5 @@
-from backend.pg_db import pg_query
-from backend.supabase_rest import get_table
+from pg_db import pg_query
+from supabase_rest import get_table
 
 
 def _rows_or_rest(rows, rest_fn):

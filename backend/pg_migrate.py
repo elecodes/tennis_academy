@@ -1,7 +1,7 @@
 import os
 import sys
 import ssl
-from backend.pg_db import pg_query, pg_close_all, get_pg
+from pg_db import pg_query, pg_close_all, get_pg
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS users (
@@ -105,8 +105,8 @@ def create_schema():
 
 
 def migrate_data():
-    from backend.database import get_db
-    from backend.pg_db import _parse_url
+    from database import get_db
+    from pg_db import _parse_url
     import pg8000
 
     DATABASE_URL = os.environ.get("DATABASE_URL")
