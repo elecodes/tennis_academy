@@ -33,6 +33,8 @@ def _parse_url(url):
     user_pw, rest = parts.split("@", 1)
     user, pw = user_pw.split(":", 1)
     host_port, db = rest.split("/", 1)
+    if "?" in db:
+        db = db.split("?", 1)[0]
     if ":" in host_port:
         host, port = host_port.split(":", 1)
         port = int(port)
@@ -46,6 +48,7 @@ def _parse_url(url):
         "password": pw,
         "database": db,
     }
+
 
 
 class _ConnectionPool:
