@@ -1502,6 +1502,7 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
         conn.close()
 
 
+@app.route("/admin/send-message-neon", methods=["GET", "POST"])
 @app.route("/admin/send-message-supabase", methods=["GET", "POST"])
 @admin_required
 def admin_send_message_supabase():
@@ -2054,6 +2055,7 @@ def coach_my_groups():
     )
 
 
+@app.route("/coach/my-groups-neon")
 @app.route("/coach/my-groups-supabase")
 @login_required
 @coach_required
@@ -2076,6 +2078,7 @@ def coach_my_groups_supabase():
     return render_template("coach/my_groups_supabase.html", groups=groups, coach_name=coach["full_name"])
 
 
+@app.route("/timetable-neon")
 @app.route("/timetable-supabase")
 @login_required
 def timetable_supabase():
@@ -2123,6 +2126,7 @@ def timetable_supabase():
     )
 
 
+@app.route("/coach/send-message-neon", methods=["GET", "POST"])
 @app.route("/coach/send-message-supabase", methods=["GET", "POST"])
 @coach_required
 def coach_send_message_supabase():
@@ -2488,9 +2492,10 @@ def setup():
     return render_template("setup.html")
 
 
-# ==================== SUPABASE ROUTES (READ-ONLY) ====================
+# ==================== NEON / ACADEMY DB ROUTES (READ-ONLY) ====================
 
 
+@app.route("/neon/students")
 @app.route("/supabase/students")
 @login_required
 @admin_required
@@ -2503,6 +2508,7 @@ def supabase_students():
     return jsonify(data)
 
 
+@app.route("/neon/coaches")
 @app.route("/supabase/coaches")
 @login_required
 @admin_required
@@ -2515,6 +2521,7 @@ def supabase_coaches():
     return jsonify(data)
 
 
+@app.route("/neon/lessons")
 @app.route("/supabase/lessons")
 @login_required
 @admin_required
@@ -2544,6 +2551,7 @@ def admin_students():
     return render_template("admin/students.html", students=students)
 
 
+@app.route("/admin/enrollments-neon")
 @app.route("/admin/enrollments-supabase")
 @login_required
 @admin_required
@@ -2557,6 +2565,7 @@ def admin_enrollments_supabase():
     return render_template("admin/enrollments_supabase.html", enrollments=enrollments)
 
 
+@app.route("/admin/users-neon")
 @app.route("/admin/users-supabase")
 @login_required
 @admin_required
