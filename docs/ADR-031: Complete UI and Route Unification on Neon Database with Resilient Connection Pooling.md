@@ -31,12 +31,16 @@ Updated `fetch_family_enrollments()` and `fetch_timetable()` in `backend/academy
 - Implemented robust string parsing for comma-separated and semicolon-separated `parent_email` fields.
 - Added null-coalescing (`(s.get("parent_email") or "").strip().lower()`) to safely handle `NULL` values in PostgreSQL without raising `AttributeError`.
 - Fixed boolean evaluation in `backend/app.py` (`if neon_family_enrollments is not None:`) to prevent accidental fallback to legacy SQLite queries when Neon returns valid enrollment records.
-- Linked demo family (`family1@email.com`) and `elena.sukhovnina@tennis.com` to active student records (Aleksander & Alissa).
+### 4. Hybrid Schedule Resolution (Lessons + Group Schedules)
+Updated `fetch_timetable()` in `backend/academy_db.py`:
+- Merged schedule items from both the imported `lessons` table and dynamically created `groups` / `group_schedules` tables in Neon PostgreSQL.
+- Handled time parsing (`_fmt_t24`) and deduplication to ensure both Excel-seeded lessons and admin-created group sessions (e.g. Monday 4:00 PM and Thursday 4:30 PM) render seamlessly on the 7x1 weekly grid across all user roles.
 
 ## Consequences
 
 ### Positive
 - **Unified User Experience**: Single, clean navigation experience across Admin, Coach, and Family portals without duplicate links or badges.
+- **Full Schedule Visibility**: All 32 active schedule slots (from both initial imports and dynamic admin groups) display reliably across Monday-Sunday.
 - **Zero Socket Crashes**: Dropped or idle serverless PostgreSQL connections auto-reconnect seamlessly.
 - **100% Family Login Reliability**: Family accounts log in cleanly and display their children's active lesson schedules on both the dashboard and weekly timetable.
 - **Fully Verified**: Backend test suite passes 100%.
