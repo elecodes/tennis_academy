@@ -372,6 +372,83 @@ def fetch_timetable(role, user_name=None, user_email=None):
         seen[dedup_key] = group
         groups.append(group)
 
+    # Also process groups + group_schedules from Neon DB
+    try:
+        group_sched_rows = pg_query(
+            "SELECT g.id as group_id, g.name as group_name, g.coach_id, gs.id as sched_id, "
+            "gs.day_of_week, gs.start_time, gs.end_time, gs.court "
+            "FROM groups g JOIN group_schedules gs ON g.id = gs.group_id"
+        ) or []
+    except Exception:
+        group_sched_rows = []
+
+    DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+    def _fmt_t24(t_str):
+        t_str = (t_str or "").strip().lower()
+        if not t_str:
+            return "00:00"
+        if "pm" in t_str or "am" in t_str:
+            is_pm = "pm" in t_str
+            clean = t_str.replace("pm", "").replace("am", "").strip()
+            parts = clean.split(":")
+            h = int(parts[0]) if parts[0].isdigit() else 0
+            m = parts[1][:2] if len(parts) > 1 and parts[1][:2].isdigit() else "00"
+            if is_pm and h < 12:
+                h += 12
+            elif not is_pm and h == 12:
+                h = 0
+            return f"{h:02d}:{m}"
+        elif ":" in t_str:
+            parts = t_str.split(":")
+            h = int(parts[0]) if parts[0].isdigit() else 0
+            m = parts[1][:2] if len(parts) > 1 and parts[1][:2].isdigit() else "00"
+            return f"{h:02d}:{m}"
+        return "00:00"
+
+    for r in group_sched_rows:
+        try:
+            day_num = int(r["day_of_week"]) if 0 <= int(r.get("day_of_week", 0)) <= 6 else 0
+        except (ValueError, TypeError):
+            day_num = 0
+        st_24 = _fmt_t24(r["start_time"])
+        et_24 = _fmt_t24(r["end_time"])
+
+        c_obj = coach_map.get(r.get("coach_id"), {})
+        cname = c_obj.get("name") or "Unknown"
+
+        dedup_key = (day_num, st_24, cname)
+        if dedup_key in seen:
+            continue
+
+        if role == "coach" and r.get("coach_id") not in coach_ids:
+            continue
+
+        day_label = DAY_NAMES[day_num]
+        g_title = f"{day_label} {r['start_time']} - {cname} - {r['group_name']}"
+
+        group = {
+            "id": f"g_{r['group_id']}_{r['sched_id']}",
+            "name": g_title,
+            "schedule_text": f"{day_label} {st_24}",
+            "level": r.get("group_name", "GROUP").upper().replace(" ", "_"),
+            "coach": {
+                "id": r.get("coach_id"),
+                "name": cname,
+                "email": c_obj.get("email"),
+            },
+            "kids": [],
+            "schedules": [{
+                "id": r["sched_id"],
+                "day": day_num,
+                "start_time": st_24,
+                "end_time": et_24,
+                "court": r.get("court", "Court 1"),
+            }],
+        }
+        seen[dedup_key] = group
+        groups.append(group)
+
     return {"groups": groups}
 
 
