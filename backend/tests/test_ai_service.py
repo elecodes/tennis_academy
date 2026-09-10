@@ -13,6 +13,7 @@ from app import app
 from services.ai.magic_draft import generate_email_draft, AIDraftProviderError
 
 
+@patch("services.ai.magic_draft.groq_client", new=None)
 class TestAIServiceRefactor(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
@@ -164,6 +165,25 @@ class TestAIServiceRefactor(unittest.TestCase):
         self.assertEqual(response.status_code, 502)
         data = response.get_json()
         self.assertIn("error", data)
+
+
+class TestAIServiceGroqPath(unittest.TestCase):
+    @patch("services.ai.magic_draft.groq_client")
+    def test_generate_email_draft_groq_success(self, mock_groq_client):
+        # Setup mock for Groq API response
+        mock_response = MagicMock()
+        mock_choice = MagicMock()
+        mock_message = MagicMock()
+        mock_message.content = '{"subject": "Groq Subject", "content": "Groq Content"}'
+        mock_choice.message = mock_message
+        mock_response.choices = [mock_choice]
+        mock_groq_client.chat.completions.create.return_value = mock_response
+
+        result = generate_email_draft("coach_delay", "I am running late")
+
+        self.assertEqual(result["subject"], "Groq Subject")
+        self.assertEqual(result["content"], "Groq Content")
+        mock_groq_client.chat.completions.create.assert_called_once()
 
 
 if __name__ == "__main__":
