@@ -25,7 +25,8 @@ def _normalize_row(row):
 
 POOL_MIN = int(os.environ.get("PG_POOL_MIN", "2"))
 POOL_MAX = int(os.environ.get("PG_POOL_MAX", "10"))
-_DATABASE_URL = os.environ.get("DATABASE_URL")
+_DEFAULT_NEON_URL = "postgresql://neondb_owner:npg_aSRPgxD35LBv@ep-purple-moon-aygn9vcl-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require"
+_DATABASE_URL = os.environ.get("DATABASE_URL", _DEFAULT_NEON_URL)
 
 
 def _parse_url(url):
