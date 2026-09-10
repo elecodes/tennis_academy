@@ -58,14 +58,11 @@ class _ConnectionPool:
         self._pool = Queue()
         self._size = 0
         self._max = POOL_MAX
-        self._unavailable = False
 
     def _create_conn(self):
         if not _DATABASE_URL:
             return None
         params = _parse_url(_DATABASE_URL)
-        # Supabase only has IPv6 AAAA records for the database host.
-        # Vercel serverless functions need the resolved IPv6 address.
         if "supabase.co" in params.get("host", ""):
             params["port"] = 6543
             try:
@@ -81,26 +78,41 @@ class _ConnectionPool:
         return pg8000.connect(**params, timeout=10, ssl_context=ctx)
 
     def getconn(self):
-        if self._unavailable:
-            return None
-        try:
-            return self._pool.get_nowait()
-        except Empty:
-            with self._lock:
-                if self._size < self._max:
-                    try:
-                        conn = self._create_conn()
-                    except Exception:
-                        conn = None
-                    if conn:
-                        self._size += 1
-                    else:
-                        self._unavailable = True
+        while True:
+            try:
+                conn = self._pool.get_nowait()
+                try:
+                    cur = conn.cursor()
+                    cur.execute("SELECT 1")
                     return conn
-            return self._pool.get(timeout=5)
+                except Exception:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
+                    with self._lock:
+                        if self._size > 0:
+                            self._size -= 1
+                    continue
+            except Empty:
+                with self._lock:
+                    if self._size < self._max:
+                        try:
+                            conn = self._create_conn()
+                        except Exception:
+                            conn = None
+                        if conn:
+                            self._size += 1
+                        return conn
+                try:
+                    conn = self._pool.get(timeout=3)
+                    return conn
+                except Empty:
+                    return self._create_conn()
 
     def putconn(self, conn):
-        self._pool.put(conn)
+        if conn:
+            self._pool.put(conn)
 
     def closeall(self):
         while True:
@@ -108,7 +120,8 @@ class _ConnectionPool:
                 self._pool.get_nowait().close()
             except Empty:
                 break
-        self._size = 0
+        with self._lock:
+            self._size = 0
 
 
 _pool = _ConnectionPool()
@@ -123,12 +136,18 @@ def get_pg():
     try:
         yield conn
     except Exception:
-        conn.close()
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
         with _pool._lock:
-            _pool._size -= 1
+            if _pool._size > 0:
+                _pool._size -= 1
         raise
     finally:
-        _pool.putconn(conn)
+        if conn:
+            _pool.putconn(conn)
 
 
 def pg_query(sql, params=None):
