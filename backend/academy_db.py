@@ -393,7 +393,7 @@ def fetch_family_enrollments(parent_email):
     enrollments = []
     seen_lessons = set()
     for s in students:
-        if s.get("parent_email", "").strip().lower() != parent_email.strip().lower():
+        if (s.get("parent_email") or "").strip().lower() != (parent_email or "").strip().lower():
             continue
 
         linked = sl_by_student.get(s["id"], [])
