@@ -1,7 +1,7 @@
 # SF TENNIS KIDS Club
 
-**Live**: https://tennis-academy-six.vercel.app (Vercel — PG direct → REST API → Turso)
-**Backup**: https://sf-tennis-kids.onrender.com (Render — Neon PostgreSQL direct, PWA-ready)
+**Live**: https://tennis-academy-six.vercel.app (Vercel — Neon PostgreSQL direct via pg8000 pooler)
+**Backup**: https://sf-tennis-kids.onrender.com (Render — Neon PostgreSQL direct pooler, PWA-ready)
 
 A simple, free-tier communication platform for tennis clubs to connect administrators, coaches, and families via email notifications.
 
@@ -15,7 +15,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 ### Weekly Timetables
 - **View schedules by week** - Navigate between weeks with a clean 7x1 grid
 - **Role-based filtering** - Admins see all, coaches see their groups, families see their kids' groups
-- **Neon timetable** - Family timetable now filters by `parent_email` showing only enrolled lessons
+- **Neon timetable** - Unified schedule resolution filtering by `parent_email` and merging Excel imported lessons with dynamic admin group schedules
 - **Premium Centered Layout** - Elegant, focused experience using `max-w-7xl mx-auto` containers
 - **Custom Modal System** - Reliable, vanilla JS interactions for all record creation (no Bootstrap JS dependencies)
 - **Responsive design** - Optimized for mobile, tablet, and high-res desktops
@@ -36,8 +36,8 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - ✅ Group-based messaging (coaches message only their groups)
 - ✅ General announcements (admin can message all families)
 - ✅ Weekly timetable view with RBAC
-- ✅ **Turso Cloud Database** (Edge SQLite for real-time sync)
-- ✅ **Neon Integration** (PostgreSQL read layer for students, enrollments, users, coach dashboard, admin dashboard, timetable, family enrollments, and messaging)
+- ✅ **Neon PostgreSQL Database** (Primary database pooler with auto-reconnection and multi-email parent resolution)
+- ✅ **Turso Cloud Database** (Edge SQLite backup sync layer)
 - ✅ **Message Acknowledgments** — family clicks "OK" or "Received" on each message; coach sees ack summary in "Messages Sent" table
 - ✅ **Family Quick Messages** — 4 presets (Running Late, Will Miss, On My Way, Early Pickup), no free text, 15-min rate limit
 - ✅ **Coach Reply** — reply button on family alerts opens modal with free text; creates messages entry + message_recipients for the family
@@ -255,7 +255,9 @@ family_quick_messages(id, user_id, group_id, kid_name, coach_name, preset, subje
 - **[ADR-025](docs/ADR-025:%20PWA%20Icon%20Fix%20for%20Android%20Home%20Screen.md)** - PWA Icon Fix for Android
 - **[ADR-026](docs/ADR-026:%20Magic%20Draft%20Reliability%20and%20Vercel%20Dependency%20Alignment.md)** - Magic Draft reliability and Vercel dependency alignment
 - **[ADR-027](docs/ADR-027:%20Auto-Sync%20Webhook%20and%20Cache%20Invalidation.md)** - Auto-Sync webhook architecture and cache invalidation
-- **[ADR-029](docs/ADR-029:%20Supabase%20Coach%20Features.md)** - Supabase Coach Features, Family Dashboard, Unread Tracking, Quick Messages, Coach Reply, Admin Auditor
+- **[ADR-029](docs/ADR-029:%20Supabase%20Coach%20Features.md)** - Coach Features, Family Dashboard, Unread Tracking, Quick Messages, Coach Reply, Admin Auditor
+- **[ADR-030](docs/ADR-030:%20Migrating%20Primary%20Database%20to%20Neon.md)** - Migrating Primary Database to Neon PostgreSQL
+- **[ADR-031](docs/ADR-031:%20Complete%20UI%20and%20Route%20Unification%20on%20Neon%20Database%20with%20Resilient%20Connection%20Pooling.md)** - Complete UI and Route Unification on Neon Database with Resilient Connection Pooling
 - **[MCP Configuration](docs/mcp-configuration.md)** - Google Sheets Agent Integration
 - [PLAYBOOK](docs/PLAYBOOK.md) - Operations manual, Troubleshooting, Design Standards
 - **[AGENTS](AGENTS.md)** - AI Agent Guidelines and "Guardian" roles
@@ -350,17 +352,17 @@ export PYTHONPATH=$PYTHONPATH:. && pytest tests/integration/ --cov=backend --cov
 - ⚠️ **Always mock SMTP** in tests to avoid sending real emails.
 - ⚠️ **Use `tmp_db` fixture** to avoid writing to `academy.db`.
 ### Test Credentials
-```
-Admin:  admin@tennis.com / admin123
-Coach:  coach1@tennis.com / admin123
-Family: family1@email.com / admin123
+```text
+Admin:  gelenmp@gmail.com / password123 (or admin@tennis.com / password123)
+Coach:  coach1@tennis.com / password123 (or coach2@tennis.com / password123)
+Family: elena.sukhovnina@tennis.com / password123 (or family1@email.com / password123)
 ```
 
 ## 🚀 Deployment
 
 ### Production Architecture
-- **Vercel** (primary, https://tennis-academy-six.vercel.app) — PG direct (pg8000) → Supabase REST API → Turso fallback. PWA-enabled.
-- **Render** (backup, https://sf-tennis-kids.onrender.com) — Supabase PostgreSQL direct via pg8000 + IPv6, PWA-enabled
+- **Vercel** (primary, https://tennis-academy-six.vercel.app) — Neon PostgreSQL direct via `pg8000` pooler with auto-reconnect. PWA-enabled.
+- **Render** (backup, https://sf-tennis-kids.onrender.com) — Neon PostgreSQL direct pooler, PWA-enabled.
 
 ### Option 0: Docker (Local Development)
 
@@ -370,18 +372,18 @@ docker compose up --build
 
 App runs at **http://localhost:5001** with hot reload via volume mounts.
 
-### Option 1: Vercel (Fastest, recommended — Turso fallback)
+### Option 1: Vercel (Fastest, recommended)
 1. Install Vercel CLI: `npm i -g vercel`
 2. Login: `vercel login`
 3. Set environment variables in Vercel dashboard:
-   - `TURSO_URL` - Your Turso database URL
+   - `DATABASE_URL` - Neon PostgreSQL pooled connection string (`postgresql://neondb_owner:...@ep-purple-moon-aygn9vcl-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require`)
+   - `TURSO_URL` - Your Turso database URL (backup sync layer)
    - `TURSO_TOKEN` - Your Turso token
    - `SENDER_EMAIL` - Your Gmail address
    - `SENDER_PASSWORD` - Your Gmail app password
    - `GEMINI_API_KEY` - Gemini API key for Magic Draft
    - `SECRET_KEY` - Random string
    - `SYNC_API_KEY` - Shared secret for GAS webhook auth
-   - `DATABASE_URL` - Supabase PostgreSQL connection string (optional — Vercel falls back to Turso due to IPv6)
    - `ENABLE_TALISMAN` - Set to `false` for Vercel/Serverless
 4. Deploy:
 ```bash
@@ -390,14 +392,14 @@ vercel --prod
 
 The app will be live at `https://your-project.vercel.app`
 
-### Option 2: Render (Alternative — Supabase PostgreSQL via IPv6)
-Render runs on Google Cloud with IPv6 support, so it connects directly to Supabase PostgreSQL.
+### Option 2: Render (Alternative)
+Render connects directly to Neon PostgreSQL.
 
 1. Sign up at https://render.com
 2. Connect your GitHub repository
 3. Create Web Service (or use `render.yaml` in root)
 4. Set environment variables:
-   - `DATABASE_URL` - Supabase PostgreSQL connection string (primary for Render)
+   - `DATABASE_URL` - Neon PostgreSQL connection string (primary for Render)
    - `TURSO_URL` - Your Turso database URL (fallback)
    - `TURSO_TOKEN` - Your Turso token
    - `SENDER_EMAIL` - Gmail address for notifications
@@ -499,21 +501,19 @@ MIT License - Free to use and modify!
 ✅ PWA Production:  manifest.json + sw.js + iOS meta tags, live on Vercel and Render (v1.25.0)
 ✅ Magic Draft:     Robust AI error handling and Vercel runtime dependency alignment (v1.19.0)
 ✅ Auto-Sync:       Google Sheets → Turso via installable GAS triggers + webhook (v1.20.0)
-✅ Supabase Layer:  Coach groups, timetable, messaging, coach dashboard, admin dashboard via REST API (v1.23.0)
-✅ Supabase PostgreSQL: Direct pg8000 connection with SSL + IPv6, PgBouncer port 6543, pool error handling (v1.25.0)
-✅ REST API Fallback:  Supabase REST API for Vercel when PG direct is unreachable (HTTPS/IPv4), Turso last resort (v1.25.0)
-✅ Brand Design:      Brand palette (#0d47a1/#2e7d32/#ffd600/#f4f7f6), Georgia headings, green/yellow CTAs, layout utilities (feat/ui-improvements)
-⏸️ Admin CRUD:     Groups/users read-only — manage via Google Sheets (v1.20.0)
-✅ Family Dashboard: Supabase enrollments + Supabase timetable (v1.24.0)
+✅ Neon PostgreSQL: Primary database pooler with pg8000, connection heartbeat, auto-reconnect, and multi-email parent resolution (v1.26.0)
+✅ Neon UI Consolidation: Unified navigation, removed duplicate (Neo) links, single /timetable route (v1.26.0)
+✅ Hybrid Timetable: Merged initial Excel lessons with dynamic admin group schedules for full Mon-Sun coverage (v1.26.0)
+✅ Family Dashboard: Direct Neon PostgreSQL enrollments & timetable lookup (v1.26.0)
 ✅ Unread Tracking:  is_read per recipient, read/unread styling, Mark All Read, clickable alert card (v1.24.0)
-✅ Admin Broadcast:  Supabase lesson-based messaging with Turso storage (v1.24.0)
+✅ Admin Broadcast:  Neon lesson-based messaging with email notifications (v1.26.0)
 ✅ Message Acks:     ack_type/ack_at per recipient, OK/Received buttons, coach ack summary (v1.24.0)
 ✅ Quick Messages:   4 presets, 15-min rate limit, coach reply, family alerts widget (v1.24.0)
 ✅ Admin Auditor:    /admin/messages table, edit modal, soft delete, nav link (v1.24.0)
 ```
 
-**Last Updated**: 2026-07-16
-**Version**: 1.25.0
+**Last Updated**: 2026-09-10
+**Version**: 1.26.0
 **Status**: Production Ready ✅
 
 ---
