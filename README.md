@@ -353,7 +353,7 @@ export PYTHONPATH=$PYTHONPATH:. && pytest tests/integration/ --cov=backend --cov
 - ⚠️ **Use `tmp_db` fixture** to avoid writing to `academy.db`.
 ### Test Credentials
 ```text
-Admin:  gelenmp@gmail.com / password123 (or admin@tennis.com / password123)
+Admin:  gelenmp@gmail.com / password123 (or admin@tennis.com / admin123)
 Coach:  coach1@tennis.com / password123 (or coach2@tennis.com / password123)
 Family: elena.sukhovnina@tennis.com / password123 (or family1@email.com / password123)
 ```
