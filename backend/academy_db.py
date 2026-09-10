@@ -300,7 +300,13 @@ def fetch_timetable(role, user_name=None, user_email=None):
 
     family_lesson_ids = set()
     if role == "family" and user_email:
-        family_students = [s for s in students if s.get("parent_email", "").lower() == user_email.lower()]
+        target_email = (user_email or "").strip().lower()
+        family_students = []
+        for s in students:
+            raw_pemail = (s.get("parent_email") or "").lower()
+            pemail_list = [e.strip() for e in raw_pemail.replace(";", ",").split(",") if e.strip()]
+            if target_email in pemail_list or target_email in raw_pemail:
+                family_students.append(s)
         family_student_ids = {s["id"] for s in family_students}
         for sl in (student_lessons or []):
             if sl["student_id"] in family_student_ids:

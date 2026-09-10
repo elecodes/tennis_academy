@@ -54,8 +54,8 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 | Technology | Component | Cost |
 |-----------|-----------|------|
 | Backend | Python 3.12 + Flask | Free |
-| Database (primary) | Turso Cloud (libSQL) | Free |
-| Database (secondary) | Neon (PostgreSQL) via pg8000 direct + REST API fallback | Free |
+| Database (primary) | Neon (PostgreSQL) via pg8000 pooled connection + auto-reconnect | Free |
+| Database (secondary) | Turso Cloud (libSQL edge database sync) | Free |
 | DB Driver (PG) | pg8000 (pure Python, SSL + IPv6) | Free |
 | Email | Python smtplib + Gmail | Free |
 | Frontend | HTML5 + CSS3 + Bootstrap 5 + Tailwind v4 (CDN) | Free |

@@ -2091,6 +2091,7 @@ def coach_my_groups_supabase():
     return render_template("coach/my_groups_supabase.html", groups=groups, coach_name=coach["full_name"])
 
 
+@app.route("/timetable")
 @app.route("/timetable-neon")
 @app.route("/timetable-supabase")
 @login_required
