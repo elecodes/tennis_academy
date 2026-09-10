@@ -802,7 +802,7 @@ def dashboard():
         from academy_db import fetch_family_enrollments
         neon_family_enrollments = fetch_family_enrollments(parent_email) if parent_email else None
 
-        if neon_family_enrollments:
+        if neon_family_enrollments is not None:
             my_enrollments = [
                 {
                     "kid_name": e["kid_name"],

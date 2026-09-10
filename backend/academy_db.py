@@ -392,8 +392,12 @@ def fetch_family_enrollments(parent_email):
 
     enrollments = []
     seen_lessons = set()
+    target_email = (parent_email or "").strip().lower()
     for s in students:
-        if (s.get("parent_email") or "").strip().lower() != (parent_email or "").strip().lower():
+        raw_pemail = (s.get("parent_email") or "").lower()
+        pemail_list = [e.strip() for e in raw_pemail.replace(";", ",").split(",") if e.strip()]
+
+        if target_email not in pemail_list and target_email not in raw_pemail:
             continue
 
         linked = sl_by_student.get(s["id"], [])
