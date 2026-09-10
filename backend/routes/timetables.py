@@ -37,16 +37,10 @@ def cache_response(max_age=300):
     return decorator
 
 
-@timetables_bp.route("/timetable")
+@timetables_bp.route("/timetable-legacy")
 @cache_response(max_age=300)
 def get_timetable_page():
-    """
-    GET /timetable?date=2026-02-16
-    Página web de horarios semanales.
-    """
-    # Verificar autenticación
-    if "user_id" not in session:
-        return redirect(url_for("login"))
+    return redirect(url_for("timetable_supabase", **request.args))
 
     # Obtener fecha de parámetro o usar hoy
     date_str = request.args.get("date")
