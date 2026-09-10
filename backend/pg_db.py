@@ -75,7 +75,13 @@ class _ConnectionPool:
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-        return pg8000.connect(**params, timeout=10, ssl_context=ctx)
+        conn = pg8000.connect(**params, timeout=30, ssl_context=ctx)
+        try:
+            if hasattr(conn, "_usock") and conn._usock:
+                conn._usock.settimeout(None)
+        except Exception:
+            pass
+        return conn
 
     def getconn(self):
         while True:
@@ -216,7 +222,18 @@ class PgCursor:
     def execute(self, sql, params=None):
         if params is not None and "?" in sql:
             sql = sql.replace("?", "%s")
-        self._pg_cursor.execute(sql, params or ())
+        try:
+            self._pg_cursor.execute(sql, params or ())
+        except (OSError, Exception):
+            # If socket timed out or connection broke, attempt automatic reconnect
+            try:
+                new_conn = _pool._create_conn()
+                if new_conn:
+                    self._pg_conn._conn = new_conn
+                    self._pg_cursor = new_conn.cursor()
+                    self._pg_cursor.execute(sql, params or ())
+            except Exception as e:
+                raise e
         self.rowcount = self._pg_cursor.rowcount
         self.description = self._pg_cursor.description
         if self.description:
