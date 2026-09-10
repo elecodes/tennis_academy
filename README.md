@@ -8,14 +8,14 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 ## 🎯 Features
 
 ### Role-Based Access Control (RBAC)
-- **Admin**: Full access to manage users, groups, schedules, send messages, audit all communication, and broadcast to Supabase lesson families
+- **Admin**: Full access to manage users, groups, schedules, send messages, audit all communication, and broadcast to Neon lesson families
 - **Coach**: View assigned groups with schedules, send messages to their groups, see family alerts and reply, view message acknowledgments (no family email exposure)
 - **Family**: View messages for enrolled groups, acknowledge messages (OK/Received), send preset quick messages to coaches, see weekly schedules
 
 ### Weekly Timetables
 - **View schedules by week** - Navigate between weeks with a clean 7x1 grid
 - **Role-based filtering** - Admins see all, coaches see their groups, families see their kids' groups
-- **Supabase timetable** - Family timetable now filters by `parent_email` showing only enrolled lessons
+- **Neon timetable** - Family timetable now filters by `parent_email` showing only enrolled lessons
 - **Premium Centered Layout** - Elegant, focused experience using `max-w-7xl mx-auto` containers
 - **Custom Modal System** - Reliable, vanilla JS interactions for all record creation (no Bootstrap JS dependencies)
 - **Responsive design** - Optimized for mobile, tablet, and high-res desktops
@@ -37,7 +37,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - ✅ General announcements (admin can message all families)
 - ✅ Weekly timetable view with RBAC
 - ✅ **Turso Cloud Database** (Edge SQLite for real-time sync)
-- ✅ **Supabase Integration** (PostgreSQL read layer for students, enrollments, users, coach dashboard, admin dashboard, timetable, family enrollments, and messaging)
+- ✅ **Neon Integration** (PostgreSQL read layer for students, enrollments, users, coach dashboard, admin dashboard, timetable, family enrollments, and messaging)
 - ✅ **Message Acknowledgments** — family clicks "OK" or "Received" on each message; coach sees ack summary in "Messages Sent" table
 - ✅ **Family Quick Messages** — 4 presets (Running Late, Will Miss, On My Way, Early Pickup), no free text, 15-min rate limit
 - ✅ **Coach Reply** — reply button on family alerts opens modal with free text; creates messages entry + message_recipients for the family
@@ -55,7 +55,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 |-----------|-----------|------|
 | Backend | Python 3.12 + Flask | Free |
 | Database (primary) | Turso Cloud (libSQL) | Free |
-| Database (secondary) | Neon / Supabase (PostgreSQL) via pg8000 direct + REST API fallback | Free |
+| Database (secondary) | Neon (PostgreSQL) via pg8000 direct + REST API fallback | Free |
 | DB Driver (PG) | pg8000 (pure Python, SSL + IPv6) | Free |
 | Email | Python smtplib + Gmail | Free |
 | Frontend | HTML5 + CSS3 + Bootstrap 5 + Tailwind v4 (CDN) | Free |
