@@ -146,7 +146,7 @@
           </button>
           <div
             class="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-navy/5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 py-2 z-50 translate-y-2 group-hover:translate-y-0">
-            <a href="{{ url_for('admin_users') }}"
+            <a href="{{ url_for('admin_users_supabase') }}"
               class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-obsidian/70 hover:bg-navy/5 hover:text-navy transition-colors">
               <span class="material-symbols-outlined text-lg">group</span> Users
             </a>
@@ -154,30 +154,18 @@
               class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-obsidian/70 hover:bg-navy/5 hover:text-navy transition-colors">
               <span class="material-symbols-outlined text-lg">category</span> Groups
             </a>
-            <a href="{{ url_for('admin_enrollments') }}"
+            <a href="{{ url_for('admin_enrollments_supabase') }}"
               class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-obsidian/70 hover:bg-navy/5 hover:text-navy transition-colors">
               <span class="material-symbols-outlined text-lg">app_registration</span> Enrollments
             </a>
-            <a href="{{ url_for('admin_enrollments_supabase') }}"
-              class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-obsidian/70 hover:bg-navy/5 hover:text-navy transition-colors">
-              <span class="material-symbols-outlined text-lg">cloud</span> Enrollments (Neo)
-            </a>
             <a href="{{ url_for('admin_students') }}"
               class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-obsidian/70 hover:bg-navy/5 hover:text-navy transition-colors">
-              <span class="material-symbols-outlined text-lg">cloud</span> Students (Neo)
-            </a>
-            <a href="{{ url_for('admin_users_supabase') }}"
-              class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-obsidian/70 hover:bg-navy/5 hover:text-navy transition-colors">
-              <span class="material-symbols-outlined text-lg">groups</span> Users (Neo)
+              <span class="material-symbols-outlined text-lg">child_care</span> Students
             </a>
             <div class="border-t border-navy/5 my-1"></div>
-            <a href="{{ url_for('admin_send_message') }}"
-              class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-obsidian/70 hover:bg-navy/5 hover:text-navy transition-colors">
-              <span class="material-symbols-outlined text-lg">send</span> Broadcast Alert
-            </a>
             <a href="{{ url_for('admin_send_message_supabase') }}"
               class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-obsidian/70 hover:bg-navy/5 hover:text-navy transition-colors">
-              <span class="material-symbols-outlined text-lg">cloud</span> Broadcast (Neo)
+              <span class="material-symbols-outlined text-lg">send</span> Broadcast Alert
             </a>
             <div class="border-t border-navy/5 my-1"></div>
             <a href="{{ url_for('admin_message_auditor') }}"
@@ -187,21 +175,13 @@
           </div>
         </div>
         {% elif session.role == 'coach' %}
-        <a href="{{ url_for('coach_my_groups') }}"
+        <a href="{{ url_for('coach_my_groups_supabase') }}"
           class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
           <span class="material-symbols-outlined text-xl">groups</span> My Groups
         </a>
-        <a href="{{ url_for('coach_my_groups_supabase') }}"
-          class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">cloud</span> My Groups (Neo)
-        </a>
         <a href="{{ url_for('coach_send_message_supabase') }}"
           class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">cloud</span> Send Message (Neo)
-        </a>
-        <a href="{{ url_for('coach_send_message') }}"
-          class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">mail</span> Send Message
+          <span class="material-symbols-outlined text-xl">send</span> Send Message
         </a>
         {% elif session.role == 'family' %}
         <a href="{{ url_for('family_enrollments') }}"
@@ -214,13 +194,9 @@
         </a>
         {% endif %}
 
-        <a href="{{ url_for('timetables.get_timetable_page') }}"
-          class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">calendar_month</span> Schedules
-        </a>
         <a href="{{ url_for('timetable_supabase') }}"
           class="text-obsidian/60 hover:text-navy font-semibold transition-colors flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl">cloud</span> Schedules (Neo)
+          <span class="material-symbols-outlined text-xl">calendar_month</span> Schedules
         </a>
         {% else %}
         <a href="#about" class="text-obsidian/60 hover:text-navy font-semibold transition-colors">Programs</a>
@@ -335,12 +311,12 @@
         <span class="material-symbols-outlined text-2xl">dashboard</span>
         <span class="text-[10px] font-bold">Home</span>
       </a>
-      <a href="{{ url_for('timetables.get_timetable_page') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+      <a href="{{ url_for('timetable_supabase') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
         <span class="material-symbols-outlined text-2xl">calendar_month</span>
         <span class="text-[10px] font-bold">Schedule</span>
       </a>
       {% if session.role == 'coach' %}
-      <a href="{{ url_for('coach_my_groups') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+      <a href="{{ url_for('coach_my_groups_supabase') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
         <span class="material-symbols-outlined text-2xl">groups</span>
         <span class="text-[10px] font-bold">Groups</span>
       </a>
@@ -351,7 +327,7 @@
       </a>
       {% endif %}
       {% if session.role in ['admin', 'coach'] %}
-      <a href="{{ url_for('coach_send_message') if session.role == 'coach' else url_for('admin_send_message') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
+      <a href="{{ url_for('coach_send_message_supabase') if session.role == 'coach' else url_for('admin_send_message_supabase') }}" class="flex flex-col items-center gap-1 p-2 text-navy/60 hover:text-navy">
         <span class="material-symbols-outlined text-2xl">send</span>
         <span class="text-[10px] font-bold">Message</span>
       </a>
