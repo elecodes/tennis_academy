@@ -797,22 +797,35 @@ def dashboard():
         template = "coach_dashboard.html"
 
     else:  # family
-        # Family sees their enrolled groups and messages
-        my_enrollments = conn.execute(
-            """
-            SELECT g.*, gm.kid_name, u.full_name as coach_name
-            FROM group_members gm
-            JOIN groups g ON gm.group_id = g.id
-            LEFT JOIN users u ON g.coach_id = u.id
-            WHERE gm.family_id = ?
-        """,
-            (user_id,),
-        ).fetchall()
+        # Family sees their enrolled groups from Neon and messages
+        parent_email = session.get("email")
+        from academy_db import fetch_family_enrollments
+        neon_family_enrollments = fetch_family_enrollments(parent_email) if parent_email else None
 
-        # Keep Turso-only enrollments for quick messages (need group_id)
-        turso_enrollments = [
-            e for e in my_enrollments if not e.get("_supabase")
-        ]
+        if neon_family_enrollments:
+            my_enrollments = [
+                {
+                    "kid_name": e["kid_name"],
+                    "name": e["name"],
+                    "coach_name": e.get("coach_name"),
+                    "schedule": e.get("schedule", ""),
+                }
+                for e in neon_family_enrollments
+            ]
+        else:
+            my_enrollments = list(
+                conn.execute(
+                    """
+                    SELECT g.*, gm.kid_name, u.full_name as coach_name
+                    FROM group_members gm
+                    JOIN groups g ON gm.group_id = g.id
+                    LEFT JOIN users u ON g.coach_id = u.id
+                    WHERE gm.family_id = ?
+                """,
+                    (user_id,),
+                ).fetchall()
+            )
+
         quick_enrollments = [e for e in my_enrollments if e.get("coach_name")]
 
         messages = conn.execute(
