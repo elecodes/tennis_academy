@@ -47,7 +47,7 @@
         <span class="material-symbols-outlined text-3xl">cloud</span>
       </div>
       <div>
-        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">Supabase Sync</div>
+        <div class="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">Neon Sync</div>
         <div class="text-4xl font-black text-navy">{{ stats.sb_total_lessons }}</div>
         <div class="text-xs text-obsidian/40 font-bold mt-1">
           {{ stats.sb_total_coaches }} coaches · {{ stats.sb_total_students }} students
@@ -56,12 +56,12 @@
     </div>
   </div>
 
-  <!-- Supabase Lessons -->
+  <!-- Neon Lessons -->
   {% if sb_lessons %}
   <div class="mb-20">
     <div class="flex items-center gap-4 mb-10">
       <span class="w-12 h-1 bg-accent rounded-full"></span>
-      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Supabase Lessons</h2>
+      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Neon Lessons</h2>
       <span class="px-4 py-1.5 bg-accent/10 rounded-full text-[10px] font-black text-accent uppercase tracking-widest ml-auto">{{ sb_lessons|length }} total</span>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -142,9 +142,9 @@
           class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-6 transition-all duration-500">
           <span class="material-symbols-outlined text-3xl">cloud</span>
         </div>
-        <div class="text-xl font-black text-navy group-hover:text-white mb-2 transition-colors">Supabase</div>
+        <div class="text-xl font-black text-navy group-hover:text-white mb-2 transition-colors">Neon DB</div>
         <p class="text-sm text-obsidian/40 group-hover:text-white/60 leading-relaxed transition-colors">View
-          students, enrollments, coaches, and lessons from Supabase.</p>
+          students, enrollments, coaches, and lessons from Neon.</p>
       </a>
 
       <a href="{{ url_for('admin_enrollments_supabase') }}"
@@ -153,7 +153,7 @@
           class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-6 transition-all duration-500">
           <span class="material-symbols-outlined text-3xl">app_registration</span>
         </div>
-        <div class="text-xl font-black text-navy group-hover:text-white mb-2 transition-colors">Enrollments (Supabase)
+        <div class="text-xl font-black text-navy group-hover:text-white mb-2 transition-colors">Enrollments (Neon)
         </div>
         <p class="text-sm text-obsidian/40 group-hover:text-white/60 leading-relaxed transition-colors">View
           student enrollments with lesson assignments and payment status.</p>
@@ -165,9 +165,9 @@
           class="w-14 h-14 bg-navy/5 rounded-2xl flex items-center justify-center text-navy group-hover:bg-white/10 group-hover:text-white mb-6 transition-all duration-500">
           <span class="material-symbols-outlined text-3xl">groups</span>
         </div>
-        <div class="text-xl font-black text-navy group-hover:text-white mb-2 transition-colors">Users (Supabase)</div>
+        <div class="text-xl font-black text-navy group-hover:text-white mb-2 transition-colors">Users (Neon)</div>
         <p class="text-sm text-obsidian/40 group-hover:text-white/60 leading-relaxed transition-colors">Unified view of
-          Login + Supabase users.</p>
+          Login + Neon users.</p>
       </a>
     </div>
   </div>
