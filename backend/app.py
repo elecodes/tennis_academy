@@ -2536,16 +2536,36 @@ def supabase_coaches():
 
 
 @app.route("/neon/lessons")
-@app.route("/supabase/lessons")
 @login_required
 @admin_required
-def supabase_lessons():
-    from academy_db import fetch_lessons
+def neon_lessons():
+    from academy_db import fetch_lessons, fetch_coaches
+
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 12, type=int)
 
     data = fetch_lessons()
     if data is None:
         return jsonify({"error": "Base de datos no configurada"}), 503
-    return jsonify(data)
+
+    coaches = fetch_coaches() or []
+    coach_map = {c["id"]: c["name"] for c in coaches}
+    for l in data:
+        l["coach_name"] = coach_map.get(l["coach_id"], "Unknown")
+
+    total = len(data)
+    start = max(0, (page - 1) * limit)
+    end = min(total, start + limit)
+    paginated_items = data[start:end]
+
+    return jsonify({
+        "lessons": paginated_items,
+        "page": page,
+        "limit": limit,
+        "total": total,
+        "has_more": end < total,
+        "remaining": max(0, total - end)
+    })
 
 
 @app.route("/admin/students")

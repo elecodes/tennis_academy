@@ -62,10 +62,10 @@
     <div class="flex items-center gap-4 mb-10">
       <span class="w-12 h-1 bg-accent rounded-full"></span>
       <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Neon Lessons</h2>
-      <span class="px-4 py-1.5 bg-accent/10 rounded-full text-[10px] font-black text-accent uppercase tracking-widest ml-auto">{{ sb_lessons|length }} total</span>
+      <span class="px-4 py-1.5 bg-accent/10 rounded-full text-[10px] font-black text-accent uppercase tracking-widest ml-auto" id="lessons-total-count">{{ sb_lessons|length }} total</span>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {% for l in sb_lessons %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="lessons-grid">
+      {% for l in sb_lessons[:12] %}
       <div class="card-premium p-6 border border-navy/5 hover:border-accent/30 transition-all duration-500">
         <h4 class="font-black text-navy text-lg leading-tight mb-1">{{ l.title }}</h4>
         <span class="inline-block px-2.5 py-0.5 bg-accent/10 rounded-full text-[10px] font-black text-accent uppercase tracking-widest mb-4">{{ l.lesson_type or l.type or '—' }}</span>
@@ -82,6 +82,66 @@
       </div>
       {% endfor %}
     </div>
+    {% if sb_lessons|length > 12 %}
+    <div class="mt-8 text-center" id="load-more-lessons-container">
+      <button id="load-more-lessons-btn" onclick="loadMoreLessons()" class="btn-outline px-8 py-3 rounded-full font-black text-sm uppercase tracking-wider transition-all hover:bg-navy hover:text-white inline-flex items-center gap-2">
+        <span class="material-symbols-outlined text-lg">add_circle</span>
+        <span>Load More Lessons (<span id="lessons-remaining-count">{{ sb_lessons|length - 12 }}</span> remaining)</span>
+      </button>
+    </div>
+    <script>
+      let currentLessonPage = 1;
+      const lessonLimit = 12;
+      async function loadMoreLessons() {
+        const btn = document.getElementById('load-more-lessons-btn');
+        if (!btn) return;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-lg">sync</span> <span>Loading...</span>';
+        
+        try {
+          currentLessonPage++;
+          const res = await fetch(`/neon/lessons?page=${currentLessonPage}&limit=${lessonLimit}`);
+          const data = await res.json();
+          
+          if (data.lessons && data.lessons.length > 0) {
+            const grid = document.getElementById('lessons-grid');
+            data.lessons.forEach(l => {
+              const card = document.createElement('div');
+              card.className = 'card-premium p-6 border border-navy/5 hover:border-accent/30 transition-all duration-500 animate-fade-in';
+              card.innerHTML = `
+                <h4 class="font-black text-navy text-lg leading-tight mb-1">${l.title || ''}</h4>
+                <span class="inline-block px-2.5 py-0.5 bg-accent/10 rounded-full text-[10px] font-black text-accent uppercase tracking-widest mb-4">${l.lesson_type || l.type || '—'}</span>
+                <div class="space-y-1.5 text-sm text-obsidian/70">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base text-navy/30">person</span>
+                    <span class="font-semibold">${l.coach_name || 'Unknown'}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base text-navy/30">calendar_today</span>
+                    <span>${l.time || ''}</span>
+                  </div>
+                </div>
+              `;
+              grid.appendChild(card);
+            });
+            
+            if (data.has_more) {
+              btn.disabled = false;
+              btn.innerHTML = `<span class="material-symbols-outlined text-lg">add_circle</span> <span>Load More Lessons (${data.remaining} remaining)</span>`;
+            } else {
+              document.getElementById('load-more-lessons-container').remove();
+            }
+          } else {
+            document.getElementById('load-more-lessons-container').remove();
+          }
+        } catch (err) {
+          console.error('Error loading more lessons:', err);
+          btn.disabled = false;
+          btn.innerHTML = '<span class="material-symbols-outlined text-lg">refresh</span> <span>Retry Loading Lessons</span>';
+        }
+      }
+    </script>
+    {% endif %}
   </div>
   {% endif %}
 
