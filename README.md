@@ -41,7 +41,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - ✅ **Message Acknowledgments** — family clicks "OK" or "Received" on each message; coach sees ack summary in "Messages Sent" table
 - ✅ **Family Quick Messages** — 4 presets (Running Late, Will Miss, On My Way, Early Pickup), no free text, 15-min rate limit
 - ✅ **Coach Reply** — reply button on family alerts opens modal with free text; creates messages entry + message_recipients for the family
-- ✅ **Admin Message Auditor** — `/admin/messages` table of ALL messages (broadcasts + family notes), edit modal, soft delete
+- ✅ **Admin Message Auditor** — `/admin/messages` table of ALL messages (broadcasts + family notes), edit modal, permanent deletion & legacy purge
 - ✅ **Unread message tracking** (`is_read` column + unread count on dashboard + visual read/unread styling)
 - ✅ **Mark All Read** — one-click bulk marking on family messages page
 - ✅ **Google Spreadsheet Integration** (Sync schedules automatically)

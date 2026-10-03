@@ -5,6 +5,23 @@ All notable changes to the SF TENNIS KIDS Club platform will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.29.0] - 2026-10-03
+
+### Fixed
+- **PostgreSQL Compatibility in Message Deletion**:
+  - Replaced SQLite-specific `datetime('now')` with ANSI-standard `CURRENT_TIMESTAMP` in message deletion flow, resolving an unhandled HTTP 500 error on Neon PostgreSQL.
+- **Message Auditor Erasure**:
+  - Replaced soft deletion / `[deleted]` placeholders with permanent record deletion (`DELETE FROM`) for both broadcast messages and family quick messages.
+  - Added legacy purge in `admin_message_auditor` to clean up existing `[deleted]` marked messages and deleted family notes.
+  - Normalized auditor rows to dictionaries to safely mutate acknowledgment summaries and sort by `sent_at`.
+  - Removed deprecated `[deleted]` strikethrough styling in `frontend/templates/admin/message_auditor.html`.
+
+### Testing
+- Expanded `tests/test_rbac_access_control.py` to verify permanent database erasure of deleted messages and strict RBAC enforcement (53 total passing tests).
+
+### Documentation
+- Created `docs/ADR-034: Message Auditor Permanent Deletion and PostgreSQL Compatibility.md`.
+
 ## [1.28.0] - 2026-10-03
 
 ### Added
