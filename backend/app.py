@@ -226,6 +226,7 @@ csp = {
     "script-src": [
         "'self'",
         "'unsafe-inline'",  # Required for Tailwind CDN and some templates
+        "'unsafe-eval'",  # Required for Tailwind Play CDN browser compiler
         "cdn.tailwindcss.com",
         "browser.sentry-cdn.com",
     ],
