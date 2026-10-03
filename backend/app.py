@@ -449,6 +449,24 @@ def init_db():
     """
     )
 
+    # Schedule exceptions (date-specific alerts, cancellations, or student absence notes)
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS schedule_exceptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            group_id INTEGER,
+            schedule_id INTEGER,
+            kid_name TEXT,
+            exception_date DATE NOT NULL,
+            status TEXT NOT NULL CHECK(status IN ('no_lesson', 'kid_absent', 'time_change', 'note')),
+            note_text TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
+            FOREIGN KEY (schedule_id) REFERENCES group_schedules (id) ON DELETE CASCADE
+        )
+    """
+    )
+
     # App configuration (key-value store)
     cursor.execute(
         """
