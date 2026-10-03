@@ -1850,7 +1850,7 @@ def admin_delete_message(message_id):
     conn = get_db()
     if source == "family_note":
         conn.execute(
-            "UPDATE family_quick_messages SET deleted_at = datetime('now') WHERE id = ?",
+            "UPDATE family_quick_messages SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?",
             (message_id,),
         )
     else:

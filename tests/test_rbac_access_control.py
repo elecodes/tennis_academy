@@ -137,3 +137,27 @@ def test_coach_cannot_reply_to_other_coach_quick_message(client):
     
     content_text = response.get_data(as_text=True)
     assert "Unauthorized" in content_text or "Access denied" in content_text or "not authorized" in content_text.lower() or response.status_code in (403, 302)
+
+
+def test_admin_can_delete_family_quick_message(client):
+    """Admin can delete a family quick message using CURRENT_TIMESTAMP."""
+    client.post("/login", data={"email": "admin@test.com", "password": "admin123"})
+    response = client.post(
+        "/admin/messages/100/delete",
+        data={"source": "family_note"},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert "Message deleted." in response.get_data(as_text=True)
+
+
+def test_non_admin_cannot_delete_message(client):
+    """Coach and Family roles must not be able to delete messages."""
+    client.post("/login", data={"email": "coach1@test.com", "password": "coach123"})
+    response = client.post(
+        "/admin/messages/100/delete",
+        data={"source": "family_note"},
+    )
+    assert response.status_code in (302, 401, 403)
+
+
