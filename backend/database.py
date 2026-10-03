@@ -222,10 +222,15 @@ def get_db():
     token = os.environ.get("TURSO_TOKEN")
 
     if url and token:
-        return TursoConnection(url, token)
-    else:
-        # Fallback to local SQLite if no Turso config
-        db_path = os.path.join(os.path.dirname(__file__), "..", "academy.db")
-        conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
+        try:
+            conn = TursoConnection(url, token)
+            conn.execute("SELECT 1")
+            return conn
+        except Exception as e:
+            print(f"get_db: Turso unavailable ({e}), falling back to local SQLite.", flush=True)
+
+    # Fallback to local SQLite if no Turso config or network unreachable
+    db_path = os.path.join(os.path.dirname(__file__), "..", "academy.db")
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    return conn

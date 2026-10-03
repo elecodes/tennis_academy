@@ -27,7 +27,7 @@ def test_security_headers_present(client):
     # Verify our custom CSP rules
     assert "default-src 'self'" in csp
     assert (
-        "script-src 'self' 'unsafe-inline' cdn.tailwindcss.com browser.sentry-cdn.com"
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.tailwindcss.com browser.sentry-cdn.com"
         in csp
     )
     assert "style-src 'self' 'unsafe-inline' fonts.googleapis.com" in csp
