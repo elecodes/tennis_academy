@@ -310,11 +310,11 @@
       <div class="card-premium p-6 border border-amber-500/20 bg-white relative group">
         <div class="flex items-start justify-between gap-3 mb-3">
           <div class="flex items-center gap-2">
-            <span class="text-xl">
-              {% if ex.status == 'no_lesson' %}🚫
-              {% elif ex.status == 'kid_absent' %}🤒
-              {% elif ex.status == 'time_change' %}⏰
-              {% else %}ℹ️{% endif %}
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-xs font-black uppercase text-amber-900 border border-amber-500/30">
+              {% if ex.status == 'no_lesson' %}🚫 NO LESSON
+              {% elif ex.status == 'kid_absent' %}🤒 KID ABSENT
+              {% elif ex.status == 'time_change' %}⏰ TIME CHANGE
+              {% else %}ℹ️ NOTE{% endif %}
             </span>
             <span class="text-sm font-black text-navy">{{ ex.exception_date }}</span>
           </div>

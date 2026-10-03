@@ -69,15 +69,15 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       {% for ex in schedule_exceptions %}
       <div class="p-3.5 rounded-2xl bg-white border border-amber-500/20 flex items-start gap-3 shadow-xs">
-        <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
-          {% if ex.status == 'no_lesson' %}🚫
-          {% elif ex.status == 'kid_absent' %}🤒
-          {% elif ex.status == 'time_change' %}⏰
-          {% else %}ℹ️{% endif %}
-        </div>
         <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-0.5">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
             <span class="text-xs font-black text-navy">{{ ex.exception_date }}</span>
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-[10px] font-black uppercase text-amber-900 border border-amber-500/30">
+              {% if ex.status == 'no_lesson' %}🚫 NO LESSON
+              {% elif ex.status == 'kid_absent' %}🤒 KID ABSENT
+              {% elif ex.status == 'time_change' %}⏰ TIME CHANGE
+              {% else %}ℹ️ NOTE{% endif %}
+            </span>
             {% if ex.group_name %}<span class="px-2 py-0.5 rounded bg-navy/10 text-[9px] font-bold text-navy">{{ ex.group_name }}</span>{% endif %}
             {% if ex.kid_name %}<span class="px-2 py-0.5 rounded bg-amber-500/20 text-[9px] font-bold text-amber-700">Kid: {{ ex.kid_name }}</span>{% endif %}
           </div>
