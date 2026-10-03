@@ -78,6 +78,8 @@ is_production = (
 )
 app.jinja_env.auto_reload = not is_production
 app.config["TEMPLATES_AUTO_RELOAD"] = not is_production
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.secret_key = os.environ.get(
     "SECRET_KEY", "7f0d44a016b40a094b21c5b7f45496cc78a65eeda08491094a17408b2c05c88d"
 )
@@ -266,8 +268,8 @@ REDIRECT_TARGET = "gelenmp@gmail.com"
 
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
-SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "gelenmp@gmail.com")
-SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD", "zqjl piud eqwi guci")
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "")
+SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD", "")
 REDIRECT_EMAILS_TO = REDIRECT_TARGET if TEST_MODE else None
 
 
@@ -664,8 +666,9 @@ def dashboard():
 
     elif role == "coach":
         # Coach sees their groups and messages
-        my_groups = list(
-            conn.execute(
+        my_groups = [
+            dict(g)
+            for g in conn.execute(
                 """
                 SELECT g.*, COUNT(DISTINCT gm.family_id) as member_count
                 FROM groups g
@@ -675,7 +678,7 @@ def dashboard():
             """,
                 (user_id,),
             ).fetchall()
-        )
+        ]
 
         # Append Supabase lessons to my_groups
         from academy_db import fetch_coach_lessons, fetch_student_lessons
@@ -749,7 +752,7 @@ def dashboard():
         ).fetchall()
 
         # Append ack info to coach's own sent messages (batched)
-        recent_messages = list(recent_messages)
+        recent_messages = [dict(m) for m in recent_messages]
         coach_sent_ids = [m["id"] for m in recent_messages if m["sender_id"] == user_id]
         ack_map = {}
         if coach_sent_ids:
@@ -1059,6 +1062,8 @@ def sheets_sync_webhook():
 
 
 @app.route("/api/debug/sync-status")
+@login_required
+@admin_required
 def debug_sync_status():
     """Debug endpoint to verify Turso data after sync."""
     import json as _json
@@ -1089,6 +1094,8 @@ def debug_sync_status():
 
 
 @app.route("/api/debug/pg-check")
+@login_required
+@admin_required
 def debug_pg_check():
     """Debug endpoint to verify PostgreSQL connection on Vercel."""
     import traceback
@@ -1789,6 +1796,26 @@ def coach_reply_family(quick_msg_id):
     ).fetchone()
     if not qm:
         flash("Message not found.", "danger")
+        conn.close()
+        return redirect(url_for("dashboard"))
+
+    # IDOR Check: Ensure logged-in user is admin or the assigned coach for this quick message
+    user_role = session.get("role")
+    is_authorized = False
+    if user_role == "admin":
+        is_authorized = True
+    elif qm["coach_name"] and coach_name and qm["coach_name"].lower() == coach_name.lower():
+        is_authorized = True
+    elif qm["group_id"]:
+        grp = conn.execute(
+            "SELECT id FROM groups WHERE id = ? AND coach_id = ?",
+            (qm["group_id"], coach_id),
+        ).fetchone()
+        if grp:
+            is_authorized = True
+
+    if not is_authorized:
+        flash("Access denied: You are not authorized to reply to this message.", "danger")
         conn.close()
         return redirect(url_for("dashboard"))
 
@@ -2611,6 +2638,17 @@ def admin_users_supabase():
         flash("Base de datos no configurada. Set DATABASE_URL.", "danger")
         return redirect(url_for("dashboard"))
     return render_template("admin/users_supabase.html", users=users)
+
+
+# Error Handlers
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template("error.html", error="Page not found (404)."), 404
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template("error.html", error="An internal server error occurred (500). Please try again later."), 500
 
 
 # Initialize database on import (critical for Vercel serverless)
