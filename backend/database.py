@@ -218,14 +218,8 @@ def get_db():
         if conn:
             return conn
 
-    url = os.environ.get("TURSO_URL", "libsql://sfchat-gelenmp.aws-eu-west-1.turso.io")
-    token = os.environ.get(
-        "TURSO_TOKEN",
-        "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzIxMjExMDMsImlkIjoi"
-        "MDE5Yzk5ZGQtZjAwMS03ZTgyLWFjMDMtZmIwMDg5ZTdhN2ZlIiwicmlkIjoi"
-        "OTg4YzJhN2UtZDI3ZS00NmQ5LWE4OTQtYTBhYTIxYzliMzFmIn0."
-        "wo6KD364yHQu5wYq-XSudYjxagJQCV2vmWNdx0Q2DBPGm_euPJl6blkU-fS453_NEdO5dZUz--HsjBlJth0BBQ",
-    )
+    url = os.environ.get("TURSO_URL")
+    token = os.environ.get("TURSO_TOKEN")
 
     if url and token:
         return TursoConnection(url, token)
