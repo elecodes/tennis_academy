@@ -510,10 +510,12 @@ MIT License - Free to use and modify!
 ✅ Message Acks:     ack_type/ack_at per recipient, OK/Received buttons, coach ack summary (v1.24.0)
 ✅ Quick Messages:   4 presets, 15-min rate limit, coach reply, family alerts widget (v1.24.0)
 ✅ Admin Auditor:    /admin/messages table, edit modal, soft delete, nav link (v1.24.0)
+✅ OWASP Top 10:    Access control, IDOR protection, secrets removal, session flags & error handlers (v1.27.0)
+✅ Security Tests:   Comprehensive automated pytest suite (19/19 passing)
 ```
 
-**Last Updated**: 2026-09-10
-**Version**: 1.26.0
+**Last Updated**: 2026-10-03
+**Version**: 1.27.0
 **Status**: Production Ready ✅
 
 ---
