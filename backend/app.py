@@ -723,7 +723,7 @@ def dashboard():
 
                 sb_groups = []
                 DAY_ABBR = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-                for l in sb_lessons:
+                for l in (sb_lessons or []):
                     time_24 = l["time"]
                     hour = int(time_24[:2])
                     minute = time_24[3:]
