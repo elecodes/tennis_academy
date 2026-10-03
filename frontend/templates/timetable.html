@@ -14,7 +14,37 @@
       <p class="text-obsidian/40 font-medium">Coordinate and track active cohorts across all court assignments.</p>
     </div>
 
-    <!-- Week Navigation -->
+    <!-- Schedule Alerts & Exceptions Overlay -->
+  {% if schedule_exceptions %}
+  <div class="mb-8 p-6 rounded-3xl bg-amber-500/10 border border-amber-500/20 shadow-sm">
+    <h3 class="text-lg font-black text-navy font-serif mb-3 flex items-center gap-2">
+      <span class="material-symbols-outlined text-amber-500">warning</span>
+      Active Schedule Alerts & Exceptions (This Week)
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {% for ex in schedule_exceptions %}
+      <div class="p-3.5 rounded-2xl bg-white border border-amber-500/20 flex items-start gap-3 shadow-xs">
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <span class="text-xs font-black text-navy">{{ ex.exception_date }}</span>
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-[10px] font-black uppercase text-amber-900 border border-amber-500/30">
+              {% if ex.status == 'no_lesson' %}🚫 NO LESSON
+              {% elif ex.status == 'kid_absent' %}🤒 KID ABSENT
+              {% elif ex.status == 'time_change' %}⏰ TIME CHANGE
+              {% else %}ℹ️ NOTE{% endif %}
+            </span>
+            {% if ex.group_name %}<span class="px-2 py-0.5 rounded bg-navy/10 text-[9px] font-bold text-navy">{{ ex.group_name }}</span>{% endif %}
+            {% if ex.kid_name %}<span class="px-2 py-0.5 rounded bg-amber-500/20 text-[9px] font-bold text-amber-700">Kid: {{ ex.kid_name }}</span>{% endif %}
+          </div>
+          <p class="text-xs font-semibold text-navy/80">{{ ex.note_text }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Week Navigation -->
     <div class="flex items-center bg-white p-2 rounded-[1.5rem] border border-navy/5 shadow-xl">
       <a href="{% if supabase %}{{ url_for('timetable_supabase', date=prev_week) }}{% else %}{{ url_for('timetables.get_timetable_page', date=prev_week) }}{% endif %}"
         class="w-12 h-12 flex items-center justify-center text-navy hover:bg-navy hover:text-white rounded-xl transition-all">
@@ -59,35 +89,6 @@
     {% endif %}
   </div>
 
-  <!-- Schedule Alerts & Exceptions Overlay -->
-  {% if schedule_exceptions %}
-  <div class="mb-8 p-6 rounded-3xl bg-amber-500/10 border border-amber-500/20 shadow-sm">
-    <h3 class="text-lg font-black text-navy font-serif mb-3 flex items-center gap-2">
-      <span class="material-symbols-outlined text-amber-500">warning</span>
-      Active Schedule Alerts & Exceptions (This Week)
-    </h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-      {% for ex in schedule_exceptions %}
-      <div class="p-3.5 rounded-2xl bg-white border border-amber-500/20 flex items-start gap-3 shadow-xs">
-        <div class="flex-1 min-w-0">
-          <div class="flex flex-wrap items-center gap-2 mb-1">
-            <span class="text-xs font-black text-navy">{{ ex.exception_date }}</span>
-            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-[10px] font-black uppercase text-amber-900 border border-amber-500/30">
-              {% if ex.status == 'no_lesson' %}🚫 NO LESSON
-              {% elif ex.status == 'kid_absent' %}🤒 KID ABSENT
-              {% elif ex.status == 'time_change' %}⏰ TIME CHANGE
-              {% else %}ℹ️ NOTE{% endif %}
-            </span>
-            {% if ex.group_name %}<span class="px-2 py-0.5 rounded bg-navy/10 text-[9px] font-bold text-navy">{{ ex.group_name }}</span>{% endif %}
-            {% if ex.kid_name %}<span class="px-2 py-0.5 rounded bg-amber-500/20 text-[9px] font-bold text-amber-700">Kid: {{ ex.kid_name }}</span>{% endif %}
-          </div>
-          <p class="text-xs font-semibold text-navy/80">{{ ex.note_text }}</p>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
 
   <!-- Groups Display -->
   <div class="space-y-6 md:space-y-12">

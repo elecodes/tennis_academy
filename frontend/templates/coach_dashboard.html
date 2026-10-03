@@ -7,6 +7,36 @@
 
 <div class="max-w-7xl mx-auto px-10 pb-24">
 
+  <!-- Schedule Exceptions & Alerts -->
+  {% if stats.schedule_exceptions %}
+  <div class="mb-12">
+    <div class="flex items-center gap-4 mb-6">
+      <span class="w-12 h-1 bg-amber-500 rounded-full"></span>
+      <h2 class="text-3xl font-black text-navy font-serif tracking-tight">Schedule Alerts & Exceptions</h2>
+    </div>
+    <div class="grid gap-3">
+      {% for ex in stats.schedule_exceptions %}
+      <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-4">
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2 mb-1.5">
+            <span class="text-sm font-black text-navy">{{ ex.exception_date }}</span>
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-[11px] font-black uppercase text-amber-900 border border-amber-500/30">
+              {% if ex.status == 'no_lesson' %}🚫 NO LESSON
+              {% elif ex.status == 'kid_absent' %}🤒 KID ABSENT
+              {% elif ex.status == 'time_change' %}⏰ TIME CHANGE
+              {% else %}ℹ️ NOTE{% endif %}
+            </span>
+            {% if ex.group_name %}<span class="px-2 py-0.5 rounded-md bg-navy/10 text-[10px] font-bold text-navy">{{ ex.group_name }}</span>{% endif %}
+            {% if ex.kid_name %}<span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-[10px] font-bold text-amber-700">Kid: {{ ex.kid_name }}</span>{% endif %}
+          </div>
+          <p class="text-sm font-semibold text-navy/80">{{ ex.note_text }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Quick Actions -->
   <div class="mb-20">
     <div class="flex items-center gap-4 mb-10">
@@ -130,35 +160,6 @@
   </div>
   {% endif %}
 
-  <!-- Schedule Exceptions & Alerts -->
-  {% if stats.schedule_exceptions %}
-  <div class="mb-10">
-    <h3 class="text-xl font-black text-navy font-serif mb-4 flex items-center gap-2">
-      <span class="material-symbols-outlined text-amber-500">warning</span>
-      Schedule Alerts & Exceptions
-    </h3>
-    <div class="grid gap-3">
-      {% for ex in stats.schedule_exceptions %}
-      <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-4">
-        <div class="flex-1 min-w-0">
-          <div class="flex flex-wrap items-center gap-2 mb-1.5">
-            <span class="text-sm font-black text-navy">{{ ex.exception_date }}</span>
-            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-[11px] font-black uppercase text-amber-900 border border-amber-500/30">
-              {% if ex.status == 'no_lesson' %}🚫 NO LESSON
-              {% elif ex.status == 'kid_absent' %}🤒 KID ABSENT
-              {% elif ex.status == 'time_change' %}⏰ TIME CHANGE
-              {% else %}ℹ️ NOTE{% endif %}
-            </span>
-            {% if ex.group_name %}<span class="px-2 py-0.5 rounded-md bg-navy/10 text-[10px] font-bold text-navy">{{ ex.group_name }}</span>{% endif %}
-            {% if ex.kid_name %}<span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-[10px] font-bold text-amber-700">Kid: {{ ex.kid_name }}</span>{% endif %}
-          </div>
-          <p class="text-sm font-semibold text-navy/80">{{ ex.note_text }}</p>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
 
   <!-- Reply Modal -->
   <div id="replyModal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
