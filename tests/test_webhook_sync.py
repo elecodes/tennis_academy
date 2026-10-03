@@ -6,8 +6,15 @@ from backend.database import get_config
 
 
 @pytest.fixture
-def client():
+def client(monkeypatch):
     app.config["TESTING"] = True
+    monkeypatch.setenv("TURSO_URL", "")
+    monkeypatch.setenv("TURSO_TOKEN", "")
+    monkeypatch.setenv("DATABASE_URL", "")
+    monkeypatch.setenv("NEON_DATABASE_URL", "")
+    import pg_db
+    monkeypatch.setattr(pg_db, "_DATABASE_URL", None)
+    monkeypatch.setattr(pg_db, "is_pg_available", lambda: False)
     with app.test_client() as client:
         yield client
 

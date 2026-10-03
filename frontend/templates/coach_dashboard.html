@@ -128,6 +128,37 @@
       {% endfor %}
     </div>
   </div>
+  {% endif %}
+
+  <!-- Schedule Exceptions & Alerts -->
+  {% if stats.schedule_exceptions %}
+  <div class="mb-10">
+    <h3 class="text-xl font-black text-navy font-serif mb-4 flex items-center gap-2">
+      <span class="material-symbols-outlined text-amber-500">warning</span>
+      Schedule Alerts & Exceptions
+    </h3>
+    <div class="grid gap-3">
+      {% for ex in stats.schedule_exceptions %}
+      <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
+          {% if ex.status == 'no_lesson' %}🚫
+          {% elif ex.status == 'kid_absent' %}🤒
+          {% elif ex.status == 'time_change' %}⏰
+          {% else %}ℹ️{% endif %}
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-sm font-black text-navy">{{ ex.exception_date }}</span>
+            {% if ex.group_name %}<span class="px-2 py-0.5 rounded-md bg-navy/10 text-[10px] font-bold text-navy">{{ ex.group_name }}</span>{% endif %}
+            {% if ex.kid_name %}<span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-[10px] font-bold text-amber-700">Kid: {{ ex.kid_name }}</span>{% endif %}
+          </div>
+          <p class="text-sm font-semibold text-navy/80">{{ ex.note_text }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Reply Modal -->
   <div id="replyModal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
@@ -168,7 +199,6 @@
       document.getElementById('replyModal').classList.add('hidden');
     }
   </script>
-  {% endif %}
 
   <!-- Recent Alerts Send -->
   {% if stats.recent_messages %}

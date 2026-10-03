@@ -46,6 +46,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - ✅ **Mark All Read** — one-click bulk marking on family messages page
 - ✅ **Google Spreadsheet Integration** (Sync schedules automatically)
 - ✅ **Auto-Sync** (Sheets edits sync to Turso in seconds via installable GAS triggers)
+- ✅ **Date-Specific Schedule Exceptions & Alerts Overlay** — admin overlay layer (`schedule_exceptions`) for cancellations, student sickness/absence, time changes, and notes without modifying recurring master timetables or breaking one-way sync (`sfschedule.onrender.com`).
 - ✅ Simple web interface for all roles
 - ✅ 100% free (Python, Flask, Gmail SMTP)
 

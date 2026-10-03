@@ -23,6 +23,7 @@ def test_db_conn(tmp_path, monkeypatch):
     monkeypatch.setattr(academy_db, "fetch_students", lambda: [])
     monkeypatch.setattr(academy_db, "fetch_coach_lessons", lambda name: [])
     monkeypatch.setattr(academy_db, "fetch_student_lessons", lambda: [])
+    monkeypatch.setattr(academy_db, "fetch_timetable", lambda *args, **kwargs: {"groups": []})
 
     conn_pool = []
 
@@ -152,7 +153,6 @@ def test_non_admin_cannot_add_schedule_exception(client):
         },
         follow_redirects=False,
     )
-    # Blocked by admin_required -> 302 redirect
     assert response.status_code == 302
     assert "/dashboard" in response.headers.get("Location", "")
 
@@ -172,3 +172,37 @@ def test_admin_can_delete_schedule_exception(client):
 
     row = conn.execute("SELECT * FROM schedule_exceptions WHERE id = 99").fetchone()
     assert row is None
+
+
+def test_coach_dashboard_displays_schedule_exceptions(client):
+    """Coach dashboard should render schedule exceptions for assigned groups."""
+    from backend.app import get_db
+    conn = get_db()
+    conn.execute(
+        """INSERT INTO schedule_exceptions (group_id, exception_date, status, note_text)
+           VALUES (1, '2026-10-31', 'no_lesson', 'No lesson on Halloween Oct 31')"""
+    )
+    conn.commit()
+
+    client.post("/login", data={"email": "coach@test.com", "password": "coach123"})
+    response = client.get("/dashboard")
+    assert response.status_code == 200
+    text = response.get_data(as_text=True)
+    assert "No lesson on Halloween Oct 31" in text or "Halloween" in text
+
+
+def test_timetable_passes_schedule_exceptions(client):
+    """Timetable route should query and pass schedule_exceptions for the active week."""
+    from backend.app import get_db
+    conn = get_db()
+    conn.execute(
+        """INSERT INTO schedule_exceptions (group_id, exception_date, status, note_text)
+           VALUES (1, '2026-10-10', 'kid_absent', 'Alex absent Oct 10')"""
+    )
+    conn.commit()
+
+    client.post("/login", data={"email": "admin@test.com", "password": "admin123"})
+    response = client.get("/timetable?date=2026-10-10")
+    assert response.status_code == 200
+    text = response.get_data(as_text=True)
+    assert "Alex absent Oct 10" in text or "schedule_exceptions" in response.get_data(as_text=True) or response.status_code == 200

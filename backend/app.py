@@ -678,6 +678,13 @@ def dashboard():
                 ORDER BY m.sent_at DESC LIMIT 5
             """
             ).fetchall(),
+            "schedule_exceptions": conn.execute(
+                """SELECT se.*, g.name as group_name
+                   FROM schedule_exceptions se
+                   LEFT JOIN groups g ON se.group_id = g.id
+                   ORDER BY se.exception_date DESC LIMIT 20"""
+            ).fetchall(),
+            "groups": conn.execute("SELECT * FROM groups ORDER BY name ASC").fetchall(),
         }
         sb_lessons_list = sb_lessons if sb_lessons else []
         template = "admin_dashboard.html"
@@ -808,10 +815,22 @@ def dashboard():
             1 for g in my_groups if g.get("_supabase")
         )
 
+        schedule_exceptions = conn.execute(
+            """SELECT se.*, g.name as group_name
+               FROM schedule_exceptions se
+               LEFT JOIN groups g ON se.group_id = g.id
+               WHERE (se.group_id IN (SELECT id FROM groups WHERE coach_id = ?)
+                  OR se.group_id IS NULL)
+               ORDER BY se.exception_date DESC LIMIT 10""",
+            (user_id,),
+        ).fetchall()
+        schedule_exceptions = [dict(e) for e in (schedule_exceptions or [])]
+
         stats = {
             "my_groups": my_groups,
             "recent_messages": recent_messages,
             "family_alerts": family_alerts,
+            "schedule_exceptions": schedule_exceptions,
             "total_families": total_families,
             "total_sessions": total_sessions,
         }
@@ -2216,6 +2235,21 @@ def timetable_supabase():
     prev_week = (week_start - timedelta(days=7)).strftime("%Y-%m-%d")
     next_week = (week_start + timedelta(days=7)).strftime("%Y-%m-%d")
 
+    week_start_str = week_start.strftime("%Y-%m-%d")
+    week_end_str = (week_start + timedelta(days=6)).strftime("%Y-%m-%d")
+
+    conn = get_db()
+    schedule_exceptions = conn.execute(
+        """SELECT se.*, g.name as group_name
+           FROM schedule_exceptions se
+           LEFT JOIN groups g ON se.group_id = g.id
+           WHERE se.exception_date >= ? AND se.exception_date <= ?
+           ORDER BY se.exception_date ASC""",
+        (week_start_str, week_end_str),
+    ).fetchall()
+    schedule_exceptions = [dict(e) for e in (schedule_exceptions or [])]
+    conn.close()
+
     result = fetch_timetable(user_role, user_name, user_email)
     if result is None:
         flash("Base de datos no configurada.", "danger")
@@ -2237,6 +2271,7 @@ def timetable_supabase():
         next_week=next_week,
         day_filter=day_filter,
         supabase=True,
+        schedule_exceptions=schedule_exceptions,
     )
 
 
