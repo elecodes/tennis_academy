@@ -1204,6 +1204,61 @@ def admin_repair_timetable():
     return redirect(url_for("admin_groups"))
 
 
+# ==================== SCHEDULE EXCEPTIONS ROUTES ====================
+
+
+@app.route("/admin/schedule-exceptions/add", methods=["POST"])
+@login_required
+@admin_required
+def admin_add_schedule_exception():
+    group_id = request.form.get("group_id")
+    schedule_id = request.form.get("schedule_id")
+    kid_name = request.form.get("kid_name", "").strip() or None
+    exception_date = request.form.get("exception_date", "").strip()
+    status = request.form.get("status", "note").strip()
+    note_text = request.form.get("note_text", "").strip()
+
+    if not exception_date or not note_text:
+        flash("Exception date and note text are required.", "danger")
+        return redirect(url_for("dashboard"))
+
+    if status not in ("no_lesson", "kid_absent", "time_change", "note"):
+        status = "note"
+
+    conn = get_db()
+    conn.execute(
+        """INSERT INTO schedule_exceptions (group_id, schedule_id, kid_name, exception_date, status, note_text)
+           VALUES (?, ?, ?, ?, ?, ?)""",
+        (
+            int(group_id) if group_id and group_id.isdigit() else None,
+            int(schedule_id) if schedule_id and schedule_id.isdigit() else None,
+            kid_name,
+            exception_date,
+            status,
+            note_text,
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+    flash("Schedule exception alert created.", "success")
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/admin/schedule-exceptions/delete/<int:exception_id>", methods=["POST"])
+@login_required
+@admin_required
+def admin_delete_schedule_exception(exception_id):
+    conn = get_db()
+    conn.execute("DELETE FROM schedule_exceptions WHERE id = ?", (exception_id,))
+    conn.commit()
+    conn.close()
+
+    flash("Schedule exception alert removed.", "info")
+    return redirect(url_for("dashboard"))
+
+
+
 @app.route("/admin/groups/delete/<int:group_id>", methods=["POST"])
 @admin_required
 def admin_delete_group(group_id):
