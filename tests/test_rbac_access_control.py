@@ -140,7 +140,7 @@ def test_coach_cannot_reply_to_other_coach_quick_message(client):
 
 
 def test_admin_can_delete_family_quick_message(client):
-    """Admin can delete a family quick message using CURRENT_TIMESTAMP."""
+    """Admin can permanently delete a family quick message."""
     client.post("/login", data={"email": "admin@test.com", "password": "admin123"})
     response = client.post(
         "/admin/messages/100/delete",
@@ -149,6 +149,42 @@ def test_admin_can_delete_family_quick_message(client):
     )
     assert response.status_code == 200
     assert "Message deleted." in response.get_data(as_text=True)
+
+    from backend.app import get_db
+    conn = get_db()
+    row = conn.execute("SELECT * FROM family_quick_messages WHERE id = 100").fetchone()
+    conn.close()
+    assert row is None
+
+
+def test_admin_can_delete_broadcast_message(client):
+    """Admin can permanently delete a broadcast message and its recipients."""
+    from backend.app import get_db
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO messages (id, sender_id, message_type, subject, content) VALUES (200, 1, 'announcement', 'Test Subject', 'Test Content')"
+    )
+    conn.execute(
+        "INSERT INTO message_recipients (message_id, user_id) VALUES (200, 4)"
+    )
+    conn.commit()
+    conn.close()
+
+    client.post("/login", data={"email": "admin@test.com", "password": "admin123"})
+    response = client.post(
+        "/admin/messages/200/delete",
+        data={"source": "broadcast"},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert "Message deleted." in response.get_data(as_text=True)
+
+    conn = get_db()
+    msg_row = conn.execute("SELECT * FROM messages WHERE id = 200").fetchone()
+    rcpt_row = conn.execute("SELECT * FROM message_recipients WHERE message_id = 200").fetchall()
+    conn.close()
+    assert msg_row is None
+    assert len(rcpt_row) == 0
 
 
 def test_non_admin_cannot_delete_message(client):
@@ -159,5 +195,6 @@ def test_non_admin_cannot_delete_message(client):
         data={"source": "family_note"},
     )
     assert response.status_code in (302, 401, 403)
+
 
 

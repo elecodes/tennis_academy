@@ -1769,6 +1769,16 @@ def admin_test_email():
 def admin_message_auditor():
     conn = get_db()
 
+    # Erase any legacy messages previously marked as deleted
+    conn.execute(
+        "DELETE FROM message_recipients WHERE message_id IN (SELECT id FROM messages WHERE subject = '[deleted]' OR content = '[deleted by admin]')"
+    )
+    conn.execute(
+        "DELETE FROM messages WHERE subject = '[deleted]' OR content = '[deleted by admin]'"
+    )
+    conn.execute("DELETE FROM family_quick_messages WHERE deleted_at IS NOT NULL")
+    conn.commit()
+
     # All messages from main messages table
     main_msgs = conn.execute(
         """SELECT m.*, u.full_name as sender_name, g.name as group_name,
@@ -1776,6 +1786,7 @@ def admin_message_auditor():
            FROM messages m
            JOIN users u ON m.sender_id = u.id
            LEFT JOIN groups g ON m.group_id = g.id
+           WHERE m.subject != '[deleted]' AND m.content != '[deleted by admin]'
            ORDER BY m.sent_at DESC LIMIT 100"""
     ).fetchall()
 
@@ -1792,7 +1803,7 @@ def admin_message_auditor():
 
     # Attach ack summaries for broadcast messages (before closing conn)
     ack_map = {}
-    all_msgs = list(main_msgs) + list(family_msgs)
+    all_msgs = [dict(m) for m in list(main_msgs) + list(family_msgs)]
     for msg in all_msgs:
         if msg["source"] == "broadcast":
             mid = msg["id"]
@@ -1813,9 +1824,8 @@ def admin_message_auditor():
     conn.close()
 
     # Merge and sort (ack_summary already attached)
-    all_msgs.sort(key=lambda m: m.get("sent_at", ""), reverse=True)
+    all_msgs.sort(key=lambda m: str(m.get("sent_at") or ""), reverse=True)
 
-    conn.close()
     return render_template("admin/message_auditor.html", messages=all_msgs)
 
 
@@ -1850,12 +1860,16 @@ def admin_delete_message(message_id):
     conn = get_db()
     if source == "family_note":
         conn.execute(
-            "UPDATE family_quick_messages SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?",
+            "DELETE FROM family_quick_messages WHERE id = ?",
             (message_id,),
         )
     else:
         conn.execute(
-            "UPDATE messages SET content = '[deleted by admin]', subject = '[deleted]' WHERE id = ?",
+            "DELETE FROM message_recipients WHERE message_id = ?",
+            (message_id,),
+        )
+        conn.execute(
+            "DELETE FROM messages WHERE id = ?",
             (message_id,),
         )
     conn.commit()

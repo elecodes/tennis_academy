@@ -49,12 +49,12 @@
               {% endif %}
             </td>
             <td class="px-6 py-4">
-              <span class="text-sm font-bold text-navy {% if '[deleted]' in msg.subject %}line-through text-obsidian/40{% endif %}">
+              <span class="text-sm font-bold text-navy">
                 {{ msg.subject }}
               </span>
             </td>
             <td class="px-6 py-4 max-w-xs">
-              <span class="text-xs text-obsidian/60 line-clamp-2 {% if '[deleted' in (msg.content or '') %}line-through text-obsidian/30{% endif %}">
+              <span class="text-xs text-obsidian/60 line-clamp-2">
                 {{ msg.content }}
               </span>
             </td>
