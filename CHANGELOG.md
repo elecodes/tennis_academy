@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added Timetable Overlay banner rendering active week alerts (`week_start` to `week_end`).
   - Added complete test suite `tests/test_schedule_exceptions.py` (7 tests).
 
+### Changed
+- **Header Tagline**: Updated dashboard header quote to `"Real Coaching. Real Progress."`.
+- **Schedule Overlay Layout**: Positioned Schedule Alerts & Exceptions overlay at the top of timetable and coach dashboard.
+
+### Fixed
+- **Coach Dashboard Alerts**: Removed restrictive group ID filter on coach dashboard query to ensure active schedule alerts render properly.
+
 ### Documentation
 - Created `docs/ADR-033: Date-Specific Schedule Exceptions & Overlay.md`.
 
