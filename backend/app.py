@@ -276,14 +276,15 @@ REDIRECT_EMAILS_TO = REDIRECT_TARGET if TEST_MODE else None
 
 def init_db():
     """Initialize the database with tables (Local or Cloud)."""
-    if os.environ.get("DATABASE_URL"):
+    from pg_db import is_pg_available
+    if is_pg_available():
         try:
             from pg_migrate import create_schema
             create_schema()
+            return
         except Exception as e:
             import traceback
             print(f"init_db (PG): {e}\n{traceback.format_exc()}", flush=True)
-        return
 
     conn = get_db()
     cursor = conn.cursor()
