@@ -209,6 +209,9 @@ def set_config(key: str, value: str) -> None:
     db.commit()
 
 
+_turso_available_cache = None
+
+
 def get_db():
     # Prefer direct PostgreSQL connection
     from pg_db import is_pg_available, get_pg_connection
@@ -221,11 +224,19 @@ def get_db():
     url = os.environ.get("TURSO_URL")
     token = os.environ.get("TURSO_TOKEN")
 
-    if url and token:
-        return TursoConnection(url, token)
-    else:
-        # Fallback to local SQLite if no Turso config
-        db_path = os.path.join(os.path.dirname(__file__), "..", "academy.db")
-        conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
+    global _turso_available_cache
+    if url and token and _turso_available_cache is not False:
+        try:
+            conn = TursoConnection(url, token)
+            conn.execute("SELECT 1")
+            _turso_available_cache = True
+            return conn
+        except Exception as e:
+            _turso_available_cache = False
+            print(f"get_db: Turso unavailable ({e}), falling back to local SQLite.", flush=True)
+
+    # Fallback to local SQLite if no Turso config or network unreachable
+    db_path = os.path.join(os.path.dirname(__file__), "..", "academy.db")
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    return conn

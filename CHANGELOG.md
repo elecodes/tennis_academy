@@ -5,6 +5,27 @@ All notable changes to the SF TENNIS KIDS Club platform will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.28.0] - 2026-10-03
+
+### Added
+- **Date-Specific Schedule Exceptions & Overlay**:
+  - Implemented `schedule_exceptions` table for managing date-specific lesson cancellations, student absences, time shifts, and special notes without mutating recurring master timetables.
+  - Added Admin API endpoints `POST /admin/schedule-exceptions/add` and `POST /admin/schedule-exceptions/delete/<id>`.
+  - Added Admin Dashboard Schedule Alerts management UI with interactive creation modal and alert card management.
+  - Added Coach Dashboard Schedule Alerts & Exceptions widget.
+  - Added Timetable Overlay banner rendering active week alerts (`week_start` to `week_end`).
+  - Added complete test suite `tests/test_schedule_exceptions.py` (7 tests).
+
+### Changed
+- **Header Tagline**: Updated dashboard header quote to `"Real Coaching. Real Progress."`.
+- **Schedule Overlay Layout**: Positioned Schedule Alerts & Exceptions overlay at the top of timetable and coach dashboard.
+
+### Fixed
+- **Coach Dashboard Alerts**: Removed restrictive group ID filter on coach dashboard query to ensure active schedule alerts render properly.
+
+### Documentation
+- Created `docs/ADR-033: Date-Specific Schedule Exceptions & Overlay.md`.
+
 ## [1.27.0] - 2026-10-03
 
 ### Security Hardening (OWASP Top 10)

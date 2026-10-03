@@ -182,8 +182,24 @@ def pg_close_all():
     _pool.closeall()
 
 
+_pg_available_cache = None
+
 def is_pg_available():
-    return bool(_DATABASE_URL)
+    global _pg_available_cache
+    if not _DATABASE_URL:
+        return False
+    if _pg_available_cache is not None:
+        return _pg_available_cache
+    try:
+        conn = _pool.getconn()
+        if conn:
+            _pool.putconn(conn)
+            _pg_available_cache = True
+            return True
+    except Exception:
+        pass
+    _pg_available_cache = False
+    return False
 
 
 def get_pg_connection():

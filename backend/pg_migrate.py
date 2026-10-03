@@ -83,6 +83,17 @@ CREATE TABLE IF NOT EXISTS family_quick_messages (
     deleted_at TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS schedule_exceptions (
+    id SERIAL PRIMARY KEY,
+    group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+    schedule_id INTEGER REFERENCES group_schedules(id) ON DELETE CASCADE,
+    kid_name TEXT,
+    exception_date DATE NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('no_lesson', 'kid_absent', 'time_change', 'note')),
+    note_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS app_config (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,

@@ -226,6 +226,7 @@ csp = {
     "script-src": [
         "'self'",
         "'unsafe-inline'",  # Required for Tailwind CDN and some templates
+        "'unsafe-eval'",  # Required for Tailwind Play CDN browser compiler
         "cdn.tailwindcss.com",
         "browser.sentry-cdn.com",
     ],
@@ -275,14 +276,15 @@ REDIRECT_EMAILS_TO = REDIRECT_TARGET if TEST_MODE else None
 
 def init_db():
     """Initialize the database with tables (Local or Cloud)."""
-    if os.environ.get("DATABASE_URL"):
+    from pg_db import is_pg_available
+    if is_pg_available():
         try:
             from pg_migrate import create_schema
             create_schema()
+            return
         except Exception as e:
             import traceback
             print(f"init_db (PG): {e}\n{traceback.format_exc()}", flush=True)
-        return
 
     conn = get_db()
     cursor = conn.cursor()
@@ -445,6 +447,24 @@ def init_db():
             FOREIGN KEY (schedule_id) REFERENCES group_schedules (id) ON DELETE CASCADE,
             FOREIGN KEY (group_member_id) REFERENCES group_members (id) ON DELETE CASCADE,
             UNIQUE(schedule_id, group_member_id, session_date)
+        )
+    """
+    )
+
+    # Schedule exceptions (date-specific alerts, cancellations, or student absence notes)
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS schedule_exceptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            group_id INTEGER,
+            schedule_id INTEGER,
+            kid_name TEXT,
+            exception_date DATE NOT NULL,
+            status TEXT NOT NULL CHECK(status IN ('no_lesson', 'kid_absent', 'time_change', 'note')),
+            note_text TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
+            FOREIGN KEY (schedule_id) REFERENCES group_schedules (id) ON DELETE CASCADE
         )
     """
     )
@@ -660,6 +680,13 @@ def dashboard():
                 ORDER BY m.sent_at DESC LIMIT 5
             """
             ).fetchall(),
+            "schedule_exceptions": conn.execute(
+                """SELECT se.*, g.name as group_name
+                   FROM schedule_exceptions se
+                   LEFT JOIN groups g ON se.group_id = g.id
+                   ORDER BY se.exception_date DESC LIMIT 20"""
+            ).fetchall(),
+            "groups": conn.execute("SELECT * FROM groups ORDER BY name ASC").fetchall(),
         }
         sb_lessons_list = sb_lessons if sb_lessons else []
         template = "admin_dashboard.html"
@@ -697,7 +724,7 @@ def dashboard():
 
                 sb_groups = []
                 DAY_ABBR = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-                for l in sb_lessons:
+                for l in (sb_lessons or []):
                     time_24 = l["time"]
                     hour = int(time_24[:2])
                     minute = time_24[3:]
@@ -790,10 +817,19 @@ def dashboard():
             1 for g in my_groups if g.get("_supabase")
         )
 
+        schedule_exceptions = conn.execute(
+            """SELECT se.*, g.name as group_name
+               FROM schedule_exceptions se
+               LEFT JOIN groups g ON se.group_id = g.id
+               ORDER BY se.exception_date DESC LIMIT 10"""
+        ).fetchall()
+        schedule_exceptions = [dict(e) for e in (schedule_exceptions or [])]
+
         stats = {
             "my_groups": my_groups,
             "recent_messages": recent_messages,
             "family_alerts": family_alerts,
+            "schedule_exceptions": schedule_exceptions,
             "total_families": total_families,
             "total_sessions": total_sessions,
         }
@@ -1184,6 +1220,61 @@ def admin_repair_timetable():
         conn.close()
 
     return redirect(url_for("admin_groups"))
+
+
+# ==================== SCHEDULE EXCEPTIONS ROUTES ====================
+
+
+@app.route("/admin/schedule-exceptions/add", methods=["POST"])
+@login_required
+@admin_required
+def admin_add_schedule_exception():
+    group_id = request.form.get("group_id")
+    schedule_id = request.form.get("schedule_id")
+    kid_name = request.form.get("kid_name", "").strip() or None
+    exception_date = request.form.get("exception_date", "").strip()
+    status = request.form.get("status", "note").strip()
+    note_text = request.form.get("note_text", "").strip()
+
+    if not exception_date or not note_text:
+        flash("Exception date and note text are required.", "danger")
+        return redirect(url_for("dashboard"))
+
+    if status not in ("no_lesson", "kid_absent", "time_change", "note"):
+        status = "note"
+
+    conn = get_db()
+    conn.execute(
+        """INSERT INTO schedule_exceptions (group_id, schedule_id, kid_name, exception_date, status, note_text)
+           VALUES (?, ?, ?, ?, ?, ?)""",
+        (
+            int(group_id) if group_id and group_id.isdigit() else None,
+            int(schedule_id) if schedule_id and schedule_id.isdigit() else None,
+            kid_name,
+            exception_date,
+            status,
+            note_text,
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+    flash("Schedule exception alert created.", "success")
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/admin/schedule-exceptions/delete/<int:exception_id>", methods=["POST"])
+@login_required
+@admin_required
+def admin_delete_schedule_exception(exception_id):
+    conn = get_db()
+    conn.execute("DELETE FROM schedule_exceptions WHERE id = ?", (exception_id,))
+    conn.commit()
+    conn.close()
+
+    flash("Schedule exception alert removed.", "info")
+    return redirect(url_for("dashboard"))
+
 
 
 @app.route("/admin/groups/delete/<int:group_id>", methods=["POST"])
@@ -2143,6 +2234,21 @@ def timetable_supabase():
     prev_week = (week_start - timedelta(days=7)).strftime("%Y-%m-%d")
     next_week = (week_start + timedelta(days=7)).strftime("%Y-%m-%d")
 
+    week_start_str = week_start.strftime("%Y-%m-%d")
+    week_end_str = (week_start + timedelta(days=6)).strftime("%Y-%m-%d")
+
+    conn = get_db()
+    schedule_exceptions = conn.execute(
+        """SELECT se.*, g.name as group_name
+           FROM schedule_exceptions se
+           LEFT JOIN groups g ON se.group_id = g.id
+           WHERE se.exception_date >= ? AND se.exception_date <= ?
+           ORDER BY se.exception_date ASC""",
+        (week_start_str, week_end_str),
+    ).fetchall()
+    schedule_exceptions = [dict(e) for e in (schedule_exceptions or [])]
+    conn.close()
+
     result = fetch_timetable(user_role, user_name, user_email)
     if result is None:
         flash("Base de datos no configurada.", "danger")
@@ -2164,6 +2270,7 @@ def timetable_supabase():
         next_week=next_week,
         day_filter=day_filter,
         supabase=True,
+        schedule_exceptions=schedule_exceptions,
     )
 
 
