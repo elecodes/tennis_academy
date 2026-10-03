@@ -821,10 +821,7 @@ def dashboard():
             """SELECT se.*, g.name as group_name
                FROM schedule_exceptions se
                LEFT JOIN groups g ON se.group_id = g.id
-               WHERE (se.group_id IN (SELECT id FROM groups WHERE coach_id = ?)
-                  OR se.group_id IS NULL)
-               ORDER BY se.exception_date DESC LIMIT 10""",
-            (user_id,),
+               ORDER BY se.exception_date DESC LIMIT 10"""
         ).fetchall()
         schedule_exceptions = [dict(e) for e in (schedule_exceptions or [])]
 
