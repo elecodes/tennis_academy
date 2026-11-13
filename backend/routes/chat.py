@@ -43,7 +43,11 @@ def _is_rate_limited(ip):
         window.append(now)
 
         if len(_hits) > 5000:  # keep memory bounded
-            stale = [k for k, v in _hits.items() if not v or now - v[-1] > RATE_WINDOW_SECONDS]
+            stale = [
+                k
+                for k, v in _hits.items()
+                if not v or now - v[-1] > RATE_WINDOW_SECONDS
+            ]
             for key in stale:
                 del _hits[key]
         return False
@@ -58,7 +62,10 @@ def chat_page():
 @chat_bp.route("/api/chat", methods=["POST"])
 def api_chat():
     if _is_rate_limited(_client_ip()):
-        return jsonify(error="You're asking quickly! Please wait a minute and try again."), 429
+        return (
+            jsonify(error="You're asking quickly! Please wait a minute and try again."),
+            429,
+        )
 
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
@@ -73,7 +80,10 @@ def api_chat():
         return jsonify(error="The assistant is not available right now."), 503
     except ChatProviderError as e:
         current_app.logger.error(f"Chat provider error: {e}")
-        return jsonify(error="The assistant is busy. Please try again in a moment."), 502
+        return (
+            jsonify(error="The assistant is busy. Please try again in a moment."),
+            502,
+        )
     except Exception as e:
         current_app.logger.error(f"Chat error: {e}")
         return jsonify(error="Something went wrong. Please try again."), 500

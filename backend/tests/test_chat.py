@@ -66,7 +66,9 @@ class TestValidateMessages(unittest.TestCase):
         cleaned = validate_messages(messages)
         self.assertEqual(len(cleaned), chat_service.MAX_HISTORY)
         self.assertEqual(cleaned[-1]["role"], "user")
-        self.assertTrue(all(len(m["content"]) <= chat_service.MAX_MESSAGE_CHARS for m in cleaned))
+        self.assertTrue(
+            all(len(m["content"]) <= chat_service.MAX_MESSAGE_CHARS for m in cleaned)
+        )
 
     def test_rejects_invalid_payloads(self):
         bad_payloads = [
@@ -77,7 +79,10 @@ class TestValidateMessages(unittest.TestCase):
             [{"role": "user", "content": 123}],
             ["not a dict"],
             [{"role": "user", "content": "   "}],
-            [{"role": "user", "content": "hi"}, {"role": "assistant", "content": "hello"}],
+            [
+                {"role": "user", "content": "hi"},
+                {"role": "assistant", "content": "hello"},
+            ],
         ]
         for payload in bad_payloads:
             with self.subTest(payload=payload):
@@ -140,7 +145,9 @@ class TestChatRoutes(unittest.TestCase):
         self.assertEqual(resp.status_code, 503)
         self.assertNotIn("no key", resp.get_data(as_text=True))
 
-    @patch("routes.chat.answer_question", side_effect=ChatProviderError("provider details"))
+    @patch(
+        "routes.chat.answer_question", side_effect=ChatProviderError("provider details")
+    )
     def test_provider_error_returns_502_without_details(self, _):
         resp = self.post({"messages": [{"role": "user", "content": "Hi"}]})
         self.assertEqual(resp.status_code, 502)
@@ -158,9 +165,15 @@ class TestChatRoutes(unittest.TestCase):
     def test_rate_limit_is_per_ip(self, _):
         payload = {"messages": [{"role": "user", "content": "Hi"}]}
         with patch.object(chat_routes, "RATE_LIMIT", 1):
-            a = self.client.post("/api/chat", json=payload, headers={"X-Forwarded-For": "1.1.1.1"})
-            b = self.client.post("/api/chat", json=payload, headers={"X-Forwarded-For": "2.2.2.2"})
-            c = self.client.post("/api/chat", json=payload, headers={"X-Forwarded-For": "1.1.1.1"})
+            a = self.client.post(
+                "/api/chat", json=payload, headers={"X-Forwarded-For": "1.1.1.1"}
+            )
+            b = self.client.post(
+                "/api/chat", json=payload, headers={"X-Forwarded-For": "2.2.2.2"}
+            )
+            c = self.client.post(
+                "/api/chat", json=payload, headers={"X-Forwarded-For": "1.1.1.1"}
+            )
         self.assertEqual((a.status_code, b.status_code, c.status_code), (200, 200, 429))
 
 
