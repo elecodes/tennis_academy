@@ -1,0 +1,64 @@
+# Changelog
+
+All notable changes to the SF TENNIS KIDS Club platform will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.29.0] - 2026-10-03
+
+### Fixed
+- **PostgreSQL Compatibility in Message Deletion**:
+  - Replaced SQLite-specific `datetime('now')` with ANSI-standard `CURRENT_TIMESTAMP` in message deletion flow, resolving an unhandled HTTP 500 error on Neon PostgreSQL.
+- **Message Auditor Erasure**:
+  - Replaced soft deletion / `[deleted]` placeholders with permanent record deletion (`DELETE FROM`) for both broadcast messages and family quick messages.
+  - Added legacy purge in `admin_message_auditor` to clean up existing `[deleted]` marked messages and deleted family notes.
+  - Normalized auditor rows to dictionaries to safely mutate acknowledgment summaries and sort by `sent_at`.
+  - Removed deprecated `[deleted]` strikethrough styling in `frontend/templates/admin/message_auditor.html`.
+
+### Testing
+- Expanded `tests/test_rbac_access_control.py` to verify permanent database erasure of deleted messages and strict RBAC enforcement (53 total passing tests).
+
+### Documentation
+- Created `docs/ADR-034: Message Auditor Permanent Deletion and PostgreSQL Compatibility.md`.
+
+## [1.28.0] - 2026-10-03
+
+### Added
+- **Date-Specific Schedule Exceptions & Overlay**:
+  - Implemented `schedule_exceptions` table for managing date-specific lesson cancellations, student absences, time shifts, and special notes without mutating recurring master timetables.
+  - Added Admin API endpoints `POST /admin/schedule-exceptions/add` and `POST /admin/schedule-exceptions/delete/<id>`.
+  - Added Admin Dashboard Schedule Alerts management UI with interactive creation modal and alert card management.
+  - Added Coach Dashboard Schedule Alerts & Exceptions widget.
+  - Added Timetable Overlay banner rendering active week alerts (`week_start` to `week_end`).
+  - Added complete test suite `tests/test_schedule_exceptions.py` (7 tests).
+
+### Changed
+- **Header Tagline**: Updated dashboard header quote to `"Real Coaching. Real Progress."`.
+- **Schedule Overlay Layout**: Positioned Schedule Alerts & Exceptions overlay at the top of timetable and coach dashboard.
+
+### Fixed
+- **Coach Dashboard Alerts**: Removed restrictive group ID filter on coach dashboard query to ensure active schedule alerts render properly.
+
+### Documentation
+- Created `docs/ADR-033: Date-Specific Schedule Exceptions & Overlay.md`.
+
+## [1.27.0] - 2026-10-03
+
+### Security Hardening (OWASP Top 10)
+- **Access Control**: Secured `/api/debug/sync-status` and `/api/debug/pg-check` behind `@login_required` and `@admin_required` decorators.
+- **IDOR Prevention**: Enforced coach group ownership checks on `/coach/reply-family/<int:quick_msg_id>`.
+- **Secrets Protection**: Removed hardcoded plaintext fallbacks for `SENDER_PASSWORD`, Turso JWT tokens, and PostgreSQL connection passwords across `app.py`, `database.py`, and `pg_db.py`.
+- **Session Security**: Enforced `SESSION_COOKIE_HTTPONLY = True` and `SESSION_COOKIE_SAMESITE = "Lax"`.
+- **Error Handling**: Added `@app.errorhandler(404)` and `@app.errorhandler(500)` custom error handlers to prevent system stack trace leaks.
+
+### Testing
+- Added `tests/test_rbac_access_control.py` (5 tests).
+- Added `tests/test_sensitive_data_protection.py` (4 tests).
+- Added `tests/test_input_validation_injection.py` (2 tests).
+- Added `tests/test_security_configuration.py` (3 tests).
+- Added `tests/test_app_smoke.py` (4 end-to-end smoke tests).
+- Automated test suite expanded to 19/19 passing tests (`100% passing`).
+
+### Documentation
+- Created `docs/ADR-032: OWASP Top 10 Security Hardening and RBAC Protections.md`.
