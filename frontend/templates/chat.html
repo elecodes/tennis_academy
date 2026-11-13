@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>SF Tennis Kids - Ask us</title>
+  <style>
+    :root { --navy: #0d47a1; --yellow: #ffd600; --fog: #f4f7f6; --ink: #1b2430; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body { display: flex; flex-direction: column; font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: #fff; }
+    header { background: var(--navy); color: #fff; padding: 12px 16px; border-bottom: 3px solid var(--yellow); }
+    header strong { display: block; font-size: 16px; }
+    header span { font-size: 12px; opacity: .85; }
+    #log { flex: 1; overflow-y: auto; padding: 14px; background: var(--fog); display: flex; flex-direction: column; gap: 10px; }
+    .msg { max-width: 88%; padding: 9px 12px; border-radius: 14px; line-height: 1.4; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .bot { background: #fff; border: 1px solid #dde4e8; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .me { background: var(--navy); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .err { background: #fff3f0; border: 1px solid #f3c1b6; color: #7a2a18; align-self: flex-start; }
+    #chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    #chips button { border: 1px solid var(--navy); background: #fff; color: var(--navy); border-radius: 999px; padding: 6px 10px; font-size: 13px; cursor: pointer; }
+    #chips button:hover { background: #e8f0fb; }
+    form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #dde4e8; background: #fff; }
+    input { flex: 1; min-width: 0; font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #b9c4cc; border-radius: 10px; }
+    input:focus-visible, button:focus-visible { outline: 3px solid var(--yellow); outline-offset: 1px; }
+    form button { background: var(--navy); color: #fff; border: 0; border-radius: 10px; padding: 0 16px; font-weight: 600; cursor: pointer; }
+    form button:disabled { opacity: .5; cursor: default; }
+    footer { padding: 6px 12px 10px; font-size: 11px; color: #5b6770; background: #fff; text-align: center; }
+    footer a { color: var(--navy); }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>SF Tennis Kids Club</strong>
+    <span>Ask about lessons, ages and prices</span>
+  </header>
+
+  <div id="log" role="log" aria-live="polite">
+    <div class="msg bot">Hi! I can answer questions about our tennis lessons, ages, prices and summer camp. I can't book lessons, but I'll point you to the right place.</div>
+    <div id="chips"></div>
+  </div>
+
+  <form id="form" autocomplete="off">
+    <input id="input" type="text" maxlength="{{ max_chars }}" placeholder="Type your question..." aria-label="Your question">
+    <button id="send" type="submit">Send</button>
+  </form>
+  <footer>Information only. Questions? Call/text <a href="tel:4157075437">415-707-5437</a> (Mon-Fri 9am-12pm) or <a href="mailto:info@sanfranciscokids.tennis">email us</a>.</footer>
+
+  <script>
+    (function () {
+      var log = document.getElementById("log");
+      var form = document.getElementById("form");
+      var input = document.getElementById("input");
+      var send = document.getElementById("send");
+      var chips = document.getElementById("chips");
+      var history = [];
+      var busy = false;
+
+      var suggestions = [
+        "What lessons are available for my child's age?",
+        "How much are group lessons?",
+        "Private and semi-private prices?",
+        "Tell me about Parent & Me",
+        "Summer camp 2027"
+      ];
+
+      suggestions.forEach(function (text) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.textContent = text;
+        b.addEventListener("click", function () { ask(text); });
+        chips.appendChild(b);
+      });
+
+      function add(cls, text) {
+        var el = document.createElement("div");
+        el.className = "msg " + cls;
+        el.textContent = text;
+        log.appendChild(el);
+        log.scrollTop = log.scrollHeight;
+        return el;
+      }
+
+      function ask(text) {
+        text = (text || "").trim();
+        if (!text || busy) return;
+        if (chips.parentNode) chips.parentNode.removeChild(chips);
+        busy = true;
+        send.disabled = true;
+        input.value = "";
+        add("me", text);
+        history.push({ role: "user", content: text });
+        var typing = add("bot", "...");
+
+        fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: history.slice(-6) })
+        })
+          .then(function (r) {
+            return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+          })
+          .then(function (res) {
+            log.removeChild(typing);
+            if (res.ok && res.data.reply) {
+              add("bot", res.data.reply);
+              history.push({ role: "assistant", content: res.data.reply });
+            } else {
+              history.pop();
+              add("err", (res.data && res.data.error) || "Something went wrong. Please try again.");
+            }
+          })
+          .catch(function () {
+            log.removeChild(typing);
+            history.pop();
+            add("err", "I couldn't connect. Please check your connection and try again.");
+          })
+          .then(function () {
+            busy = false;
+            send.disabled = false;
+            input.focus();
+          });
+      }
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        ask(input.value);
+      });
+    })();
+  </script>
+</body>
+</html>

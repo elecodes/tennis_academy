@@ -17,4 +17,4 @@ pg8000>=1.31.0
 # incompatible with pip>=24.1 causes Render build to hang. Magic Draft gracefully
 # falls back when genkit is not installed.
 groq
-
+tzdata

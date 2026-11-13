@@ -54,6 +54,7 @@ from services.ai.magic_draft import (
 )
 
 from routes.timetables import timetables_bp
+from routes.chat import chat_bp
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from flask_talisman import Talisman
@@ -249,7 +250,7 @@ csp = {
     ],
 }
 
-Talisman(
+talisman = Talisman(
     app,
     content_security_policy=csp,
     force_https=False,
@@ -257,6 +258,20 @@ Talisman(
 )
 
 app.register_blueprint(timetables_bp)
+app.register_blueprint(chat_bp)
+
+# The public chat page is the only page that may be embedded in an iframe
+# (the Wix website). Every other page keeps frame_options="DENY".
+# Override with CHAT_FRAME_ANCESTORS (space separated) if Wix needs more origins.
+CHAT_FRAME_ANCESTORS = os.environ.get(
+    "CHAT_FRAME_ANCESTORS",
+    "'self' https://www.sanfranciscokids.tennis https://sanfranciscokids.tennis "
+    "https://*.wixsite.com https://*.wix.com https://*.editorx.io",
+).split()
+app.view_functions["chat.chat_page"].talisman_view_options = {
+    "frame_options": None,
+    "content_security_policy": {**csp, "frame-ancestors": CHAT_FRAME_ANCESTORS},
+}
 
 
 # Database path
