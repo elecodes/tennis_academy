@@ -233,7 +233,10 @@ def get_db():
             return conn
         except Exception as e:
             _turso_available_cache = False
-            print(f"get_db: Turso unavailable ({e}), falling back to local SQLite.", flush=True)
+            print(
+                f"get_db: Turso unavailable ({e}), falling back to local SQLite.",
+                flush=True,
+            )
 
     # Fallback to local SQLite if no Turso config or network unreachable
     db_path = os.path.join(os.path.dirname(__file__), "..", "academy.db")

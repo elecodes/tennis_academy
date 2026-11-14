@@ -1,4 +1,14 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, Date, Time, Text, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    Boolean,
+    Date,
+    Time,
+    Text,
+    ForeignKey,
+)
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()

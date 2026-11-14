@@ -20,6 +20,7 @@ class AIDraftProviderError(AIDraftError):
 
 try:
     from groq import Groq
+
     groq_api_key = os.environ.get("GROQ_API_KEY")
     if groq_api_key:
         groq_client = Groq(api_key=groq_api_key)
@@ -74,7 +75,11 @@ STRICT RULE: Maximum 2-3 sentences. Be direct, warm, and professional. Avoid any
 
     if groq_client:
         # Try primary model first, fallback to llama options if failed
-        models_to_try = ["openai/gpt-oss-120b", "llama-3.1-8b-instant", "llama3-8b-8192"]
+        models_to_try = [
+            "openai/gpt-oss-120b",
+            "llama-3.1-8b-instant",
+            "llama3-8b-8192",
+        ]
         last_error = None
         for model in models_to_try:
             try:
@@ -86,31 +91,38 @@ STRICT RULE: Maximum 2-3 sentences. Be direct, warm, and professional. Avoid any
                                 "You are a professional administrator. You must output JSON only, "
                                 "matching this schema exactly:\n"
                                 "{\n"
-                                "  \"subject\": \"Professional email subject line\",\n"
-                                "  \"content\": \"Professional email body content\"\n"
+                                '  "subject": "Professional email subject line",\n'
+                                '  "content": "Professional email body content"\n'
                                 "}"
-                            )
+                            ),
                         },
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
+                        {"role": "user", "content": prompt},
                     ],
                     model=model,
                     response_format={"type": "json_object"},
-                    temperature=0.7
+                    temperature=0.7,
                 )
                 text_content = response.choices[0].message.content
                 if not text_content:
-                    raise AIDraftProviderError(f"Groq model {model} returned empty response.")
-                
+                    raise AIDraftProviderError(
+                        f"Groq model {model} returned empty response."
+                    )
+
                 try:
                     parsed_output = DraftOutput.model_validate_json(text_content)
-                    return {"subject": parsed_output.subject, "content": parsed_output.content}
+                    return {
+                        "subject": parsed_output.subject,
+                        "content": parsed_output.content,
+                    }
                 except Exception:
-                    clean_text = text_content.replace("```json", "").replace("```", "").strip()
+                    clean_text = (
+                        text_content.replace("```json", "").replace("```", "").strip()
+                    )
                     parsed_output = DraftOutput.model_validate_json(clean_text)
-                    return {"subject": parsed_output.subject, "content": parsed_output.content}
+                    return {
+                        "subject": parsed_output.subject,
+                        "content": parsed_output.content,
+                    }
             except Exception as e:
                 last_error = e
                 continue

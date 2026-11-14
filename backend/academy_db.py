@@ -55,7 +55,7 @@ def fetch_enrollments():
 
     season_map = {s["id"]: s["name"] for s in seasons}
     coach_map = {c["id"]: c["name"] for c in coaches}
-    lesson_map = {l["id"]: l for l in lessons}
+    lesson_map = {item["id"]: item for item in lessons}
 
     sl_by_student = {}
     for sl in student_lessons:
@@ -74,35 +74,39 @@ def fetch_enrollments():
         season_name = season_map.get(s.get("season_id")) or str(s.get("season_id", ""))
 
         if not linked:
-            enrollments.append({
-                "student_name": s["name"],
-                "parent": parent_info,
-                "lesson_title": None,
-                "lesson_day": s.get("day"),
-                "lesson_time": None,
-                "coach_name": None,
-                "season_name": season_name,
-                "status": s.get("status"),
-                "payment_status": s.get("payment_status"),
-                "price": s.get("price"),
-                "welcome_kit": s.get("welcome_kit"),
-            })
-        else:
-            for sl in linked:
-                lesson = lesson_map.get(sl["lesson_id"], {})
-                enrollments.append({
+            enrollments.append(
+                {
                     "student_name": s["name"],
                     "parent": parent_info,
-                    "lesson_title": lesson.get("title"),
-                    "lesson_day": lesson.get("day", s.get("day")),
-                    "lesson_time": lesson.get("time"),
-                    "coach_name": coach_map.get(lesson.get("coach_id")),
+                    "lesson_title": None,
+                    "lesson_day": s.get("day"),
+                    "lesson_time": None,
+                    "coach_name": None,
                     "season_name": season_name,
                     "status": s.get("status"),
                     "payment_status": s.get("payment_status"),
                     "price": s.get("price"),
                     "welcome_kit": s.get("welcome_kit"),
-                })
+                }
+            )
+        else:
+            for sl in linked:
+                lesson = lesson_map.get(sl["lesson_id"], {})
+                enrollments.append(
+                    {
+                        "student_name": s["name"],
+                        "parent": parent_info,
+                        "lesson_title": lesson.get("title"),
+                        "lesson_day": lesson.get("day", s.get("day")),
+                        "lesson_time": lesson.get("time"),
+                        "coach_name": coach_map.get(lesson.get("coach_id")),
+                        "season_name": season_name,
+                        "status": s.get("status"),
+                        "payment_status": s.get("payment_status"),
+                        "price": s.get("price"),
+                        "welcome_kit": s.get("welcome_kit"),
+                    }
+                )
 
     return enrollments
 
@@ -122,28 +126,32 @@ def fetch_academy_users():
         if key in seen:
             continue
         seen.add(key)
-        users.append({
-            "name": c.get("name", ""),
-            "email": c.get("email", ""),
-            "phone": c.get("phone", ""),
-            "type": "Coach",
-            "source": "Supabase",
-            "status": "Active",
-        })
+        users.append(
+            {
+                "name": c.get("name", ""),
+                "email": c.get("email", ""),
+                "phone": c.get("phone", ""),
+                "type": "Coach",
+                "source": "Supabase",
+                "status": "Active",
+            }
+        )
 
     for s in students:
         key = s.get("parent_email", "") or s.get("name", "")
         if key in seen:
             continue
         seen.add(key)
-        users.append({
-            "name": s.get("name", ""),
-            "email": s.get("parent_email", ""),
-            "phone": s.get("parent_phone", ""),
-            "type": "Student",
-            "source": "Supabase",
-            "status": (s.get("status") or "ACTIVE").capitalize(),
-        })
+        users.append(
+            {
+                "name": s.get("name", ""),
+                "email": s.get("parent_email", ""),
+                "phone": s.get("parent_phone", ""),
+                "type": "Student",
+                "source": "Supabase",
+                "status": (s.get("status") or "ACTIVE").capitalize(),
+            }
+        )
 
     users.sort(key=lambda x: x["name"].lower())
     return users
@@ -158,7 +166,9 @@ def fetch_coach_groups(coach_name):
     if not all([coaches, lessons, students, student_lessons]):
         return None
 
-    coach_ids = {c["id"] for c in coaches if c.get("name", "").lower() == coach_name.lower()}
+    coach_ids = {
+        c["id"] for c in coaches if c.get("name", "").lower() == coach_name.lower()
+    }
     if not coach_ids:
         return []
 
@@ -170,33 +180,50 @@ def fetch_coach_groups(coach_name):
 
     seen_lessons = set()
     groups = []
-    for l in lessons:
-        if l.get("coach_id") not in coach_ids:
+    for lesson in lessons:
+        if lesson.get("coach_id") not in coach_ids:
             continue
-        key = (l.get("day"), l.get("time"))
+        key = (lesson.get("day"), lesson.get("time"))
         if key in seen_lessons:
             continue
         seen_lessons.add(key)
 
         lesson_students = []
-        for sl in sl_by_lesson.get(l["id"], []):
+        for sl in sl_by_lesson.get(lesson["id"], []):
             s = student_map.get(sl.get("student_id"))
             if s:
-                lesson_students.append({
-                    "name": s.get("name", ""),
-                    "parent": s.get("parent_name", ""),
-                })
+                lesson_students.append(
+                    {
+                        "name": s.get("name", ""),
+                        "parent": s.get("parent_name", ""),
+                    }
+                )
 
-        groups.append({
-            "day": l.get("day", "").capitalize(),
-            "time": l.get("time", ""),
-            "title": l.get("title", ""),
-            "students": lesson_students,
-            "student_count": len(lesson_students),
-        })
+        groups.append(
+            {
+                "day": lesson.get("day", "").capitalize(),
+                "time": lesson.get("time", ""),
+                "title": lesson.get("title", ""),
+                "students": lesson_students,
+                "student_count": len(lesson_students),
+            }
+        )
 
-    DAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    groups.sort(key=lambda g: (DAY_ORDER.index(g["day"]) if g["day"] in DAY_ORDER else 99, g["time"]))
+    DAY_ORDER = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
+    groups.sort(
+        key=lambda g: (
+            DAY_ORDER.index(g["day"]) if g["day"] in DAY_ORDER else 99,
+            g["time"],
+        )
+    )
     return groups
 
 
@@ -208,41 +235,51 @@ def fetch_coach_lessons(coach_name):
     if not all([coaches, lessons]):
         return None
 
-    coach_ids = {c["id"] for c in coaches if c.get("name", "").lower() == coach_name.lower()}
+    coach_ids = {
+        c["id"] for c in coaches if c.get("name", "").lower() == coach_name.lower()
+    }
     if not coach_ids:
         return []
 
     sl_by_lesson = {}
-    for sl in (student_lessons or []):
+    for sl in student_lessons or []:
         sl_by_lesson.setdefault(sl["lesson_id"], []).append(sl)
 
-    DAY_MAP = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
-               "friday": 4, "saturday": 5, "sunday": 6}
+    DAY_MAP = {
+        "monday": 0,
+        "tuesday": 1,
+        "wednesday": 2,
+        "thursday": 3,
+        "friday": 4,
+        "saturday": 5,
+        "sunday": 6,
+    }
 
     seen = set()
     result = []
-    for l in lessons:
-        if l.get("coach_id") not in coach_ids:
+    for lesson in lessons:
+        if lesson.get("coach_id") not in coach_ids:
             continue
-        key = (l.get("day"), l.get("time"))
+        key = (lesson.get("day"), lesson.get("time"))
         if key in seen:
             continue
         seen.add(key)
 
-        day_str = (l.get("day") or "").lower()
+        day_str = (lesson.get("day") or "").lower()
         day_num = DAY_MAP.get(day_str, 0)
 
-        result.append({
-            "id": l["id"],
-            "title": l.get("title", "Lesson"),
-            "day": day_num,
-            "day_name": l.get("day", "").capitalize(),
-            "time": (l.get("time") or "00:00:00")[:5],
-            "type": l.get("type", "GROUP"),
-            "student_count": len(sl_by_lesson.get(l["id"], [])),
-        })
+        result.append(
+            {
+                "id": lesson["id"],
+                "title": lesson.get("title", "Lesson"),
+                "day": day_num,
+                "day_name": lesson.get("day", "").capitalize(),
+                "time": (lesson.get("time") or "00:00:00")[:5],
+                "type": lesson.get("type", "GROUP"),
+                "student_count": len(sl_by_lesson.get(lesson["id"], [])),
+            }
+        )
 
-    DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     result.sort(key=lambda x: (x["day"], x["time"]))
     return result
 
@@ -268,12 +305,14 @@ def fetch_lesson_parents(lesson_id):
         if not email or email in seen_emails:
             continue
         seen_emails.add(email)
-        parents.append({
-            "name": s.get("parent_name") or "Parent",
-            "email": email,
-            "phone": s.get("parent_phone") or "",
-            "student_name": s.get("name", ""),
-        })
+        parents.append(
+            {
+                "name": s.get("parent_name") or "Parent",
+                "email": email,
+                "phone": s.get("parent_phone") or "",
+                "student_name": s.get("name", ""),
+            }
+        )
 
     return parents
 
@@ -291,12 +330,14 @@ def fetch_timetable(role, user_name=None, user_email=None):
     student_map = {s["id"]: s for s in students}
 
     sl_by_lesson = {}
-    for sl in (student_lessons or []):
+    for sl in student_lessons or []:
         sl_by_lesson.setdefault(sl["lesson_id"], []).append(sl)
 
     coach_ids = set()
     if role == "coach" and user_name:
-        coach_ids = {c["id"] for c in coaches if c.get("name", "").lower() == user_name.lower()}
+        coach_ids = {
+            c["id"] for c in coaches if c.get("name", "").lower() == user_name.lower()
+        }
 
     family_lesson_ids = set()
     if role == "family" and user_email:
@@ -304,85 +345,107 @@ def fetch_timetable(role, user_name=None, user_email=None):
         family_students = []
         for s in students:
             raw_pemail = (s.get("parent_email") or "").lower()
-            pemail_list = [e.strip() for e in raw_pemail.replace(";", ",").split(",") if e.strip()]
+            pemail_list = [
+                e.strip() for e in raw_pemail.replace(";", ",").split(",") if e.strip()
+            ]
             if target_email in pemail_list or target_email in raw_pemail:
                 family_students.append(s)
         family_student_ids = {s["id"] for s in family_students}
-        for sl in (student_lessons or []):
+        for sl in student_lessons or []:
             if sl["student_id"] in family_student_ids:
                 family_lesson_ids.add(sl["lesson_id"])
 
     DAY_MAP = {
-        "monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
-        "friday": 4, "saturday": 5, "sunday": 6,
+        "monday": 0,
+        "tuesday": 1,
+        "wednesday": 2,
+        "thursday": 3,
+        "friday": 4,
+        "saturday": 5,
+        "sunday": 6,
     }
 
     seen = {}
     groups = []
-    for l in lessons:
-        if role == "coach" and l["coach_id"] not in coach_ids:
+    for lesson in lessons:
+        if role == "coach" and lesson["coach_id"] not in coach_ids:
             continue
-        if role == "family" and l["id"] not in family_lesson_ids:
+        if role == "family" and lesson["id"] not in family_lesson_ids:
             continue
 
-        coach = coach_map.get(l["coach_id"], {})
+        coach = coach_map.get(lesson["coach_id"], {})
         coach_name = coach.get("name", "Unknown")
 
-        day_str = l.get("day", "").lower()
+        day_str = lesson.get("day", "").lower()
         day_num = DAY_MAP.get(day_str, 0)
 
-        start_time = l.get("time", "00:00:00")[:5]
-        end_hour = int(l["time"][:2]) + 1 if l.get("time") else 1
-        end_time = f"{end_hour:02d}:{l['time'][3:5]}" if l.get("time") else "01:00"
+        start_time = lesson.get("time", "00:00:00")[:5]
+        end_hour = int(lesson["time"][:2]) + 1 if lesson.get("time") else 1
+        end_time = (
+            f"{end_hour:02d}:{lesson['time'][3:5]}" if lesson.get("time") else "01:00"
+        )
 
         dedup_key = (day_num, start_time, coach_name)
         if dedup_key in seen:
             existing = seen[dedup_key]
-            for sl in sl_by_lesson.get(l["id"], []):
+            for sl in sl_by_lesson.get(lesson["id"], []):
                 s = student_map.get(sl["student_id"])
                 if s and not any(k["name"] == s["name"] for k in existing["kids"]):
                     existing["kids"].append({"name": s["name"], "age": "Unknown"})
             continue
 
         lesson_students = []
-        for sl in sl_by_lesson.get(l["id"], []):
+        for sl in sl_by_lesson.get(lesson["id"], []):
             s = student_map.get(sl["student_id"])
             if s:
                 lesson_students.append({"name": s["name"], "age": "Unknown"})
 
         group = {
-            "id": l["id"],
-            "name": l.get("title", "Lesson"),
-            "schedule_text": f"{l.get('day', '').capitalize()} {start_time}",
-            "level": l.get("type", "GROUP"),
+            "id": lesson["id"],
+            "name": lesson.get("title", "Lesson"),
+            "schedule_text": f"{lesson.get('day', '').capitalize()} {start_time}",
+            "level": lesson.get("type", "GROUP"),
             "coach": {
                 "id": coach.get("id"),
                 "name": coach_name,
                 "email": coach.get("email"),
             },
             "kids": lesson_students,
-            "schedules": [{
-                "id": l["id"],
-                "day": day_num,
-                "start_time": start_time,
-                "end_time": end_time,
-                "court": l.get("notes", ""),
-            }],
+            "schedules": [
+                {
+                    "id": lesson["id"],
+                    "day": day_num,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "court": lesson.get("notes", ""),
+                }
+            ],
         }
         seen[dedup_key] = group
         groups.append(group)
 
     # Also process groups + group_schedules from Neon DB
     try:
-        group_sched_rows = pg_query(
-            "SELECT g.id as group_id, g.name as group_name, g.coach_id, gs.id as sched_id, "
-            "gs.day_of_week, gs.start_time, gs.end_time, gs.court "
-            "FROM groups g JOIN group_schedules gs ON g.id = gs.group_id"
-        ) or []
+        group_sched_rows = (
+            pg_query(
+                "SELECT g.id as group_id, g.name as group_name, g.coach_id, gs.id as sched_id, "
+                "gs.day_of_week, gs.start_time, gs.end_time, gs.court "
+                "FROM groups g JOIN group_schedules gs ON g.id = gs.group_id"
+            )
+            or []
+        )
     except Exception:
         group_sched_rows = []
 
-    DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    DAY_NAMES = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
 
     def _fmt_t24(t_str):
         t_str = (t_str or "").strip().lower()
@@ -408,7 +471,9 @@ def fetch_timetable(role, user_name=None, user_email=None):
 
     for r in group_sched_rows:
         try:
-            day_num = int(r["day_of_week"]) if 0 <= int(r.get("day_of_week", 0)) <= 6 else 0
+            day_num = (
+                int(r["day_of_week"]) if 0 <= int(r.get("day_of_week", 0)) <= 6 else 0
+            )
         except (ValueError, TypeError):
             day_num = 0
         st_24 = _fmt_t24(r["start_time"])
@@ -438,13 +503,15 @@ def fetch_timetable(role, user_name=None, user_email=None):
                 "email": c_obj.get("email"),
             },
             "kids": [],
-            "schedules": [{
-                "id": r["sched_id"],
-                "day": day_num,
-                "start_time": st_24,
-                "end_time": et_24,
-                "court": r.get("court", "Court 1"),
-            }],
+            "schedules": [
+                {
+                    "id": r["sched_id"],
+                    "day": day_num,
+                    "start_time": st_24,
+                    "end_time": et_24,
+                    "court": r.get("court", "Court 1"),
+                }
+            ],
         }
         seen[dedup_key] = group
         groups.append(group)
@@ -462,11 +529,16 @@ def fetch_family_enrollments(parent_email):
         return None
 
     coach_map = {c["id"]: c["name"] for c in coaches}
-    lesson_map = {l["id"]: l for l in lessons}
+    lesson_map = {item["id"]: item for item in lessons}
 
     DAYS = {
-        "MONDAY": "Mon", "TUESDAY": "Tue", "WEDNESDAY": "Wed",
-        "THURSDAY": "Thu", "FRIDAY": "Fri", "SATURDAY": "Sat", "SUNDAY": "Sun",
+        "MONDAY": "Mon",
+        "TUESDAY": "Tue",
+        "WEDNESDAY": "Wed",
+        "THURSDAY": "Thu",
+        "FRIDAY": "Fri",
+        "SATURDAY": "Sat",
+        "SUNDAY": "Sun",
     }
 
     sl_by_student = {}
@@ -478,18 +550,22 @@ def fetch_family_enrollments(parent_email):
     target_email = (parent_email or "").strip().lower()
     for s in students:
         raw_pemail = (s.get("parent_email") or "").lower()
-        pemail_list = [e.strip() for e in raw_pemail.replace(";", ",").split(",") if e.strip()]
+        pemail_list = [
+            e.strip() for e in raw_pemail.replace(";", ",").split(",") if e.strip()
+        ]
 
         if target_email not in pemail_list and target_email not in raw_pemail:
             continue
 
         linked = sl_by_student.get(s["id"], [])
         if not linked:
-            enrollments.append({
-                "kid_name": s["name"],
-                "name": "(no lesson assigned)",
-                "coach_name": None,
-            })
+            enrollments.append(
+                {
+                    "kid_name": s["name"],
+                    "name": "(no lesson assigned)",
+                    "coach_name": None,
+                }
+            )
         else:
             for sl in linked:
                 lesson = lesson_map.get(sl["lesson_id"], {})
@@ -510,11 +586,13 @@ def fetch_family_enrollments(parent_email):
                 hour12 = hour if 1 <= hour <= 12 else (hour - 12 if hour > 12 else 12)
                 time_str = f"{hour12}:{minute}{ampm}"
 
-                enrollments.append({
-                    "kid_name": s["name"],
-                    "name": lesson.get("title", ""),
-                    "coach_name": coach,
-                    "schedule": f"{day_abbr} {time_str}",
-                })
+                enrollments.append(
+                    {
+                        "kid_name": s["name"],
+                        "name": lesson.get("title", ""),
+                        "coach_name": coach,
+                        "schedule": f"{day_abbr} {time_str}",
+                    }
+                )
 
     return enrollments

@@ -3,11 +3,12 @@ import pytest
 from werkzeug.security import generate_password_hash
 from backend.app import app, init_db
 
+
 @pytest.fixture
 def test_db_conn(tmp_path, monkeypatch):
     """Set up an isolated SQLite database for testing and override get_db and academy_db."""
     db_file = tmp_path / "test_rbac.db"
-    
+
     # Force env vars to empty strings so Postgres/Turso paths in init_db are bypassed
     monkeypatch.setenv("TURSO_URL", "")
     monkeypatch.setenv("TURSO_TOKEN", "")
@@ -15,11 +16,13 @@ def test_db_conn(tmp_path, monkeypatch):
     monkeypatch.setenv("NEON_DATABASE_URL", "")
 
     import pg_db
+
     monkeypatch.setattr(pg_db, "_DATABASE_URL", None)
     monkeypatch.setattr(pg_db, "is_pg_available", lambda: False)
 
     # Mock external Supabase/Academy DB calls to return empty lists cleanly
     import academy_db
+
     monkeypatch.setattr(academy_db, "fetch_lessons", lambda: [])
     monkeypatch.setattr(academy_db, "fetch_coaches", lambda: [])
     monkeypatch.setattr(academy_db, "fetch_students", lambda: [])
@@ -49,19 +52,23 @@ def test_db_conn(tmp_path, monkeypatch):
     family_pw = generate_password_hash("family123")
 
     conn.execute(
-        "INSERT INTO users (id, email, password, full_name, role) VALUES (1, 'admin@test.com', ?, 'Admin User', 'admin')",
+        "INSERT INTO users (id, email, password, full_name, role) VALUES (1, 'admin@test.com', ?, 'Admin User', "
+        "'admin')",
         (admin_pw,),
     )
     conn.execute(
-        "INSERT INTO users (id, email, password, full_name, role) VALUES (2, 'coach1@test.com', ?, 'Coach One', 'coach')",
+        "INSERT INTO users (id, email, password, full_name, role) VALUES (2, 'coach1@test.com', ?, 'Coach One', "
+        "'coach')",
         (coach1_pw,),
     )
     conn.execute(
-        "INSERT INTO users (id, email, password, full_name, role) VALUES (3, 'coach2@test.com', ?, 'Coach Two', 'coach')",
+        "INSERT INTO users (id, email, password, full_name, role) VALUES (3, 'coach2@test.com', ?, 'Coach Two', "
+        "'coach')",
         (coach2_pw,),
     )
     conn.execute(
-        "INSERT INTO users (id, email, password, full_name, role) VALUES (4, 'family@test.com', ?, 'Family User', 'family')",
+        "INSERT INTO users (id, email, password, full_name, role) VALUES (4, 'family@test.com', ?, 'Family User', "
+        "'family')",
         (family_pw,),
     )
 
@@ -128,15 +135,20 @@ def test_admin_can_access_debug_sync_status(client):
 def test_coach_cannot_reply_to_other_coach_quick_message(client):
     """Coach 2 should NOT be allowed to reply to Coach 1's quick message (IDOR prevention)."""
     client.post("/login", data={"email": "coach2@test.com", "password": "coach123"})
-    
+
     response = client.post(
         "/coach/reply-family/100",
         data={"content": "Malicious reply from unauthorized coach"},
         follow_redirects=True,
     )
-    
+
     content_text = response.get_data(as_text=True)
-    assert "Unauthorized" in content_text or "Access denied" in content_text or "not authorized" in content_text.lower() or response.status_code in (403, 302)
+    assert (
+        "Unauthorized" in content_text
+        or "Access denied" in content_text
+        or "not authorized" in content_text.lower()
+        or response.status_code in (403, 302)
+    )
 
 
 def test_admin_can_delete_family_quick_message(client):
@@ -151,6 +163,7 @@ def test_admin_can_delete_family_quick_message(client):
     assert "Message deleted." in response.get_data(as_text=True)
 
     from backend.app import get_db
+
     conn = get_db()
     row = conn.execute("SELECT * FROM family_quick_messages WHERE id = 100").fetchone()
     conn.close()
@@ -160,13 +173,13 @@ def test_admin_can_delete_family_quick_message(client):
 def test_admin_can_delete_broadcast_message(client):
     """Admin can permanently delete a broadcast message and its recipients."""
     from backend.app import get_db
+
     conn = get_db()
     conn.execute(
-        "INSERT INTO messages (id, sender_id, message_type, subject, content) VALUES (200, 1, 'announcement', 'Test Subject', 'Test Content')"
+        "INSERT INTO messages (id, sender_id, message_type, subject, content) VALUES (200, 1, 'announcement', 'Test "
+        "Subject', 'Test Content')"
     )
-    conn.execute(
-        "INSERT INTO message_recipients (message_id, user_id) VALUES (200, 4)"
-    )
+    conn.execute("INSERT INTO message_recipients (message_id, user_id) VALUES (200, 4)")
     conn.commit()
     conn.close()
 
@@ -181,7 +194,9 @@ def test_admin_can_delete_broadcast_message(client):
 
     conn = get_db()
     msg_row = conn.execute("SELECT * FROM messages WHERE id = 200").fetchone()
-    rcpt_row = conn.execute("SELECT * FROM message_recipients WHERE message_id = 200").fetchall()
+    rcpt_row = conn.execute(
+        "SELECT * FROM message_recipients WHERE message_id = 200"
+    ).fetchall()
     conn.close()
     assert msg_row is None
     assert len(rcpt_row) == 0
@@ -195,6 +210,3 @@ def test_non_admin_cannot_delete_message(client):
         data={"source": "family_note"},
     )
     assert response.status_code in (302, 401, 403)
-
-
-

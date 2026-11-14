@@ -27,7 +27,7 @@ from functools import wraps
 from datetime import datetime
 from database import get_db, get_config, set_config
 import sqlite3
-from sync_webhook import sync_kid_update, sync_group_update
+from sync_webhook import sync_kid_update
 from migrate_schedules import parse_schedule
 
 import smtplib
@@ -277,13 +277,16 @@ REDIRECT_EMAILS_TO = REDIRECT_TARGET if TEST_MODE else None
 def init_db():
     """Initialize the database with tables (Local or Cloud)."""
     from pg_db import is_pg_available
+
     if is_pg_available():
         try:
             from pg_migrate import create_schema
+
             create_schema()
             return
         except Exception as e:
             import traceback
+
             print(f"init_db (PG): {e}\n{traceback.format_exc()}", flush=True)
 
     conn = get_db()
@@ -384,7 +387,9 @@ def init_db():
     """
     )
     try:
-        cursor.execute("ALTER TABLE message_recipients ADD COLUMN is_read INTEGER DEFAULT 0")
+        cursor.execute(
+            "ALTER TABLE message_recipients ADD COLUMN is_read INTEGER DEFAULT 0"
+        )
     except Exception:
         pass  # column already exists
     try:
@@ -657,8 +662,8 @@ def dashboard():
 
         if sb_lessons and sb_coaches:
             coach_map = {c["id"]: c["name"] for c in sb_coaches}
-            for l in sb_lessons:
-                l["coach_name"] = coach_map.get(l["coach_id"], "Unknown")
+            for lesson in sb_lessons:
+                lesson["coach_name"] = coach_map.get(lesson["coach_id"], "Unknown")
 
         stats = {
             "total_users": conn.execute(
@@ -719,13 +724,13 @@ def dashboard():
                 sb_lessons = fut_lessons.result()
                 sl_all = fut_sl.result()
                 sl_by_lesson = {}
-                for sl in (sl_all or []):
+                for sl in sl_all or []:
                     sl_by_lesson.setdefault(sl["lesson_id"], []).append(sl)
 
                 sb_groups = []
                 DAY_ABBR = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-                for l in (sb_lessons or []):
-                    time_24 = l["time"]
+                for lesson in sb_lessons or []:
+                    time_24 = lesson["time"]
                     hour = int(time_24[:2])
                     minute = time_24[3:]
                     ampm = "am" if hour < 12 else "pm"
@@ -733,17 +738,19 @@ def dashboard():
                     if hour_12 == 0:
                         hour_12 = 12
                     time_formatted = f"{hour_12}:{minute}{ampm}"
-                    schedule_text = f"{DAY_ABBR[l['day']]} {time_formatted}"
-                    student_count = len(sl_by_lesson.get(l["id"], []))
+                    schedule_text = f"{DAY_ABBR[lesson['day']]} {time_formatted}"
+                    student_count = len(sl_by_lesson.get(lesson["id"], []))
 
-                    sb_groups.append({
-                        "id": f"sb_{l['id']}",
-                        "name": l["title"],
-                        "schedule": schedule_text,
-                        "member_count": student_count,
-                        "description": l.get("type", ""),
-                        "_supabase": True,
-                    })
+                    sb_groups.append(
+                        {
+                            "id": f"sb_{lesson['id']}",
+                            "name": lesson["title"],
+                            "schedule": schedule_text,
+                            "member_count": student_count,
+                            "description": lesson.get("type", ""),
+                            "_supabase": True,
+                        }
+                    )
 
                 # If coach has Supabase data, use ONLY Supabase (no Turso groups)
                 if sb_groups:
@@ -813,9 +820,7 @@ def dashboard():
         """,
             (user_id,),
         ).fetchone()[0]
-        total_sessions += sum(
-            1 for g in my_groups if g.get("_supabase")
-        )
+        total_sessions += sum(1 for g in my_groups if g.get("_supabase"))
 
         schedule_exceptions = conn.execute(
             """SELECT se.*, g.name as group_name
@@ -839,7 +844,10 @@ def dashboard():
         # Family sees their enrolled groups from Neon and messages
         parent_email = session.get("email")
         from academy_db import fetch_family_enrollments
-        neon_family_enrollments = fetch_family_enrollments(parent_email) if parent_email else None
+
+        neon_family_enrollments = (
+            fetch_family_enrollments(parent_email) if parent_email else None
+        )
 
         if neon_family_enrollments is not None:
             my_enrollments = [
@@ -887,7 +895,13 @@ def dashboard():
         template = "family_dashboard.html"
 
     conn.close()
-    return render_template(template, stats=stats, sb_lessons=sb_lessons_list, turso_enrollments=turso_enrollments, quick_enrollments=quick_enrollments)
+    return render_template(
+        template,
+        stats=stats,
+        sb_lessons=sb_lessons_list,
+        turso_enrollments=turso_enrollments,
+        quick_enrollments=quick_enrollments,
+    )
 
 
 # ==================== ADMIN ROUTES ====================
@@ -913,21 +927,30 @@ def admin_users():
 @app.route("/admin/users/add", methods=["POST"])
 @admin_required
 def admin_add_user():
-    flash("User creation is temporarily disabled. Manage users via the system setup or contact support.", "warning")
+    flash(
+        "User creation is temporarily disabled. Manage users via the system setup or contact support.",
+        "warning",
+    )
     return redirect(url_for("admin_users"))
 
 
 @app.route("/admin/users/edit", methods=["POST"])
 @admin_required
 def admin_edit_user():
-    flash("User editing is temporarily disabled. Manage users via Google Sheets.", "warning")
+    flash(
+        "User editing is temporarily disabled. Manage users via Google Sheets.",
+        "warning",
+    )
     return redirect(url_for("admin_users"))
 
 
 @app.route("/admin/users/delete/<int:user_id>", methods=["POST"])
 @admin_required
 def admin_delete_user(user_id):
-    flash("User deletion is temporarily disabled. Manage users via Google Sheets.", "warning")
+    flash(
+        "User deletion is temporarily disabled. Manage users via Google Sheets.",
+        "warning",
+    )
     return redirect(url_for("admin_users"))
 
 
@@ -1016,13 +1039,20 @@ def admin_edit_group():
     try:
         conn.execute(
             "UPDATE groups SET name = ?, coach_id = ?, schedule = ?, description = ? WHERE id = ?",
-            (name, int(coach_id) if coach_id else None, schedule, description, int(group_id)),
+            (
+                name,
+                int(coach_id) if coach_id else None,
+                schedule,
+                description,
+                int(group_id),
+            ),
         )
         conn.commit()
 
         # Re-parse schedule: clear existing and re-insert
         conn.execute(
-            "UPDATE group_members SET schedule_id = NULL WHERE group_id = ? AND schedule_id IN (SELECT id FROM group_schedules WHERE group_id = ?)",
+            "UPDATE group_members SET schedule_id = NULL WHERE group_id = ? AND schedule_id IN (SELECT id FROM "
+            "group_schedules WHERE group_id = ?)",
             (int(group_id), int(group_id)),
         )
         conn.execute("DELETE FROM group_schedules WHERE group_id = ?", (int(group_id),))
@@ -1030,7 +1060,13 @@ def admin_edit_group():
             conn.execute(
                 """INSERT INTO group_schedules (group_id, day_of_week, start_time, end_time, court)
                    VALUES (?, ?, ?, ?, ?)""",
-                (int(group_id), s["day"], s["start"], s["end"], s.get("court", "Court 1")),
+                (
+                    int(group_id),
+                    s["day"],
+                    s["start"],
+                    s["end"],
+                    s.get("court", "Court 1"),
+                ),
             )
         conn.commit()
         flash(f"Group '{name}' updated successfully!", "success")
@@ -1069,11 +1105,13 @@ def sheets_sync_webhook():
     records the sync timestamp for adaptive cache invalidation.
     """
     if request.method == "GET":
-        return jsonify({
-            "status": "alive",
-            "version": "auto-sync-v1",
-            "last_sync_at": get_config("last_sync_at"),
-        })
+        return jsonify(
+            {
+                "status": "alive",
+                "version": "auto-sync-v1",
+                "last_sync_at": get_config("last_sync_at"),
+            }
+        )
 
     sync_key = os.environ.get("SYNC_API_KEY")
     if not sync_key:
@@ -1102,29 +1140,30 @@ def sheets_sync_webhook():
 @admin_required
 def debug_sync_status():
     """Debug endpoint to verify Turso data after sync."""
-    import json as _json
-
     try:
         db = get_db()
         groups = db.execute(
             "SELECT id, name, schedule, coach_id FROM groups ORDER BY id DESC LIMIT 5"
         ).fetchall()
         schedules = db.execute(
-            "SELECT id, group_id, day_of_week, start_time, end_time FROM group_schedules ORDER BY group_id, day_of_week LIMIT 10"
+            "SELECT id, group_id, day_of_week, start_time, end_time FROM group_schedules ORDER BY group_id, "
+            "day_of_week LIMIT 10"
         ).fetchall()
         members = db.execute(
             "SELECT id, group_id, kid_name FROM group_members ORDER BY id DESC LIMIT 5"
         ).fetchall()
 
-        return jsonify({
-            "last_sync_at": get_config("last_sync_at"),
-            "groups_count": len(groups),
-            "schedules_count": len(schedules),
-            "members_count": len(members),
-            "groups": [dict(g) for g in groups],
-            "schedules": [dict(s) for s in schedules],
-            "members": [dict(m) for m in members],
-        })
+        return jsonify(
+            {
+                "last_sync_at": get_config("last_sync_at"),
+                "groups_count": len(groups),
+                "schedules_count": len(schedules),
+                "members_count": len(members),
+                "groups": [dict(g) for g in groups],
+                "schedules": [dict(s) for s in schedules],
+                "members": [dict(m) for m in members],
+            }
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -1135,6 +1174,7 @@ def debug_sync_status():
 def debug_pg_check():
     """Debug endpoint to verify PostgreSQL connection on Vercel."""
     import traceback
+
     result = {"error": None}
 
     try:
@@ -1146,7 +1186,9 @@ def debug_pg_check():
 
         result["has_database_url"] = bool(_DATABASE_URL)
         result["is_pg_available"] = is_pg_available()
-        result["db_url_prefix"] = (_DATABASE_URL[:30] + "...") if _DATABASE_URL else None
+        result["db_url_prefix"] = (
+            (_DATABASE_URL[:30] + "...") if _DATABASE_URL else None
+        )
 
         if is_pg_available():
             conn = None
@@ -1157,7 +1199,9 @@ def debug_pg_check():
                 cur.execute("SELECT current_database(), version()")
                 row = cur.fetchone()
                 result["db_info"] = [row[0], row[1][:50]]
-                cur.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')")
+                cur.execute(
+                    "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')"
+                )
                 result["has_users_table"] = cur.fetchone()[0]
             except Exception as e:
                 result["pool_conn_ok"] = False
@@ -1276,13 +1320,14 @@ def admin_delete_schedule_exception(exception_id):
     return redirect(url_for("dashboard"))
 
 
-
 @app.route("/admin/groups/delete/<int:group_id>", methods=["POST"])
 @admin_required
 def admin_delete_group(group_id):
     conn = get_db()
     try:
-        name = conn.execute("SELECT name FROM groups WHERE id = ?", (group_id,)).fetchone()
+        name = conn.execute(
+            "SELECT name FROM groups WHERE id = ?", (group_id,)
+        ).fetchone()
         conn.execute("DELETE FROM group_members WHERE group_id = ?", (group_id,))
         conn.execute("DELETE FROM group_schedules WHERE group_id = ?", (group_id,))
         conn.execute("DELETE FROM groups WHERE id = ?", (group_id,))
@@ -1636,6 +1681,7 @@ def admin_send_message_supabase():
 
         if lesson_id == "all":
             from academy_db import fetch_students
+
             students = fetch_students() or []
             seen = set()
             parents = []
@@ -1649,7 +1695,9 @@ def admin_send_message_supabase():
                 flash("No families found in lesson data.", "warning")
                 return redirect(url_for("admin_send_message_supabase"))
         else:
-            lesson = next((l for l in lessons if str(l["id"]) == lesson_id), None)
+            lesson = next(
+                (item for item in lessons if str(item["id"]) == lesson_id), None
+            )
             if not lesson:
                 flash("Invalid lesson selected.", "danger")
                 return redirect(url_for("admin_send_message_supabase"))
@@ -1691,6 +1739,7 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
             try:
                 store_conn = get_db()
                 from datetime import datetime
+
                 ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
                 store_conn.execute(
                     """INSERT INTO messages (sender_id, group_id, message_type, subject, content, sent_at, is_general)
@@ -1700,7 +1749,8 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
                 msg_id = store_conn.execute("SELECT last_insert_rowid()").fetchone()[0]
                 for email in matched_users:
                     family_user = store_conn.execute(
-                        "SELECT id FROM users WHERE email = ? AND role = 'family'", (email,)
+                        "SELECT id FROM users WHERE email = ? AND role = 'family'",
+                        (email,),
                     ).fetchone()
                     if family_user:
                         store_conn.execute(
@@ -1771,7 +1821,8 @@ def admin_message_auditor():
 
     # Erase any legacy messages previously marked as deleted
     conn.execute(
-        "DELETE FROM message_recipients WHERE message_id IN (SELECT id FROM messages WHERE subject = '[deleted]' OR content = '[deleted by admin]')"
+        "DELETE FROM message_recipients WHERE message_id IN (SELECT id FROM messages WHERE subject = '[deleted]' OR "
+        "content = '[deleted by admin]')"
     )
     conn.execute(
         "DELETE FROM messages WHERE subject = '[deleted]' OR content = '[deleted by admin]'"
@@ -1909,7 +1960,11 @@ def coach_reply_family(quick_msg_id):
     is_authorized = False
     if user_role == "admin":
         is_authorized = True
-    elif qm["coach_name"] and coach_name and qm["coach_name"].lower() == coach_name.lower():
+    elif (
+        qm["coach_name"]
+        and coach_name
+        and qm["coach_name"].lower() == coach_name.lower()
+    ):
         is_authorized = True
     elif qm["group_id"]:
         grp = conn.execute(
@@ -1920,12 +1975,13 @@ def coach_reply_family(quick_msg_id):
             is_authorized = True
 
     if not is_authorized:
-        flash("Access denied: You are not authorized to reply to this message.", "danger")
+        flash(
+            "Access denied: You are not authorized to reply to this message.", "danger"
+        )
         conn.close()
         return redirect(url_for("dashboard"))
 
     family_user_id = qm["user_id"]
-    kid_name = qm["kid_name"]
     subject = f"Reply re: {qm['subject']}"
 
     # Create message in main messages table
@@ -2115,12 +2171,15 @@ def coach_my_groups():
     def _clean_kid_name(raw):
         import re
         from datetime import datetime
-        if not raw or not re.match(r'\w{3} \w{3} \d{2} \d{4}', raw):
+
+        if not raw or not re.match(r"\w{3} \w{3} \d{2} \d{4}", raw):
             return raw
         try:
             parts = raw.split()
-            dt = datetime.strptime(f'{parts[0]} {parts[1]} {parts[2]} {parts[3]}', '%a %b %d %Y')
-            return dt.strftime('%a %b %-d')
+            dt = datetime.strptime(
+                f"{parts[0]} {parts[1]} {parts[2]} {parts[3]}", "%a %b %d %Y"
+            )
+            return dt.strftime("%a %b %-d")
         except (ValueError, IndexError):
             return raw
 
@@ -2208,7 +2267,9 @@ def coach_my_groups_supabase():
     from academy_db import fetch_coach_groups
 
     conn = get_db()
-    coach = conn.execute("SELECT full_name FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+    coach = conn.execute(
+        "SELECT full_name FROM users WHERE id = ?", (session["user_id"],)
+    ).fetchone()
     conn.close()
 
     if not coach:
@@ -2220,7 +2281,9 @@ def coach_my_groups_supabase():
         flash("Base de datos no configurada.", "danger")
         return redirect(url_for("dashboard"))
 
-    return render_template("coach/my_groups_supabase.html", groups=groups, coach_name=coach["full_name"])
+    return render_template(
+        "coach/my_groups_supabase.html", groups=groups, coach_name=coach["full_name"]
+    )
 
 
 @app.route("/timetable")
@@ -2320,7 +2383,7 @@ def coach_send_message_supabase():
             flash("All fields are required.", "danger")
             return render_template("coach/send_message_supabase.html", lessons=lessons)
 
-        lesson = next((l for l in lessons if str(l["id"]) == lesson_id), None)
+        lesson = next((item for item in lessons if str(item["id"]) == lesson_id), None)
         if not lesson:
             flash("Invalid lesson selected.", "danger")
             return redirect(url_for("coach_send_message_supabase"))
@@ -2363,6 +2426,7 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
             try:
                 store_conn = get_db()
                 from datetime import datetime
+
                 ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
                 store_conn.execute(
                     """INSERT INTO messages (sender_id, group_id, message_type, subject, content, sent_at, is_general)
@@ -2372,7 +2436,8 @@ This message was sent from the SF TENNIS KIDS Club Communication System.
                 msg_id = store_conn.execute("SELECT last_insert_rowid()").fetchone()[0]
                 for email in matched_users:
                     family_user = store_conn.execute(
-                        "SELECT id FROM users WHERE email = ? AND role = 'family'", (email,)
+                        "SELECT id FROM users WHERE email = ? AND role = 'family'",
+                        (email,),
                     ).fetchone()
                     if family_user:
                         store_conn.execute(
@@ -2513,7 +2578,10 @@ def family_quick_message():
     ).fetchone()
     if last:
         from datetime import datetime, timedelta
-        last_time = datetime.fromisoformat(last["sent_at"].replace("Z", "+00:00").replace(" ", "T"))
+
+        last_time = datetime.fromisoformat(
+            last["sent_at"].replace("Z", "+00:00").replace(" ", "T")
+        )
         if datetime.now(last_time.tzinfo) - last_time < timedelta(minutes=15):
             flash("You can only send one quick message every 15 minutes.", "warning")
             conn.close()
@@ -2536,6 +2604,7 @@ def family_quick_message():
     else:
         # Check Supabase enrollments by parent_email + kid_name
         from academy_db import fetch_family_enrollments
+
         family_email = session.get("email")
         if family_email:
             sb = fetch_family_enrollments(family_email) or []
@@ -2698,22 +2767,24 @@ def neon_lessons():
 
     coaches = fetch_coaches() or []
     coach_map = {c["id"]: c["name"] for c in coaches}
-    for l in data:
-        l["coach_name"] = coach_map.get(l["coach_id"], "Unknown")
+    for lesson in data:
+        lesson["coach_name"] = coach_map.get(lesson["coach_id"], "Unknown")
 
     total = len(data)
     start = max(0, (page - 1) * limit)
     end = min(total, start + limit)
     paginated_items = data[start:end]
 
-    return jsonify({
-        "lessons": paginated_items,
-        "page": page,
-        "limit": limit,
-        "total": total,
-        "has_more": end < total,
-        "remaining": max(0, total - end)
-    })
+    return jsonify(
+        {
+            "lessons": paginated_items,
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "has_more": end < total,
+            "remaining": max(0, total - end),
+        }
+    )
 
 
 @app.route("/admin/students")
@@ -2769,7 +2840,13 @@ def not_found_error(error):
 
 @app.errorhandler(500)
 def internal_error(error):
-    return render_template("error.html", error="An internal server error occurred (500). Please try again later."), 500
+    return (
+        render_template(
+            "error.html",
+            error="An internal server error occurred (500). Please try again later.",
+        ),
+        500,
+    )
 
 
 # Initialize database on import (critical for Vercel serverless)

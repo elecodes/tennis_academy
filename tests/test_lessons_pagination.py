@@ -1,6 +1,6 @@
-import pytest
 from unittest.mock import patch
 from backend.app import app
+
 
 @patch("academy_db.fetch_coaches")
 @patch("academy_db.fetch_lessons")

@@ -50,7 +50,6 @@ def _parse_url(url):
     }
 
 
-
 class _ConnectionPool:
     def __init__(self):
         self._lock = Lock()
@@ -66,7 +65,10 @@ class _ConnectionPool:
             params["port"] = 6543
             try:
                 import socket
-                ips = socket.getaddrinfo(params["host"], params["port"], socket.AF_INET6)
+
+                ips = socket.getaddrinfo(
+                    params["host"], params["port"], socket.AF_INET6
+                )
                 if ips:
                     params["host"] = ips[0][4][0]
             except Exception:
@@ -183,6 +185,7 @@ def pg_close_all():
 
 
 _pg_available_cache = None
+
 
 def is_pg_available():
     global _pg_available_cache
