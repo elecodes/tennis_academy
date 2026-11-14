@@ -80,16 +80,16 @@ All programs are 1-hour weekly lessons at SFSU.
 
 Always name each group with its ages. Each group is a 1-hour weekly lesson at SFSU, up to 8 players. Do not mention ball colors.
 
-Groups and their days and times (from the club's availability list):
+Group days and times (from the club's availability list). Each row is a separate weekly class:
 
-| Group | Ages | Day | Time |
+| Program | Ages | Day | Time |
 |---|---|---|---|
-| Kids Tennis A | 5-7 | Tuesday | 4:00-5:00 PM |
-| Kids Tennis B | 5-7 | Saturday | 11:00 AM-12:00 PM |
-| Kids Tennis C | 5-7 | Sunday | 11:00 AM-12:00 PM |
-| Junior Tennis A | 8-12 | Tuesday | 4:00-5:00 PM |
-| Junior Tennis B | 8-12 | Wednesday | 4:30-5:30 PM |
-| Junior Tennis C | 8-12 | Saturday | 10:00-11:00 AM |
+| Kids Tennis | 5-7 | Tuesday | 4:00-5:00 PM |
+| Kids Tennis | 5-7 | Saturday | 11:00 AM-12:00 PM |
+| Kids Tennis | 5-7 | Sunday | 11:00 AM-12:00 PM |
+| Junior Tennis | 8-12 | Tuesday | 4:00-5:00 PM |
+| Junior Tennis | 8-12 | Wednesday | 4:30-5:30 PM |
+| Junior Tennis | 8-12 | Saturday | 10:00-11:00 AM |
 
 - Teen Tennis (ages 13-17) groups are not on that list. Teen weekend classes are at 10-11 AM and 11 AM-12 PM only (no 9 AM class). The office confirms the Teen group for each player.
 - Little Champs (ages 4-5) has a separate schedule that is not published: the office confirms available days and times.
@@ -112,7 +112,7 @@ The website lists these class times for Kids Tennis (ages 5-7), Junior Tennis (a
 | Saturday | Sep 19 - Dec 12 | 9-10 AM, 10-11 AM, 11 AM-12 PM |
 | Sunday | Sep 20 - Dec 6 | 9-10 AM, 10-11 AM, 11 AM-12 PM |
 
-- Junior Tennis B (Wednesday 4:30-5:30 PM) runs on the Wednesday dates of Nov 4 - Dec 2 in that list.
+- Junior Tennis (ages 8-12) on Wednesday 4:30-5:30 PM only runs on the Wednesday dates of Nov 4 - Dec 2.
 
 ## Summer Camp 2027
 

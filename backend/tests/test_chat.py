@@ -59,10 +59,10 @@ class TestKnowledgeBase(unittest.TestCase):
     def test_schedule_groups_have_ages_and_no_ball_colors(self):
         text = load_knowledge()
         for row in [
-            "| Kids Tennis A | 5-7 | Tuesday | 4:00-5:00 PM |",
-            "| Kids Tennis C | 5-7 | Sunday | 11:00 AM-12:00 PM |",
-            "| Junior Tennis B | 8-12 | Wednesday | 4:30-5:30 PM |",
-            "| Junior Tennis C | 8-12 | Saturday | 10:00-11:00 AM |",
+            "| Kids Tennis | 5-7 | Tuesday | 4:00-5:00 PM |",
+            "| Kids Tennis | 5-7 | Sunday | 11:00 AM-12:00 PM |",
+            "| Junior Tennis | 8-12 | Wednesday | 4:30-5:30 PM |",
+            "| Junior Tennis | 8-12 | Saturday | 10:00-11:00 AM |",
         ]:
             self.assertIn(row, text)
         self.assertNotIn("red ball", text.lower())
