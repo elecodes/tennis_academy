@@ -36,8 +36,8 @@ All programs are 1-hour weekly lessons at SFSU.
 | Program | Ages | Notes |
 |---|---|---|
 | Little Champs | 4-5 | Beginner level. Basic hand-eye and racquet skills and getting familiar with tennis. Parents are encouraged to stay nearby. Contact the office for current availability. |
-| Kids Tennis | 5-7 | Beginner friendly, no experience needed. Red ball level (USTA Youth Tennis Progression) with age-appropriate racquets. Hand-eye coordination, forehands and backhands, volleys, intro to serves, rallying, confidence and sportsmanship. |
-| Junior Tennis | 8-12 | Beginner friendly, grouped by age and skill. Orange ball level. Forehand and backhand, serve and return, volleys and net play, rallying, footwork, scoring, match play. |
+| Kids Tennis | 5-7 | Beginner friendly, no experience needed. Age-appropriate racquets. Hand-eye coordination, forehands and backhands, volleys, intro to serves, rallying, confidence and sportsmanship. |
+| Junior Tennis | 8-12 | Beginner friendly, grouped by age and skill. Forehand and backhand, serve and return, volleys and net play, rallying, footwork, scoring, match play. |
 | Teen Tennis | 13-17 | Beginner, intermediate and advanced levels, grouped by age and skill. Experienced teens get faster-paced drills, point play and strategy. Singles and doubles match play. |
 | High Performance | 12-17 | For competitive junior players ready for intensive training and tournament tennis, with work on spin, pace, angles and net play. Admission is based on playing level and a player assessment is required. Prices are not listed on the website: contact the office. |
 | Parent & Me | Young children with a parent, from about 3.5 years old | Fun, beginner-friendly family sessions. The website does not list an age range, so the office confirms whether it fits a particular child. Sessions are scheduled by request: contact the office for current availability. |
@@ -76,9 +76,28 @@ All programs are 1-hour weekly lessons at SFSU.
 - Parent & Me is priced by number of family members taking part, per person per lesson: 2 people $82.50, 3 people $65, 4 or more people $56.25 (plus the one-time $25 setup fee).
 - The office confirms the exact package and availability for each family. The bot cannot see live availability, so never say a group has open spots.
 
-## Fall 2026 group schedule (Kids, Junior and Teen)
+## Fall 2026 group schedule by age group
 
-Weekday class times moved earlier in November because of shorter daylight hours. Saturday and Sunday classes are the most popular.
+Always name each group with its ages. Each group is a 1-hour weekly lesson at SFSU, up to 8 players. Do not mention ball colors.
+
+Groups and their days and times (from the club's availability list):
+
+| Group | Ages | Day | Time |
+|---|---|---|---|
+| Kids Tennis A | 5-7 | Tuesday | 4:00-5:00 PM |
+| Kids Tennis B | 5-7 | Saturday | 11:00 AM-12:00 PM |
+| Kids Tennis C | 5-7 | Sunday | 11:00 AM-12:00 PM |
+| Junior Tennis A | 8-12 | Tuesday | 4:00-5:00 PM |
+| Junior Tennis B | 8-12 | Wednesday | 4:30-5:30 PM |
+| Junior Tennis C | 8-12 | Saturday | 10:00-11:00 AM |
+
+- Teen Tennis (ages 13-17) groups are not on that list. Teen weekend classes are at 10-11 AM and 11 AM-12 PM only (no 9 AM class). The office confirms the Teen group for each player.
+- Little Champs (ages 4-5) has a separate schedule that is not published: the office confirms available days and times.
+- Open spots are not shown. The bot cannot see live availability, so never say a group has open spots. The office confirms availability.
+
+### Full list of class times offered (Fall 2026, all programs)
+
+The website lists these class times for Kids Tennis (ages 5-7), Junior Tennis (ages 8-12) and Teen Tennis (ages 13-17) together. It does not say which program meets in each slot, except for the groups in the table above, so never assign a program to a time that is not in that table. Weekday class times moved earlier in November because of shorter daylight hours. Saturday and Sunday classes are the most popular.
 
 | Day | Dates | Class times |
 |---|---|---|
@@ -93,9 +112,7 @@ Weekday class times moved earlier in November because of shorter daylight hours.
 | Saturday | Sep 19 - Dec 12 | 9-10 AM, 10-11 AM, 11 AM-12 PM |
 | Sunday | Sep 20 - Dec 6 | 9-10 AM, 10-11 AM, 11 AM-12 PM |
 
-- Teen Tennis weekend classes are at 10-11 AM and 11 AM-12 PM only (no 9 AM class).
-- A separate Little Champs (ages 4-5) schedule is not published on the website: the office confirms available days and times.
-- Availability changes. The office confirms open spots and places each player in a group.
+- Junior Tennis B (Wednesday 4:30-5:30 PM) runs on the Wednesday dates of Nov 4 - Dec 2 in that list.
 
 ## Summer Camp 2027
 
