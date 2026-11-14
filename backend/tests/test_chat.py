@@ -33,9 +33,9 @@ class TestKnowledgeBase(unittest.TestCase):
         for fact in [
             "415-707-5437",
             "Little Champs | 4-5",
-            "$85 per student per lesson",
+            "$82.50 per student per lesson for the first student",
             "$75 per lesson",
-            "do not quote a number",
+            "Triad (3 students): $65 per student per lesson",
             "Tennis clinics",
             "lesson credit to be used at a later date",
             "What to bring and wear",
@@ -61,10 +61,6 @@ class TestKnowledgeBase(unittest.TestCase):
         self.assertIn("Friday, November 13, 2026", prompt)
         self.assertIn("KNOWLEDGE BASE", prompt)
         self.assertIn(chat_service.CONTACT_FORM_URL, prompt)
-        self.assertNotIn(
-            "$82.50 per student per lesson.",
-            load_knowledge().split("Parent & Me is priced")[0],
-        )
         self.assertIn("$675", prompt)
 
 
@@ -210,6 +206,19 @@ class TestEmbedding(unittest.TestCase):
     def test_app_pages_include_the_chat_bubble(self):
         resp = self.client.get("/login")
         self.assertIn("chat-bubble.js", resp.get_data(as_text=True))
+
+
+class TestChatPage(unittest.TestCase):
+    def test_page_offers_the_question_menu_and_a_way_back_to_it(self):
+        app.testing = True
+        html = app.test_client().get("/chat").get_data(as_text=True)
+        self.assertIn("Back to menu", html)
+        for question in [
+            "How do I sign up?",
+            "What should my child bring?",
+            "Cancellations and rain-outs",
+        ]:
+            self.assertIn(question, html)
 
 
 if __name__ == "__main__":

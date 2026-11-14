@@ -19,9 +19,11 @@
     .me { background: var(--navy); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
     .msg a { color: var(--navy); text-decoration: underline; }
     .err { background: #fff3f0; border: 1px solid #f3c1b6; color: #7a2a18; align-self: flex-start; }
-    #chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    #chips button { border: 1px solid var(--navy); background: #fff; color: var(--navy); border-radius: 999px; padding: 6px 10px; font-size: 13px; cursor: pointer; }
-    #chips button:hover { background: #e8f0fb; }
+    .menu { display: flex; flex-direction: column; gap: 10px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chips button { border: 1px solid var(--navy); background: #fff; color: var(--navy); border-radius: 999px; padding: 6px 10px; font-size: 13px; cursor: pointer; }
+    .chips button:hover { background: #e8f0fb; }
+    .back { align-self: flex-start; border: 0; background: none; color: var(--navy); font: inherit; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; padding: 4px 2px; }
     form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #dde4e8; background: #fff; }
     input { flex: 1; min-width: 0; font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #b9c4cc; border-radius: 10px; }
     input:focus-visible, button:focus-visible { outline: 3px solid var(--yellow); outline-offset: 1px; }
@@ -39,7 +41,6 @@
 
   <div id="log" role="log" aria-live="polite">
     <div class="msg bot">Hi! I can answer questions about our tennis lessons, ages, prices and summer camp. I can't book lessons, but I'll point you to the right place.</div>
-    <div id="chips"></div>
   </div>
 
   <form id="form" autocomplete="off">
@@ -54,7 +55,6 @@
       var form = document.getElementById("form");
       var input = document.getElementById("input");
       var send = document.getElementById("send");
-      var chips = document.getElementById("chips");
       var history = [];
       var busy = false;
 
@@ -63,16 +63,64 @@
         "How much are group lessons?",
         "Private and semi-private prices?",
         "Tell me about Parent & Me",
-        "Summer camp 2027"
+        "What are the class days and times?",
+        "Summer camp 2027",
+        "Cancellations and rain-outs",
+        "What should my child bring?",
+        "How do I sign up?"
       ];
 
-      suggestions.forEach(function (text) {
-        var b = document.createElement("button");
-        b.type = "button";
-        b.textContent = text;
-        b.addEventListener("click", function () { ask(text); });
-        chips.appendChild(b);
-      });
+      var menu = null;
+      var backBtn = null;
+
+      function clearMenu() {
+        if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
+        if (backBtn && backBtn.parentNode) backBtn.parentNode.removeChild(backBtn);
+        menu = null;
+        backBtn = null;
+      }
+
+      // Shows the list of suggested questions at the bottom of the chat. Returns the first button.
+      function showMenu(intro) {
+        clearMenu();
+        menu = document.createElement("div");
+        menu.className = "menu";
+        if (intro) {
+          var msg = document.createElement("div");
+          msg.className = "msg bot";
+          msg.textContent = intro;
+          menu.appendChild(msg);
+        }
+        var chips = document.createElement("div");
+        chips.className = "chips";
+        suggestions.forEach(function (text) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.textContent = text;
+          b.addEventListener("click", function () { ask(text); });
+          chips.appendChild(b);
+        });
+        menu.appendChild(chips);
+        log.appendChild(menu);
+        log.scrollTop = log.scrollHeight;
+        return chips.firstChild;
+      }
+
+      // After every answer (or error) the visitor can go back to the list of questions.
+      // The conversation stays on screen and the bot keeps its context.
+      function showBackButton() {
+        if (backBtn && backBtn.parentNode) backBtn.parentNode.removeChild(backBtn);
+        backBtn = document.createElement("button");
+        backBtn.type = "button";
+        backBtn.className = "back";
+        backBtn.textContent = "\u2190 Back to menu";
+        backBtn.addEventListener("click", function () {
+          var first = showMenu("What else would you like to know?");
+          if (first) first.focus();
+        });
+        log.appendChild(backBtn);
+        log.scrollTop = log.scrollHeight;
+      }
 
       // Bot replies: turn **bold**, [text](url) and plain http(s) URLs into DOM nodes.
       // Built with createElement/textContent only (never innerHTML), so model output cannot inject HTML.
@@ -123,7 +171,7 @@
       function ask(text) {
         text = (text || "").trim();
         if (!text || busy) return;
-        if (chips.parentNode) chips.parentNode.removeChild(chips);
+        clearMenu();
         busy = true;
         send.disabled = true;
         input.value = "";
@@ -157,6 +205,7 @@
           .then(function () {
             busy = false;
             send.disabled = false;
+            showBackButton();
             input.focus();
           });
       }
@@ -165,6 +214,8 @@
         e.preventDefault();
         ask(input.value);
       });
+
+      showMenu();
     })();
   </script>
 </body>

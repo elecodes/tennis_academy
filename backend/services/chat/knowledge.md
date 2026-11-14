@@ -40,7 +40,7 @@ All programs are 1-hour weekly lessons at SFSU.
 | Junior Tennis | 8-12 | Beginner friendly, grouped by age and skill. Orange ball level. Forehand and backhand, serve and return, volleys and net play, rallying, footwork, scoring, match play. |
 | Teen Tennis | 13-17 | Beginner, intermediate and advanced levels, grouped by age and skill. Experienced teens get faster-paced drills, point play and strategy. Singles and doubles match play. |
 | High Performance | 12-17 | For competitive junior players ready for intensive training and tournament tennis, with work on spin, pace, angles and net play. Admission is based on playing level and a player assessment is required. Prices are not listed on the website: contact the office. |
-| Parent & Me | Young children with a parent, typically about 2.5 to 4 years old | Fun, beginner-friendly family sessions. The website does not list an age range, so the office confirms whether it fits a particular child. Sessions are scheduled by request: contact the office for current availability. |
+| Parent & Me | Young children with a parent, from about 3.5 years old | Fun, beginner-friendly family sessions. The website does not list an age range, so the office confirms whether it fits a particular child. Sessions are scheduled by request: contact the office for current availability. |
 
 - A 5-year-old fits both Little Champs (4-5) and Kids Tennis (5-7). Placement depends on the child's experience, and the office helps choose. A 4-year-old can join Little Champs or Parent & Me.
 - Teens: the priority is to keep teens with age-appropriate peers rather than much younger kids. Final groups depend on the mix of players registered each week. The club has several courts, so players are matched by age and skill.
@@ -69,8 +69,8 @@ All programs are 1-hour weekly lessons at SFSU.
 ### Per-lesson rates quoted by the office
 
 - Group: $56.25 per student per lesson.
-- Semi-private (2 students): $85 per student per lesson. A second sibling in the same semi-private lesson pays $75 per lesson.
-- Triad (3 students): the per-lesson price is not confirmed here, so do not quote a number. Say the office confirms triad pricing.
+- Semi-private (2 students): $82.50 per student per lesson for the first student. A second sibling in the same semi-private lesson pays $75 per lesson.
+- Triad (3 students): $65 per student per lesson.
 - Private (1 student): $120 per lesson.
 - A one-time $25 setup fee applies to new lesson packages.
 - Parent & Me is priced by number of family members taking part, per person per lesson: 2 people $82.50, 3 people $65, 4 or more people $56.25 (plus the one-time $25 setup fee).
