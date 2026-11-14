@@ -47,6 +47,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 - ✅ **Google Spreadsheet Integration** (Sync schedules automatically)
 - ✅ **Auto-Sync** (Sheets edits sync to Turso in seconds via installable GAS triggers)
 - ✅ **Date-Specific Schedule Exceptions & Alerts Overlay** — admin overlay layer (`schedule_exceptions`) for cancellations, student sickness/absence, time changes, and notes without modifying recurring master timetables or breaking one-way sync (`sfschedule.onrender.com`).
+- ✅ **Info Chatbot** — public, information-only assistant (lessons, ages, prices, schedule, camps, policies) embeddable in the Wix site and in this app (see [Info Chatbot](#-info-chatbot))
 - ✅ Simple web interface for all roles
 - ✅ 100% free (Python, Flask, Gmail SMTP)
 
@@ -65,6 +66,7 @@ A simple, free-tier communication platform for tennis clubs to connect administr
 | Validation| **Zod** + esbuild | Free |
 | Monitoring | **Sentry** | Free tier |
 | Security | **flask-talisman** (Security Headers) | Free |
+| Chatbot LLM | **Groq API** (`openai/gpt-oss-120b`, fallback `llama-3.1-8b-instant`) | Free tier (rate limited) |
 | CI/CD | GitHub Actions | Free |
 | Container | **Docker** + Docker Compose | Free |
 | Deployment | Docker / PythonAnywhere / Render / Railway | Free tier available |
@@ -205,6 +207,65 @@ The app will be available at: **http://localhost:5001**
 6. Email notifications arrive automatically
 ```
 
+## 💬 Info Chatbot
+
+A public, **information-only** assistant for SF TENNIS KIDS Club. It answers questions about lessons, ages, prices, the weekly schedule by age group, summer camp and policies. It cannot book lessons, take payments or look up accounts: it sends families to the contact form (https://www.sanfranciscokids.tennis/contact-sf-tennis-kids) or the office. All answers are in English.
+
+### How it works
+- The whole knowledge base (`backend/services/chat/knowledge.md`, about 4k tokens) is added to the system prompt on every request. There is no vector database or retrieval step.
+- To change what the bot knows (prices, ages, schedule, policies), edit `knowledge.md` and deploy. The website is the source of truth for ages and prices.
+- The model is called through the Groq client already used by Magic Draft. Default models: `openai/gpt-oss-120b`, then `llama-3.1-8b-instant` as fallback. Override with `CHAT_MODELS` (comma separated).
+- The UI shows a menu of common questions and a **← Back to menu** button after every answer.
+
+| Piece | File |
+|---|---|
+| Knowledge base | `backend/services/chat/knowledge.md` |
+| Prompt, validation, model call, cache, daily cap | `backend/services/chat/chat_service.py` |
+| Routes: `GET /chat` (page), `POST /api/chat` (JSON) | `backend/routes/chat.py` |
+| Chat page | `frontend/templates/chat.html` |
+| Floating "Ask us" button | `frontend/static/js/chat-bubble.js` |
+| Tests | `backend/tests/test_chat.py` |
+
+### Configuration (environment variables)
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `GROQ_API_KEY` | (required) | Without it `/api/chat` returns 503 "The assistant is not available right now." Set it for **Production** and Preview, then redeploy (variables only apply to new deployments). |
+| `CHAT_MODELS` | `openai/gpt-oss-120b,llama-3.1-8b-instant` | Models tried in order |
+| `CHAT_RATE_LIMIT` | `12` | Questions per minute per IP |
+| `CHAT_DAILY_LIMIT` | `300` | Model calls per UTC day, across all visitors |
+| `CHAT_CACHE_SECONDS` | `21600` | Cache time for repeated first questions (0 disables) |
+| `CHAT_FRAME_ANCESTORS` | club site, Wix domains | Sites allowed to embed `/chat` in an iframe |
+
+### Embedding in Wix
+Replace `APP-DOMAIN` with the production domain of this app.
+- **Floating button on every page** (Wix paid plan with a custom domain): Wix dashboard → Settings → Custom Code → Add Custom Code, paste `<script src="https://APP-DOMAIN/static/js/chat-bubble.js" defer></script>`, apply to All pages, place it in Body - end.
+- **Inside one page**: Wix editor → Add Elements → Embed Code → Embed HTML → Website address → `https://APP-DOMAIN/chat`.
+
+`/chat` is the only page of the app that may be framed. Every other page keeps `X-Frame-Options: DENY`.
+
+### Security and cost guardrails
+The bot has no tools, no database access and no secrets: its knowledge is public content, so the impact of a successful prompt injection is limited to a wrong or off-topic answer.
+
+| Risk (OWASP) | Control |
+|---|---|
+| Prompt injection (LLM01) | System rules: answer only from the knowledge base, stay on topic, ignore requests to change rules; no tools or private data to abuse |
+| Insecure output handling (LLM05 / XSS) | Replies are rendered with `createElement`/`textContent` only, never `innerHTML`; only `http(s)` links, opened with `rel="noopener noreferrer"` |
+| Sensitive information disclosure (LLM02) | `knowledge.md` contains public information only. Never put secrets or family data in it |
+| Unbounded consumption (LLM10) | Max 500 characters per message, last 6 messages, `max_tokens` 1024, per-IP rate limit, daily call cap (`CHAT_DAILY_LIMIT`), cache for repeated first questions. When the daily cap is reached the bot answers with the office phone number |
+| Clickjacking / embedding | `frame-ancestors` only allows the club site and Wix; other pages use `DENY` |
+| Information leakage | Provider errors are logged on the server; visitors only see generic messages |
+
+Limits: the rate limiter, cache and daily counter live in memory, so on Vercel each instance keeps its own. They are a best-effort protection. For hard guarantees, set a spending limit in the Groq console.
+
+### Free-tier capacity (Groq)
+Each question sends about 4k tokens (the knowledge base) plus the conversation and the answer, roughly 4.5k to 5.5k tokens in total. On the Groq free tier the limit that matters is **tokens**, not requests (about 8k tokens per minute and about 200k per day for `openai/gpt-oss-120b`; check your Groq console for current numbers). That is roughly 1 question per minute and 35 to 45 questions per day on the main model, so the cache and the fallback model matter. Limits can change.
+
+### Tests
+```bash
+python -m pytest backend/tests/test_chat.py -v
+```
+
 ## 📊 Database Schema
 
 ```sql
@@ -274,6 +335,7 @@ family_quick_messages(id, user_id, group_id, kid_name, coach_name, preset, subje
 4. ✅ No PII leakage (role-based column filtering)
 5. ✅ Email validation on all forms
 6. ✅ Security Headers (X-Frame-Options, CSP, etc.) via Talisman
+7. ✅ Public chatbot hardened against abuse: input limits, per-IP rate limit, daily call cap, answer cache, safe output rendering (see [Info Chatbot](#-info-chatbot))
 
 ### For Production
 1. Change `app.secret_key` to a random value

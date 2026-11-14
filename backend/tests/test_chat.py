@@ -111,7 +111,56 @@ class TestValidateMessages(unittest.TestCase):
                     validate_messages(payload)
 
 
+def _reset_chat_state():
+    chat_service._cache.clear()
+    chat_service._budget.update(day=None, used=0)
+
+
 class TestAnswerQuestion(unittest.TestCase):
+    def setUp(self):
+        _reset_chat_state()
+
+    def test_first_question_is_cached(self):
+        client = MagicMock()
+        client.chat.completions.create.return_value = _fake_response("Answer one.")
+        with patch.object(chat_service.magic_draft, "groq_client", client):
+            first = answer_question([{"role": "user", "content": "Group  price?"}])
+            second = answer_question([{"role": "user", "content": "group price?"}])
+        self.assertEqual(first, second)
+        self.assertEqual(client.chat.completions.create.call_count, 1)
+
+    def test_follow_up_questions_are_not_cached(self):
+        client = MagicMock()
+        client.chat.completions.create.return_value = _fake_response("Reply.")
+        convo = [
+            {"role": "user", "content": "Hi"},
+            {"role": "assistant", "content": "Hello!"},
+            {"role": "user", "content": "And private?"},
+        ]
+        with patch.object(chat_service.magic_draft, "groq_client", client):
+            answer_question(convo)
+            answer_question(convo)
+        self.assertEqual(client.chat.completions.create.call_count, 2)
+
+    def test_daily_limit_stops_model_calls(self):
+        client = MagicMock()
+        client.chat.completions.create.return_value = _fake_response("Reply.")
+        with patch.object(chat_service.magic_draft, "groq_client", client):
+            with patch.object(chat_service, "DAILY_LIMIT", 2):
+                answer_question([{"role": "user", "content": "q1"}])
+                answer_question([{"role": "user", "content": "q2"}])
+                with self.assertRaises(chat_service.ChatBudgetError):
+                    answer_question([{"role": "user", "content": "q3"}])
+        self.assertEqual(client.chat.completions.create.call_count, 2)
+
+    def test_system_rules_have_no_duplicate_lines(self):
+        lines = [x for x in chat_service.SYSTEM_RULES.split("\n") if x.strip()]
+        self.assertEqual(len(lines), len(set(lines)))
+        self.assertEqual(
+            chat_service.SYSTEM_RULES.count("always write its age range"), 1
+        )
+        self.assertNotIn("always add its age range", chat_service.SYSTEM_RULES)
+
     def test_unavailable_without_client(self):
         with patch.object(chat_service.magic_draft, "groq_client", None):
             with self.assertRaises(ChatUnavailableError):
@@ -173,6 +222,15 @@ class TestChatRoutes(unittest.TestCase):
         resp = self.post({"messages": [{"role": "user", "content": "Hi"}]})
         self.assertEqual(resp.status_code, 502)
         self.assertNotIn("provider details", resp.get_data(as_text=True))
+
+    @patch(
+        "routes.chat.answer_question",
+        side_effect=chat_service.ChatBudgetError("limit"),
+    )
+    def test_daily_limit_returns_429_with_contact_info(self, _):
+        resp = self.post({"messages": [{"role": "user", "content": "Hi"}]})
+        self.assertEqual(resp.status_code, 429)
+        self.assertIn("415-707-5437", resp.get_json()["error"])
 
     @patch("routes.chat.answer_question", return_value="ok")
     def test_rate_limit(self, _):

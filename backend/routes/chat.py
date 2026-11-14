@@ -8,6 +8,7 @@ from collections import defaultdict, deque
 from flask import Blueprint, current_app, jsonify, render_template, request
 
 from services.chat.chat_service import (
+    ChatBudgetError,
     ChatProviderError,
     ChatUnavailableError,
     ChatValidationError,
@@ -75,6 +76,14 @@ def api_chat():
         reply = answer_question(data.get("messages"))
     except ChatValidationError:
         return jsonify(error="Please type a question first."), 400
+    except ChatBudgetError:
+        return (
+            jsonify(
+                error="The assistant has reached its limit for today. "
+                "Please call or text 415-707-5437 or use the contact form on our website."
+            ),
+            429,
+        )
     except ChatUnavailableError as e:
         current_app.logger.warning(f"Chat unavailable: {e}")
         return jsonify(error="The assistant is not available right now."), 503
