@@ -13,6 +13,7 @@ def client(monkeypatch):
     monkeypatch.setenv("DATABASE_URL", "")
     monkeypatch.setenv("NEON_DATABASE_URL", "")
     import pg_db
+
     monkeypatch.setattr(pg_db, "_DATABASE_URL", None)
     monkeypatch.setattr(pg_db, "is_pg_available", lambda: False)
     with app.test_client() as client:

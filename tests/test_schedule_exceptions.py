@@ -3,6 +3,7 @@ import pytest
 from werkzeug.security import generate_password_hash
 from backend.app import app, init_db
 
+
 @pytest.fixture
 def test_db_conn(tmp_path, monkeypatch):
     """Set up isolated DB for schedule exceptions testing."""
@@ -14,16 +15,20 @@ def test_db_conn(tmp_path, monkeypatch):
     monkeypatch.setenv("NEON_DATABASE_URL", "")
 
     import pg_db
+
     monkeypatch.setattr(pg_db, "_DATABASE_URL", None)
     monkeypatch.setattr(pg_db, "is_pg_available", lambda: False)
 
     import academy_db
+
     monkeypatch.setattr(academy_db, "fetch_lessons", lambda: [])
     monkeypatch.setattr(academy_db, "fetch_coaches", lambda: [])
     monkeypatch.setattr(academy_db, "fetch_students", lambda: [])
     monkeypatch.setattr(academy_db, "fetch_coach_lessons", lambda name: [])
     monkeypatch.setattr(academy_db, "fetch_student_lessons", lambda: [])
-    monkeypatch.setattr(academy_db, "fetch_timetable", lambda *args, **kwargs: {"groups": []})
+    monkeypatch.setattr(
+        academy_db, "fetch_timetable", lambda *args, **kwargs: {"groups": []}
+    )
 
     conn_pool = []
 
@@ -45,15 +50,18 @@ def test_db_conn(tmp_path, monkeypatch):
     family_pw = generate_password_hash("family123")
 
     conn.execute(
-        "INSERT INTO users (id, email, password, full_name, role) VALUES (1, 'admin@test.com', ?, 'Admin User', 'admin')",
+        "INSERT INTO users (id, email, password, full_name, role) VALUES (1, 'admin@test.com', ?, 'Admin User', "
+        "'admin')",
         (admin_pw,),
     )
     conn.execute(
-        "INSERT INTO users (id, email, password, full_name, role) VALUES (2, 'coach@test.com', ?, 'Coach Smith', 'coach')",
+        "INSERT INTO users (id, email, password, full_name, role) VALUES (2, 'coach@test.com', ?, 'Coach Smith', "
+        "'coach')",
         (coach_pw,),
     )
     conn.execute(
-        "INSERT INTO users (id, email, password, full_name, role) VALUES (3, 'family@test.com', ?, 'Family Jones', 'family')",
+        "INSERT INTO users (id, email, password, full_name, role) VALUES (3, 'family@test.com', ?, 'Family Jones', "
+        "'family')",
         (family_pw,),
     )
     conn.execute(
@@ -83,6 +91,7 @@ def client(test_db_conn):
 def test_schedule_exceptions_table_exists(client):
     """Verify schedule_exceptions table is initialized in database."""
     from backend.app import get_db
+
     conn = get_db()
     cursor = conn.execute("PRAGMA table_info(schedule_exceptions)")
     cols = [col["name"] for col in cursor.fetchall()]
@@ -96,8 +105,9 @@ def test_schedule_exceptions_table_exists(client):
 def test_insert_and_fetch_schedule_exception(client):
     """Verify inserting and fetching date-specific schedule exception."""
     from backend.app import get_db
+
     conn = get_db()
-    
+
     conn.execute(
         """INSERT INTO schedule_exceptions (group_id, kid_name, exception_date, status, note_text)
            VALUES (1, 'Alex', '2026-10-10', 'no_lesson', 'Alex is sick - no lesson this Sat 12pm')"""
@@ -133,8 +143,11 @@ def test_admin_can_add_schedule_exception(client):
     assert response.status_code == 200
 
     from backend.app import get_db
+
     conn = get_db()
-    row = conn.execute("SELECT * FROM schedule_exceptions WHERE exception_date = '2026-10-17'").fetchone()
+    row = conn.execute(
+        "SELECT * FROM schedule_exceptions WHERE exception_date = '2026-10-17'"
+    ).fetchone()
     assert row is not None
     assert row["status"] == "no_lesson"
 
@@ -160,14 +173,18 @@ def test_non_admin_cannot_add_schedule_exception(client):
 def test_admin_can_delete_schedule_exception(client):
     """Admin user should be able to delete a schedule exception."""
     from backend.app import get_db
+
     conn = get_db()
     conn.execute(
-        "INSERT INTO schedule_exceptions (id, group_id, exception_date, status, note_text) VALUES (99, 1, '2026-10-24', 'note', 'Sample note')"
+        "INSERT INTO schedule_exceptions (id, group_id, exception_date, status, note_text) VALUES (99, 1, "
+        "'2026-10-24', 'note', 'Sample note')"
     )
     conn.commit()
 
     client.post("/login", data={"email": "admin@test.com", "password": "admin123"})
-    response = client.post("/admin/schedule-exceptions/delete/99", follow_redirects=True)
+    response = client.post(
+        "/admin/schedule-exceptions/delete/99", follow_redirects=True
+    )
     assert response.status_code == 200
 
     row = conn.execute("SELECT * FROM schedule_exceptions WHERE id = 99").fetchone()
@@ -177,6 +194,7 @@ def test_admin_can_delete_schedule_exception(client):
 def test_coach_dashboard_displays_schedule_exceptions(client):
     """Coach dashboard should render schedule exceptions for assigned groups."""
     from backend.app import get_db
+
     conn = get_db()
     conn.execute(
         """INSERT INTO schedule_exceptions (group_id, exception_date, status, note_text)
@@ -194,6 +212,7 @@ def test_coach_dashboard_displays_schedule_exceptions(client):
 def test_timetable_passes_schedule_exceptions(client):
     """Timetable route should query and pass schedule_exceptions for the active week."""
     from backend.app import get_db
+
     conn = get_db()
     conn.execute(
         """INSERT INTO schedule_exceptions (group_id, exception_date, status, note_text)
@@ -205,4 +224,8 @@ def test_timetable_passes_schedule_exceptions(client):
     response = client.get("/timetable?date=2026-10-10")
     assert response.status_code == 200
     text = response.get_data(as_text=True)
-    assert "Alex absent Oct 10" in text or "schedule_exceptions" in response.get_data(as_text=True) or response.status_code == 200
+    assert (
+        "Alex absent Oct 10" in text
+        or "schedule_exceptions" in response.get_data(as_text=True)
+        or response.status_code == 200
+    )

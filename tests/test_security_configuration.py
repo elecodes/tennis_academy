@@ -2,6 +2,7 @@ import sqlite3
 import pytest
 from backend.app import app, init_db
 
+
 @pytest.fixture
 def test_db_conn(tmp_path, monkeypatch):
     """Set up isolated DB for security config testing."""
@@ -13,6 +14,7 @@ def test_db_conn(tmp_path, monkeypatch):
     monkeypatch.setenv("NEON_DATABASE_URL", "")
 
     import pg_db
+
     monkeypatch.setattr(pg_db, "_DATABASE_URL", None)
     monkeypatch.setattr(pg_db, "is_pg_available", lambda: False)
 

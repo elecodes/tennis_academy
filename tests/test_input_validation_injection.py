@@ -1,23 +1,25 @@
 import sqlite3
 import pytest
-from html import escape
 from backend.app import app, init_db
+
 
 @pytest.fixture
 def test_db_conn(tmp_path, monkeypatch):
     """Set up an isolated SQLite database for injection resistance testing."""
     db_file = tmp_path / "test_injection.db"
-    
+
     monkeypatch.setenv("TURSO_URL", "")
     monkeypatch.setenv("TURSO_TOKEN", "")
     monkeypatch.setenv("DATABASE_URL", "")
     monkeypatch.setenv("NEON_DATABASE_URL", "")
 
     import pg_db
+
     monkeypatch.setattr(pg_db, "_DATABASE_URL", None)
     monkeypatch.setattr(pg_db, "is_pg_available", lambda: False)
 
     import academy_db
+
     monkeypatch.setattr(academy_db, "fetch_lessons", lambda: [])
     monkeypatch.setattr(academy_db, "fetch_coaches", lambda: [])
     monkeypatch.setattr(academy_db, "fetch_students", lambda: [])
@@ -72,9 +74,10 @@ def test_sql_injection_attempt_in_login(client):
 def test_xss_payload_escaped_in_html_rendering(client):
     """Verify script tags in user inputs are HTML-escaped by Jinja2 renderer."""
     xss_payload = "<script>alert('xss')</script>"
-    escaped_payload = escape(xss_payload)
-    
+
     with app.test_request_context():
-        rendered = app.jinja_env.from_string("Hello {{ name }}").render(name=xss_payload)
+        rendered = app.jinja_env.from_string("Hello {{ name }}").render(
+            name=xss_payload
+        )
         assert "<script>" not in rendered
         assert "&lt;script&gt;" in rendered

@@ -29,7 +29,9 @@ def get_table(table, order=None, select="*"):
     if order:
         params["order"] = order
     try:
-        resp = requests.get(f"{url}/{table}", headers=_headers(), params=params, timeout=10)
+        resp = requests.get(
+            f"{url}/{table}", headers=_headers(), params=params, timeout=10
+        )
         resp.raise_for_status()
         return resp.json()
     except requests.RequestException:

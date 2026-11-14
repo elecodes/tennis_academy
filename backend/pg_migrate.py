@@ -1,7 +1,7 @@
 import os
 import sys
 import ssl
-from pg_db import pg_query, pg_close_all, get_pg
+from pg_db import pg_query
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS users (
@@ -141,7 +141,16 @@ def migrate_data():
     cur.execute("SET session_replication_role = 'replica'")
     # Drop unique constraints that conflict with Turso data (groups.name has duplicates)
     cur.execute("ALTER TABLE groups DROP CONSTRAINT IF EXISTS groups_name_key")
-    tables = ["message_recipients", "family_quick_messages", "messages", "group_members", "group_schedules", "groups", "users", "app_config"]
+    tables = [
+        "message_recipients",
+        "family_quick_messages",
+        "messages",
+        "group_members",
+        "group_schedules",
+        "groups",
+        "users",
+        "app_config",
+    ]
     for t in tables:
         cur.execute(f"TRUNCATE TABLE {t} CASCADE")
     pg.commit()
@@ -156,7 +165,6 @@ def migrate_data():
         if not rows:
             return
         col_list = ", ".join(cols)
-        n = len(cols)
         cur = pg.cursor()
         for i in range(0, len(rows), batch):
             batch_rows = rows[i : i + batch]
@@ -174,34 +182,114 @@ def migrate_data():
         print(f"  {table}: {len(rows)} rows")
 
     print("Migrating users...")
-    _bulk_insert("users", ["id", "email", "password", "full_name", "role", "phone", "created_at", "is_active"], _turso("users", "id"))
+    _bulk_insert(
+        "users",
+        [
+            "id",
+            "email",
+            "password",
+            "full_name",
+            "role",
+            "phone",
+            "created_at",
+            "is_active",
+        ],
+        _turso("users", "id"),
+    )
 
     print("Migrating groups...")
-    _bulk_insert("groups", ["id", "name", "schedule", "coach_id", "description", "created_at"], _turso("groups", "id"))
+    _bulk_insert(
+        "groups",
+        ["id", "name", "schedule", "coach_id", "description", "created_at"],
+        _turso("groups", "id"),
+    )
 
     print("Migrating group_schedules...")
-    _bulk_insert("group_schedules", ["id", "group_id", "day_of_week", "start_time", "end_time", "court", "created_at", "updated_at"], _turso("group_schedules", "id"))
+    _bulk_insert(
+        "group_schedules",
+        [
+            "id",
+            "group_id",
+            "day_of_week",
+            "start_time",
+            "end_time",
+            "court",
+            "created_at",
+            "updated_at",
+        ],
+        _turso("group_schedules", "id"),
+    )
 
     print("Migrating group_members...")
-    _bulk_insert("group_members", ["id", "group_id", "family_id", "kid_name", "schedule_id", "enrolled_at"], _turso("group_members", "id"))
+    _bulk_insert(
+        "group_members",
+        ["id", "group_id", "family_id", "kid_name", "schedule_id", "enrolled_at"],
+        _turso("group_members", "id"),
+    )
 
     print("Migrating messages...")
-    _bulk_insert("messages", ["id", "sender_id", "group_id", "message_type", "subject", "content", "sent_at", "is_general"], _turso("messages", "id"))
+    _bulk_insert(
+        "messages",
+        [
+            "id",
+            "sender_id",
+            "group_id",
+            "message_type",
+            "subject",
+            "content",
+            "sent_at",
+            "is_general",
+        ],
+        _turso("messages", "id"),
+    )
 
     print("Migrating message_recipients...")
-    _bulk_insert("message_recipients", ["id", "message_id", "user_id", "email_sent", "sent_at", "is_read", "ack_type", "ack_at"], _turso("message_recipients", "id"))
+    _bulk_insert(
+        "message_recipients",
+        [
+            "id",
+            "message_id",
+            "user_id",
+            "email_sent",
+            "sent_at",
+            "is_read",
+            "ack_type",
+            "ack_at",
+        ],
+        _turso("message_recipients", "id"),
+    )
 
     print("Migrating family_quick_messages...")
-    _bulk_insert("family_quick_messages", ["id", "user_id", "group_id", "kid_name", "coach_name", "preset", "subject", "content", "sent_at", "is_read", "deleted_at"], _turso("family_quick_messages", "id"))
+    _bulk_insert(
+        "family_quick_messages",
+        [
+            "id",
+            "user_id",
+            "group_id",
+            "kid_name",
+            "coach_name",
+            "preset",
+            "subject",
+            "content",
+            "sent_at",
+            "is_read",
+            "deleted_at",
+        ],
+        _turso("family_quick_messages", "id"),
+    )
 
     print("Migrating app_config...")
-    _bulk_insert("app_config", ["key", "value", "updated_at"], _turso("app_config", "key"))
+    _bulk_insert(
+        "app_config", ["key", "value", "updated_at"], _turso("app_config", "key")
+    )
 
     # Re-enable FK triggers
     cur = pg.cursor()
     cur.execute("SET session_replication_role = 'origin'")
     # Re-create unique constraint on groups.name (with deduplication)
-    cur.execute("DELETE FROM groups a USING groups b WHERE a.id < b.id AND a.name = b.name")
+    cur.execute(
+        "DELETE FROM groups a USING groups b WHERE a.id < b.id AND a.name = b.name"
+    )
     cur.execute("ALTER TABLE groups ADD CONSTRAINT groups_name_key UNIQUE (name)")
     pg.commit()
 
@@ -210,7 +298,6 @@ def migrate_data():
 
 
 if __name__ == "__main__":
-    import sys
     if "create" in sys.argv:
         create_schema()
     if "migrate" in sys.argv:

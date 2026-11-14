@@ -5,7 +5,6 @@ Usage:
     python3 scripts/turso.py "SELECT * FROM users"
     python3 scripts/turso.py "SELECT name FROM sqlite_master WHERE type='table'"
 """
-import json
 import os
 import sys
 import re
@@ -25,13 +24,22 @@ turso_url = env.get("TURSO_URL", "")
 turso_token = env.get("TURSO_TOKEN", "")
 url = turso_url.replace("libsql://", "https://") + "/v2/pipeline"
 
-sql = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+sql = (
+    " ".join(sys.argv[1:])
+    if len(sys.argv) > 1
+    else "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+)
 
 payload = {"requests": [{"type": "execute", "stmt": {"sql": sql}}]}
-resp = requests.post(url, json=payload, headers={
-    "Authorization": f"Bearer {turso_token}",
-    "Content-Type": "application/json",
-}, timeout=10)
+resp = requests.post(
+    url,
+    json=payload,
+    headers={
+        "Authorization": f"Bearer {turso_token}",
+        "Content-Type": "application/json",
+    },
+    timeout=10,
+)
 
 data = resp.json()
 res = data["results"][0]
