@@ -20,6 +20,8 @@ MAX_OUTPUT_TOKENS = 1024  # reasoning models spend part of this on thinking
 TEMPERATURE = 0.2
 DEFAULT_MODELS = ["openai/gpt-oss-120b", "llama-3.1-8b-instant"]
 
+CONTACT_FORM_URL = "https://www.sanfranciscokids.tennis/contact-sf-tennis-kids"
+
 SYSTEM_RULES = "\n".join(
     [
         (
@@ -49,6 +51,16 @@ SYSTEM_RULES = "\n".join(
         (
             "- When you quote a price, say which program or format it is for. Prices and availability "
             "are confirmed by the office."
+        ),
+        (
+            "- Whenever you mention the office, the contact form, signing up, joining, availability or "
+            "anything the office has to confirm, include the contact form link: "
+            + CONTACT_FORM_URL
+        ),
+        (
+            "- Write links as plain full URLs, never as markdown links or inside brackets or "
+            "parentheses. Use plain text: **bold** for prices and short '- ' bullet lists are fine, "
+            "but no headings or tables."
         ),
         "- If a child's age fits more than one program, explain the options briefly.",
         "- Do not ask for or collect personal details such as names, emails or phone numbers.",

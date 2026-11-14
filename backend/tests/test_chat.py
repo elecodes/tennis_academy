@@ -33,6 +33,13 @@ class TestKnowledgeBase(unittest.TestCase):
         for fact in [
             "415-707-5437",
             "Little Champs | 4-5",
+            "$85 per student per lesson",
+            "$75 per lesson",
+            "do not quote a number",
+            "Tennis clinics",
+            "lesson credit to be used at a later date",
+            "What to bring and wear",
+            "contact-sf-tennis-kids",
             "Kids Tennis | 5-7",
             "January 4, 2027",
             "$160 per camper per day",
@@ -53,6 +60,11 @@ class TestKnowledgeBase(unittest.TestCase):
         self.assertIn("Always reply in English", prompt)
         self.assertIn("Friday, November 13, 2026", prompt)
         self.assertIn("KNOWLEDGE BASE", prompt)
+        self.assertIn(chat_service.CONTACT_FORM_URL, prompt)
+        self.assertNotIn(
+            "$82.50 per student per lesson.",
+            load_knowledge().split("Parent & Me is priced")[0],
+        )
         self.assertIn("$675", prompt)
 
 

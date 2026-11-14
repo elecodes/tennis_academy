@@ -36,11 +36,11 @@ All programs are 1-hour weekly lessons at SFSU.
 | Program | Ages | Notes |
 |---|---|---|
 | Little Champs | 4-5 | Beginner level. Basic hand-eye and racquet skills and getting familiar with tennis. Parents are encouraged to stay nearby. Contact the office for current availability. |
-| Kids Tennis | 5-7 | Beginner friendly, no experience needed. Red balls and age-appropriate racquets. Hand-eye coordination, forehands and backhands, volleys, intro to serves, rallying, confidence and sportsmanship. |
-| Junior Tennis | 8-12 | Beginner friendly, grouped by age and skill. Forehand and backhand, serve and return, volleys and net play, rallying, footwork, scoring, match play. |
-| Teen Tennis | 13-17 | Beginner friendly, grouped by age and skill. Experienced teens get faster-paced drills, point play and strategy. Singles and doubles match play. |
-| High Performance | 12-17 | For competitive junior players ready for intensive training and tournament tennis. Admission is based on playing level and a player assessment is required. Prices are not listed on the website: contact the office. |
-| Parent & Me | Child from about 4, with a parent | Fun, beginner-friendly family sessions. The minimum age is about 4 and depends on the child. Contact the office for current availability. |
+| Kids Tennis | 5-7 | Beginner friendly, no experience needed. Red ball level (USTA Youth Tennis Progression) with age-appropriate racquets. Hand-eye coordination, forehands and backhands, volleys, intro to serves, rallying, confidence and sportsmanship. |
+| Junior Tennis | 8-12 | Beginner friendly, grouped by age and skill. Orange ball level. Forehand and backhand, serve and return, volleys and net play, rallying, footwork, scoring, match play. |
+| Teen Tennis | 13-17 | Beginner, intermediate and advanced levels, grouped by age and skill. Experienced teens get faster-paced drills, point play and strategy. Singles and doubles match play. |
+| High Performance | 12-17 | For competitive junior players ready for intensive training and tournament tennis, with work on spin, pace, angles and net play. Admission is based on playing level and a player assessment is required. Prices are not listed on the website: contact the office. |
+| Parent & Me | Young children with a parent, typically about 2.5 to 4 years old | Fun, beginner-friendly family sessions. The website does not list an age range, so the office confirms whether it fits a particular child. Sessions are scheduled by request: contact the office for current availability. |
 
 - A 5-year-old fits both Little Champs (4-5) and Kids Tennis (5-7). Placement depends on the child's experience, and the office helps choose. A 4-year-old can join Little Champs or Parent & Me.
 - Teens: the priority is to keep teens with age-appropriate peers rather than much younger kids. Final groups depend on the mix of players registered each week. The club has several courts, so players are matched by age and skill.
@@ -59,21 +59,22 @@ All programs are 1-hour weekly lessons at SFSU.
 
 ## Lesson formats
 
-- Group lessons: the most popular and cost-effective option. One coach per small group, minimum 4 players, student-to-coach ratio of 8:1 at most.
+- Group lessons: the most popular and cost-effective option. One coach per small group, minimum 4 players with similar age and skill, student-to-coach ratio of 8:1 at most (each group holds up to 8 players).
 - Semi-private (2 players) and Triad (3 players): one instructor for two or three students, and the cost is shared between players.
 - Private lessons: one-on-one, fully customized to the player's needs.
 - Parent & Me: parent and child learn together.
+- Tennis clinics: minimum 6 players, usually on weekends. The 12-lesson Fall group clinics are offered for beginner, intermediate and advanced levels.
 - Create-your-own group (4 or more kids): the organizing family gets 15% off the standard group rate.
 
 ### Per-lesson rates quoted by the office
 
 - Group: $56.25 per student per lesson.
-- Triad (3 students): $65 per student per lesson.
-- Semi-private (2 students): $82.50 per student per lesson.
+- Semi-private (2 students): $85 per student per lesson. A second sibling in the same semi-private lesson pays $75 per lesson.
+- Triad (3 students): the per-lesson price is not confirmed here, so do not quote a number. Say the office confirms triad pricing.
 - Private (1 student): $120 per lesson.
 - A one-time $25 setup fee applies to new lesson packages.
 - Parent & Me is priced by number of family members taking part, per person per lesson: 2 people $82.50, 3 people $65, 4 or more people $56.25 (plus the one-time $25 setup fee).
-- The office confirms the exact package and availability for each family.
+- The office confirms the exact package and availability for each family. The bot cannot see live availability, so never say a group has open spots.
 
 ## Fall 2026 group schedule (Kids, Junior and Teen)
 
@@ -120,9 +121,16 @@ Weekday class times moved earlier in November because of shorter daylight hours.
 ## Policies and FAQ
 
 - Cancellations: cancel at least 48 hours ahead to earn a lesson credit. Same-day cancellations are not eligible because coaches and courts are committed in advance.
-- Missed lessons and rain-outs: families can join any active group for a make-up class within the current season. A make-up that cannot be used in that season can be scheduled later in the year.
+- Rain-outs: a lesson cancelled because of rain or weather is credited as a lesson credit to be used at a later date. The club emails families about weather cancellations with reasonable advance notice.
+- Missed lessons: families can join any active group for a make-up class within the current season. A make-up that cannot be used in that season can be scheduled later in the year.
 - Joining mid-season: yes. The QuickStart lessons are designed so children can join any group at any time without falling behind, and tuition is prorated.
 - Can parents watch? For Little Champs (ages 4-5) parents are encouraged to stay nearby. For other ages it is up to the family.
 - Class size: small groups, 8:1 student-to-coach ratio at most.
+- What to bring and wear to a lesson or camp:
+  - Comfortable athletic clothing that allows easy movement, and tennis shoes or supportive athletic shoes.
+  - A tennis racquet. If a child does not have one, the club can often lend one for the first lesson, and coaches can advise on the right size before buying one. For summer camp, loaner racquets are available for a fee (see Summer Camp 2027).
+  - Tennis balls are provided by the club.
+  - A water bottle (there are often water sources at the courts), and a hat and sunscreen on sunny days.
+  - For camp: a lunch and snacks for the scheduled breaks.
 - Photos: the club sometimes shares group progress on social media and does not post names. Families who object must say so in writing.
 - Location: lessons are at the SFSU campus, and the location may change when necessary.
